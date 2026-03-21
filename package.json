@@ -1,0 +1,14 @@
+{
+  "name": "testtag-for-wordpress",
+  "version": "1.0.0",
+  "description": "Automatically tag any element on your WordPress site with test attributes for Playwright, Cypress, Selenium, or any automation framework.",
+  "license": "GPL-2.0-or-later",
+  "scripts": {
+    "build": "webpack --mode production",
+    "dev":   "webpack --mode development --watch",
+    "lint":  "eslint block-editor/src"
+  },
+  "devDependencies": {
+    "@wordpress/scripts": "^27.0.0"
+  }
+}
