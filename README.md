@@ -42,7 +42,7 @@ TestTag ensures comprehensive coverage without breaking your existing setup. It 
 
 ---
 
-## Audit Mode (v1.1.0)
+## Audit Mode
 
 Stop guessing if your elements are targetable. Audit Mode provides a visual overlay that highlights every tagged element on the page, allowing you to verify your test coverage at a glance.
 
@@ -59,9 +59,9 @@ Every tagged element receives a colored border and a badge displaying its tag va
 
 **Layer Color Legend:**
 The legend sits neatly in the bottom-right corner while Audit Mode is active.
-* **Purple:** Block Editor (Server-rendered)
-* **Blue:** CSS Selector Map
-* **Green:** Auto-generated
+* 🟣**Purple:** Block Editor (Server-rendered)
+* 🔵**Blue:** CSS Selector Map
+* 🟢**Green:** Auto-generated
 
 *Note: Audit Mode state persists across page navigations within the same browser session via `sessionStorage`. The entire overlay is built inside a **shadow DOM**, ensuring its styles are fully isolated and never interfere with your page's actual CSS.*
 
