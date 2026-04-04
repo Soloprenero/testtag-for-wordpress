@@ -1,6 +1,6 @@
 === TestTag for WordPress ===
 Contributors: garyyoungiii
-Donate link: https://github.com/sponsors/garyyoungiii
+Donate link: https://soloprenero.com/buy/testtag-for-wordpress/
 Tags: testing, playwright, cypress, selenium, qa, automation, testid
 Requires at least: 6.0
 Tested up to: 6.9.4
