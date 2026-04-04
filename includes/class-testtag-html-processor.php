@@ -293,7 +293,7 @@ class TestTag_HTML_Processor {
                     $parent = $el->parentNode;
                     while ( $parent instanceof DOMElement ) {
                         if ( $parent->hasAttribute( self::$attr ) ) {
-                            return $parent->getAttribute( self::$attr ) . '-link';
+                            return 'link-' . $parent->getAttribute( self::$attr );
                         }
                         $parent = $parent->parentNode;
                     }
@@ -323,7 +323,7 @@ class TestTag_HTML_Processor {
         // ── Headings ──────────────────────────────────────────────
         if ( preg_match( '/^h[1-6]$/', $tag ) ) {
             $text = trim( $el->textContent );
-            return $text ? $tag . '-' . self::slug( $text ) : null;
+            return $text ? 'heading-' . self::slug( $text ) : null;
         }
 
         // ── Paragraphs ────────────────────────────────────────────
@@ -333,7 +333,7 @@ class TestTag_HTML_Processor {
             $parent = $el->parentNode;
             while ( $parent instanceof DOMElement ) {
                 if ( $parent->hasAttribute( self::$attr ) ) {
-                    return $parent->getAttribute( self::$attr ) . '-text';
+                    return 'text-' . $parent->getAttribute( self::$attr );
                 }
                 $parent = $parent->parentNode;
             }
@@ -434,7 +434,7 @@ class TestTag_HTML_Processor {
             $id = $el->getAttribute( 'id' );
             if ( $id ) {
                 $clean = self::clean( self::slug( $id ) );
-                if ( $clean && ! ctype_digit( $clean ) && strlen( $clean ) > 1 ) return 'container-' . $clean;
+                if ( $clean && ! ctype_digit( $clean ) && strlen( $clean ) > 1 ) return $prefix . '-' . $clean;
                 return null;
             }
 

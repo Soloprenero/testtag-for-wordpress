@@ -114,7 +114,7 @@
                 var ancestor = el.parentElement;
                 while (ancestor) {
                     if (ancestor.hasAttribute(ATTR)) {
-                        return ancestor.getAttribute(ATTR) + '-link';
+                        return 'link-' + ancestor.getAttribute(ATTR);
                     }
                     ancestor = ancestor.parentElement;
                 }
@@ -143,7 +143,7 @@
         // Headings
         if (/^h[1-6]$/.test(tagName)) {
             var text = el.textContent.trim();
-            return text ? tagName + '-' + slug(text) : null;
+            return text ? 'heading-' + slug(text) : null;
         }
 
         // Paragraphs — prepend the nearest tagged ancestor's value, never embed prose
@@ -151,7 +151,7 @@
             var ancestor = el.parentElement;
             while (ancestor) {
                 if (ancestor.hasAttribute(ATTR)) {
-                    return ancestor.getAttribute(ATTR) + '-text';
+                    return 'text-' + ancestor.getAttribute(ATTR);
                 }
                 ancestor = ancestor.parentElement;
             }
@@ -239,7 +239,7 @@
             var id = el.id;
             if (id) {
                 var clean = slug(id);
-                if (clean && !/^\d+$/.test(clean) && clean.length > 1) return 'container-' + clean;
+                if (clean && !/^\d+$/.test(clean) && clean.length > 1) return prefix + '-' + clean;
             }
 
             var role = el.getAttribute('role');
