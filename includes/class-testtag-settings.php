@@ -504,6 +504,15 @@ class TestTag_Settings {
     private static function get_changelog(): array {
         return [
             [
+                'version' => '1.4.1',
+                'date'    => '2026-04-04',
+                'changes' => [
+                    'CI/release hardening only (no runtime plugin behavior changes).',
+                    'Updated GitHub Actions for Node 24 transition readiness.',
+                    'Release packaging now validates required files and excludes non-runtime project files.',
+                ],
+            ],
+            [
                 'version' => '1.4.1-beta',
                 'date'    => '2026-03-21',
                 'changes' => [

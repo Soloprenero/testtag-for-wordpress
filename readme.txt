@@ -5,7 +5,7 @@ Tags: testing, playwright, cypress, selenium, qa, automation, testid
 Requires at least: 6.0
 Tested up to: 6.9.4
 Requires PHP: 8.0
-Stable tag: trunk
+Stable tag: 1.4.1
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -76,13 +76,13 @@ By default, injection is limited to admins and local/development/staging. You ca
 
 == Changelog ==
 
-= 1.4.1-beta =
-* Added pay-what-you-want buy/donate messaging and support link
-* Added project-level CHANGELOG.md and CONTRIBUTORS.md
-* Normalized dynamic injector naming with server-side processor
-* Updated documentation and release metadata for WordPress.org prep
-
 = 1.4.1 =
+* CI/release hardening only (no runtime plugin behavior changes)
+* Updated GitHub Actions for Node 24 transition readiness
+* Improved release packaging validation and required-file manifest checks
+* Excluded non-runtime project files from release zip artifacts
+
+= 1.4.1-beta =
 * Improved card-style anchor and paragraph naming behavior
 * Scoped dedup per parent container
 
@@ -92,5 +92,5 @@ By default, injection is limited to admins and local/development/staging. You ca
 
 == Upgrade Notice ==
 
-= 1.4.1-beta =
-Beta release focused on naming consistency, docs, and release prep. Validate in staging before production rollout.
+= 1.4.1 =
+Maintenance release focused on CI/release pipeline reliability.

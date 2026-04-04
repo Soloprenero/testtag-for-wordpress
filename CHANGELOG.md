@@ -2,6 +2,14 @@
 
 All notable changes to TestTag for WordPress are documented in this file.
 
+## [1.4.1] - 2026-04-04
+
+### Changed
+- CI/release hardening only (no runtime plugin behavior changes).
+- Updated GitHub Actions versions and Node 24 transition handling.
+- Added strict release zip validation using required-file manifest checks.
+- Excluded non-runtime project files from release zip artifacts.
+
 ## [1.4.1-beta] - 2026-04-04
 
 ### Added
@@ -19,16 +27,6 @@ All notable changes to TestTag for WordPress are documented in this file.
   - div/span ID fallback uses role-or-tag prefix
 - README file map updated to reflect current includes/ and js/ structure.
 - .history/ ignored in git to keep release packages clean.
-
-### Notes
-- Existing staged and unstaged code changes in html processor and dynamic injector were preserved and normalized as part of the beta release prep.
-
-## [1.4.1] - 2026-03-21
-
-### Changed
-- Card-style anchors now tagged by nearest tagged ancestor scope.
-- Paragraph tags now avoid embedding prose in attribute values.
-- Dedup behavior scoped per parent container.
 
 ## [1.4.0] - 2026-03-21
 
