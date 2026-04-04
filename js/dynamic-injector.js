@@ -202,6 +202,9 @@
 
         // Divs / spans — Elementor, Gutenberg, id/role fallbacks
         if (tagName === 'div' || tagName === 'span') {
+            // Prefix auto-generated values with role (if present) or HTML tag.
+            var prefix = el.getAttribute('role') || tagName;
+
             var eType = el.getAttribute('data-element_type');
             if (eType === 'section' || eType === 'container') {
                 var h = firstHeadingText(el);
@@ -214,10 +217,12 @@
             var eWidget = el.getAttribute('data-widget_type');
             if (eWidget) {
                 var h = firstHeadingText(el);
-                if (h) return slug(h);
+                if (h) return prefix + '-' + slug(h);
                 var al = el.getAttribute('aria-label');
-                if (al) return slug(al);
-                return slug(eWidget.replace(/\.default$/, '').replace(/^wp-widget-/, '')) || null;
+                if (al) return prefix + '-' + slug(al);
+                var wType = eWidget.replace(/\.default$/, '').replace(/^wp-widget-/, '');
+                var cleaned = slug(wType);
+                return cleaned ? prefix + '-' + cleaned : null;
             }
 
             // Gutenberg blocks
@@ -225,8 +230,9 @@
             for (var i = 0; i < classes.length; i++) {
                 if (classes[i].indexOf('wp-block-') === 0) {
                     var h = firstHeadingText(el);
-                    if (h) return slug(h);
-                    return slug(classes[i].slice('wp-block-'.length)) || null;
+                    if (h) return prefix + '-' + slug(h);
+                    var blockSlug = slug(classes[i].slice('wp-block-'.length));
+                    return blockSlug ? prefix + '-' + blockSlug : null;
                 }
             }
 
