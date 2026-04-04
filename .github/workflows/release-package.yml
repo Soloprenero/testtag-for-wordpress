@@ -1,5 +1,8 @@
 name: Release Package
 
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
 on:
   workflow_dispatch:
   push:
@@ -41,13 +44,13 @@ jobs:
             -x "*.zip"
 
       - name: Upload package artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: testtag-for-wordpress
           path: dist/testtag-for-wordpress.zip
 
       - name: Attach zip to GitHub release
         if: startsWith(github.ref, 'refs/tags/v')
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v2.6.1
         with:
           files: dist/testtag-for-wordpress.zip
