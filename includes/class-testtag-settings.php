@@ -439,6 +439,10 @@ class TestTag_Settings {
                 <h2>About the Author</h2>
                 <div class="testtag-author">
                     <div class="testtag-author-name">Gary Young III</div>
+                    <p class="description">
+                        TestTag is offered as <strong>pay what you want</strong>. If it saves you time,
+                        you can support the project with a pay-what-you-want contribution.
+                    </p>
                     <div class="testtag-author-links">
                         <?php foreach ( self::get_author_links() as $link ) : ?>
                         <a href="<?php echo esc_url( $link['url'] ); ?>"
@@ -492,7 +496,7 @@ class TestTag_Settings {
             [ 'label' => 'Website',  'url' => 'https://garyyoungiii.com' ],
             [ 'label' => 'Fiverr',   'url' => '' ],
             [ 'label' => 'Upwork',   'url' => '' ],
-            [ 'label' => 'Donate',   'url' => '' ],
+            [ 'label' => 'Support TestTag (Pay What You Want)', 'url' => 'https://soloprenero.com/buy/testtag-for-wordpress/' ],
         ];
         return array_values( array_filter( $links, fn( $l ) => ! empty( $l['url'] ) ) );
     }
@@ -500,11 +504,11 @@ class TestTag_Settings {
     private static function get_changelog(): array {
         return [
             [
-                'version' => '1.4.1',
+                'version' => '1.4.1-beta',
                 'date'    => '2026-03-21',
                 'changes' => [
-                    'Card-style anchors (an <code>&lt;a&gt;</code> wrapping block-level content) now tagged as <code>{ancestor}-link</code> instead of embedding link text.',
-                    'Paragraph elements (<code>&lt;p&gt;</code>) now tagged as <code>{ancestor}-text</code> — prose content is never embedded in the tag value.',
+                    'Card-style anchors (an <code>&lt;a&gt;</code> wrapping block-level content) now tagged as <code>link-{ancestor}</code> instead of embedding link text.',
+                    'Paragraph elements (<code>&lt;p&gt;</code>) now tagged as <code>text-{ancestor}</code>; prose content is never embedded in the tag value.',
                     'Dedup is now scoped per-parent element rather than page-wide; sibling containers each receive clean base values without global counters.',
                 ],
             ],

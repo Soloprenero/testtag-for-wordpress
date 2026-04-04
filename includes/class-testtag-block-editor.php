@@ -9,19 +9,44 @@ class TestTag_Block_Editor {
     }
 
     public static function enqueue_editor_assets(): void {
+        $asset_file = TESTTAG_PLUGIN_DIR . 'block-editor/build/index.asset.php';
+        $asset_data = [
+            'dependencies' => [ 'wp-blocks', 'wp-element', 'wp-edit-post', 'wp-components', 'wp-hooks', 'wp-block-editor', 'wp-compose' ],
+            'version'      => TESTTAG_VERSION,
+        ];
+
+        if ( file_exists( $asset_file ) ) {
+            $generated = require $asset_file;
+            if ( is_array( $generated ) ) {
+                if ( isset( $generated['dependencies'] ) && is_array( $generated['dependencies'] ) ) {
+                    $asset_data['dependencies'] = array_values(
+                        array_unique(
+                            array_merge( $asset_data['dependencies'], $generated['dependencies'] )
+                        )
+                    );
+                }
+                $asset_data['version'] = $generated['version'] ?? $asset_data['version'];
+            }
+        }
+
         wp_enqueue_script(
             'testtag-block-editor',
             TESTTAG_PLUGIN_URL . 'block-editor/build/index.js',
-            [ 'wp-blocks', 'wp-element', 'wp-edit-post', 'wp-components', 'wp-hooks', 'wp-block-editor', 'wp-compose' ],
-            TESTTAG_VERSION,
+            $asset_data['dependencies'],
+            $asset_data['version'],
             true
         );
-        wp_enqueue_style(
-            'testtag-block-editor',
-            TESTTAG_PLUGIN_URL . 'block-editor/build/editor.css',
-            [],
-            TESTTAG_VERSION
-        );
+
+        // Some builds emit only JS; enqueue editor.css only when present.
+        if ( file_exists( TESTTAG_PLUGIN_DIR . 'block-editor/build/editor.css' ) ) {
+            wp_enqueue_style(
+                'testtag-block-editor',
+                TESTTAG_PLUGIN_URL . 'block-editor/build/editor.css',
+                [],
+                $asset_data['version']
+            );
+        }
+
         // Pass the attribute key so the sidebar preview stays accurate
         wp_localize_script( 'testtag-block-editor', 'TESTTAG_EDITOR', [
             'attributeKey' => TestTag_Settings::get_attribute_key(),

@@ -1,0 +1,42 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          coverage: none
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci --no-audit --no-fund
+
+      - name: Build block editor assets
+        run: npm run build
+
+      - name: Validate PHP syntax
+        run: |
+          while IFS= read -r -d '' file; do
+            php -l "$file"
+          done < <(find . -type f -name "*.php" -print0)
+
+      - name: Ensure build artifacts are committed
+        run: git diff --exit-code -- block-editor/build

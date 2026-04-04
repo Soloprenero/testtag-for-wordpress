@@ -114,7 +114,7 @@
                 var ancestor = el.parentElement;
                 while (ancestor) {
                     if (ancestor.hasAttribute(ATTR)) {
-                        return ancestor.getAttribute(ATTR) + '-link';
+                        return 'link-' + ancestor.getAttribute(ATTR);
                     }
                     ancestor = ancestor.parentElement;
                 }
@@ -143,7 +143,7 @@
         // Headings
         if (/^h[1-6]$/.test(tagName)) {
             var text = el.textContent.trim();
-            return text ? tagName + '-' + slug(text) : null;
+            return text ? 'heading-' + slug(text) : null;
         }
 
         // Paragraphs — prepend the nearest tagged ancestor's value, never embed prose
@@ -151,7 +151,7 @@
             var ancestor = el.parentElement;
             while (ancestor) {
                 if (ancestor.hasAttribute(ATTR)) {
-                    return ancestor.getAttribute(ATTR) + '-text';
+                    return 'text-' + ancestor.getAttribute(ATTR);
                 }
                 ancestor = ancestor.parentElement;
             }
@@ -202,6 +202,9 @@
 
         // Divs / spans — Elementor, Gutenberg, id/role fallbacks
         if (tagName === 'div' || tagName === 'span') {
+            // Prefix auto-generated values with role (if present) or HTML tag.
+            var prefix = el.getAttribute('role') || tagName;
+
             var eType = el.getAttribute('data-element_type');
             if (eType === 'section' || eType === 'container') {
                 var h = firstHeadingText(el);
@@ -214,10 +217,12 @@
             var eWidget = el.getAttribute('data-widget_type');
             if (eWidget) {
                 var h = firstHeadingText(el);
-                if (h) return slug(h);
+                if (h) return prefix + '-' + slug(h);
                 var al = el.getAttribute('aria-label');
-                if (al) return slug(al);
-                return slug(eWidget.replace(/\.default$/, '').replace(/^wp-widget-/, '')) || null;
+                if (al) return prefix + '-' + slug(al);
+                var wType = eWidget.replace(/\.default$/, '').replace(/^wp-widget-/, '');
+                var cleaned = slug(wType);
+                return cleaned ? prefix + '-' + cleaned : null;
             }
 
             // Gutenberg blocks
@@ -225,15 +230,16 @@
             for (var i = 0; i < classes.length; i++) {
                 if (classes[i].indexOf('wp-block-') === 0) {
                     var h = firstHeadingText(el);
-                    if (h) return slug(h);
-                    return slug(classes[i].slice('wp-block-'.length)) || null;
+                    if (h) return prefix + '-' + slug(h);
+                    var blockSlug = slug(classes[i].slice('wp-block-'.length));
+                    return blockSlug ? prefix + '-' + blockSlug : null;
                 }
             }
 
             var id = el.id;
             if (id) {
                 var clean = slug(id);
-                if (clean && !/^\d+$/.test(clean) && clean.length > 1) return 'container-' + clean;
+                if (clean && !/^\d+$/.test(clean) && clean.length > 1) return prefix + '-' + clean;
             }
 
             var role = el.getAttribute('role');

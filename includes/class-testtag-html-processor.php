@@ -293,7 +293,7 @@ class TestTag_HTML_Processor {
                     $parent = $el->parentNode;
                     while ( $parent instanceof DOMElement ) {
                         if ( $parent->hasAttribute( self::$attr ) ) {
-                            return $parent->getAttribute( self::$attr ) . '-link';
+                            return 'link-' . $parent->getAttribute( self::$attr );
                         }
                         $parent = $parent->parentNode;
                     }
@@ -323,7 +323,7 @@ class TestTag_HTML_Processor {
         // ── Headings ──────────────────────────────────────────────
         if ( preg_match( '/^h[1-6]$/', $tag ) ) {
             $text = trim( $el->textContent );
-            return $text ? $tag . '-' . self::slug( $text ) : null;
+            return $text ? 'heading-' . self::slug( $text ) : null;
         }
 
         // ── Paragraphs ────────────────────────────────────────────
@@ -333,7 +333,7 @@ class TestTag_HTML_Processor {
             $parent = $el->parentNode;
             while ( $parent instanceof DOMElement ) {
                 if ( $parent->hasAttribute( self::$attr ) ) {
-                    return $parent->getAttribute( self::$attr ) . '-text';
+                    return 'text-' . $parent->getAttribute( self::$attr );
                 }
                 $parent = $parent->parentNode;
             }
@@ -394,6 +394,10 @@ class TestTag_HTML_Processor {
 
         // ── Divs / spans ──────────────────────────────────────────
         if ( $tag === 'div' || $tag === 'span' ) {
+            // For auto-generated values use role (if present) or the HTML tag
+            // as a prefix so the element type is always identifiable.
+            $prefix = $el->getAttribute( 'role' ) ?: $tag;
+
             $eType = $el->getAttribute( 'data-element_type' );
             if ( $eType === 'section' || $eType === 'container' ) {
                 $h = self::first_heading_text( $el );
@@ -406,12 +410,13 @@ class TestTag_HTML_Processor {
             $eWidget = $el->getAttribute( 'data-widget_type' );
             if ( $eWidget ) {
                 $h = self::first_heading_text( $el );
-                if ( $h ) return self::slug( $h );
+                if ( $h ) return $prefix . '-' . self::slug( $h );
                 $al = $el->getAttribute( 'aria-label' );
-                if ( $al ) return self::slug( $al );
+                if ( $al ) return $prefix . '-' . self::slug( $al );
                 $wType = preg_replace( '/\.default$/', '', $eWidget );
                 $wType = preg_replace( '/^wp-widget-/', '', $wType );
-                return self::clean( self::slug( $wType ) ) ?: null;
+                $cleaned = self::clean( self::slug( $wType ) );
+                return $cleaned ? $prefix . '-' . $cleaned : null;
             }
 
             // Gutenberg blocks
@@ -419,16 +424,17 @@ class TestTag_HTML_Processor {
             foreach ( $classes as $cls ) {
                 if ( str_starts_with( $cls, 'wp-block-' ) ) {
                     $h = self::first_heading_text( $el );
-                    if ( $h ) return self::slug( $h );
+                    if ( $h ) return $prefix . '-' . self::slug( $h );
                     $blockName = substr( $cls, strlen( 'wp-block-' ) );
-                    return self::clean( self::slug( $blockName ) ) ?: null;
+                    $cleaned   = self::clean( self::slug( $blockName ) );
+                    return $cleaned ? $prefix . '-' . $cleaned : null;
                 }
             }
 
             $id = $el->getAttribute( 'id' );
             if ( $id ) {
                 $clean = self::clean( self::slug( $id ) );
-                if ( $clean && ! ctype_digit( $clean ) && strlen( $clean ) > 1 ) return 'container-' . $clean;
+                if ( $clean && ! ctype_digit( $clean ) && strlen( $clean ) > 1 ) return $prefix . '-' . $clean;
                 return null;
             }
 
