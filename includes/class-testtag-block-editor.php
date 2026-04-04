@@ -18,8 +18,14 @@ class TestTag_Block_Editor {
         if ( file_exists( $asset_file ) ) {
             $generated = require $asset_file;
             if ( is_array( $generated ) ) {
-                $asset_data['dependencies'] = $generated['dependencies'] ?? $asset_data['dependencies'];
-                $asset_data['version']      = $generated['version'] ?? $asset_data['version'];
+                if ( isset( $generated['dependencies'] ) && is_array( $generated['dependencies'] ) ) {
+                    $asset_data['dependencies'] = array_values(
+                        array_unique(
+                            array_merge( $asset_data['dependencies'], $generated['dependencies'] )
+                        )
+                    );
+                }
+                $asset_data['version'] = $generated['version'] ?? $asset_data['version'];
             }
         }
 
