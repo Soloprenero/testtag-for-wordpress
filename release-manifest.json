@@ -1,0 +1,15 @@
+{
+  "requiredFiles": [
+    "testtag-for-wordpress.php",
+    "readme.txt",
+    "README.md",
+    "CHANGELOG.md",
+    "CONTRIBUTORS.md",
+    "includes/class-testtag-html-processor.php",
+    "includes/class-testtag-settings.php",
+    "includes/class-testtag-block-editor.php",
+    "js/dynamic-injector.js",
+    "block-editor/build/index.js",
+    "block-editor/build/index.asset.php"
+  ]
+}
