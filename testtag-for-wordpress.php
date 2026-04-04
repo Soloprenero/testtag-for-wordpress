@@ -8,9 +8,11 @@
  *               CSS selector map for explicit overrides, and a block editor sidebar
  *               field for per-block manual overrides. Works on any WordPress site —
  *               Elementor, Gutenberg, or classic themes.
- * Version:      1.4.1
+ * Version:      1.4.1-beta
  * Author:       Gary Young III
  * Author URI:   https://garyyoungiii.com
+ * Requires at least: 6.0
+ * Requires PHP: 8.0
  * License:      GPL-2.0-or-later
  * License URI:  https://www.gnu.org/licenses/gpl-2.0.html
  * Text Domain:  testtag
@@ -18,7 +20,7 @@
 
 defined( 'ABSPATH' ) || exit;
 
-define( 'TESTTAG_VERSION',    '1.4.1' );
+define( 'TESTTAG_VERSION',    '1.4.1-beta' );
 define( 'TESTTAG_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
 define( 'TESTTAG_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
 
