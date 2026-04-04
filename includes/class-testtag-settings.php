@@ -439,6 +439,10 @@ class TestTag_Settings {
                 <h2>About the Author</h2>
                 <div class="testtag-author">
                     <div class="testtag-author-name">Gary Young III</div>
+                    <p class="description">
+                        TestTag is offered as <strong>pay what you want</strong>. If it saves you time,
+                        you can buy it or donate any amount that feels right.
+                    </p>
                     <div class="testtag-author-links">
                         <?php foreach ( self::get_author_links() as $link ) : ?>
                         <a href="<?php echo esc_url( $link['url'] ); ?>"
@@ -492,7 +496,7 @@ class TestTag_Settings {
             [ 'label' => 'Website',  'url' => 'https://garyyoungiii.com' ],
             [ 'label' => 'Fiverr',   'url' => '' ],
             [ 'label' => 'Upwork',   'url' => '' ],
-            [ 'label' => 'Donate',   'url' => '' ],
+            [ 'label' => 'Buy / Donate (Pay What You Want)', 'url' => 'https://github.com/sponsors/garyyoungiii' ],
         ];
         return array_values( array_filter( $links, fn( $l ) => ! empty( $l['url'] ) ) );
     }
@@ -500,7 +504,7 @@ class TestTag_Settings {
     private static function get_changelog(): array {
         return [
             [
-                'version' => '1.4.1',
+                'version' => '1.4.1-beta',
                 'date'    => '2026-03-21',
                 'changes' => [
                     'Card-style anchors (an <code>&lt;a&gt;</code> wrapping block-level content) now tagged as <code>{ancestor}-link</code> instead of embedding link text.',

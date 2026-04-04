@@ -60,13 +60,16 @@ The overlay is built inside a **shadow DOM** so its styles are fully isolated �
 testtag-for-wordpress/
 ├── testtag-for-wordpress.php          Main plugin bootstrap
 ├── includes/
-│   ├── class-testtag-settings.php    Admin settings page + options API
-│   ├── class-testtag-injector.php    Enqueues frontend injector JS
+│   ├── class-testtag-settings.php      Admin settings page + options API
+│   ├── class-testtag-presets.php       Plugin presets for selector maps
+│   ├── class-testtag-html-processor.php Server-side HTML tagging engine
+│   ├── class-testtag-layer-marker.php  Frontend layer marker + injector enqueue
 │   ├── class-testtag-block-editor.php  Gutenberg sidebar field
-│   └── class-testtag-audit.php       Audit Mode admin bar + overlay assets
+│   └── class-testtag-audit.php         Audit Mode admin bar + overlay assets
 ├── js/
-│   ├── injector.js                   2-layer client engine (selector map + auto-gen)
-│   └── audit-overlay.js              Audit Mode overlay (shadow DOM)
+│   ├── layer-marker.js                Marks source layer on tagged nodes
+│   ├── dynamic-injector.js            Tags dynamically inserted DOM nodes
+│   └── audit-overlay.js               Audit Mode tooltip + legend UI
 ├── block-editor/
 │   ├── src/index.js
 │   └── build/
@@ -183,3 +186,9 @@ driver.find_element(By.CSS_SELECTOR, '[data-test="nav-about"]')
 ## License
 
 GPL-2.0-or-later — [Gary Young III](https://garyyoungiii.com)
+
+## Support
+
+If TestTag helps your workflow, you can support it with a **pay what you want** contribution:
+
+- Buy / Donate: [https://soloprenero.com/buy/testtag-for-wordpress/](https://soloprenero.com/buy/testtag-for-wordpress/)
