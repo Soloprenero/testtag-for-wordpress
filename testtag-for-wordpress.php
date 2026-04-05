@@ -2,12 +2,7 @@
 /**
  * Plugin Name:  TestTag for WordPress
  * Plugin URI:   https://github.com/garyyoungiii/testtag-for-wordpress
- * Description:  Automatically tag any element on your WordPress site with test
- *               attributes for Playwright, Cypress, Selenium, or any automation
- *               framework. Three layers: auto-generation from element semantics,
- *               CSS selector map for explicit overrides, and a block editor sidebar
- *               field for per-block manual overrides. Works on any WordPress site —
- *               Elementor, Gutenberg, or classic themes.
+ * Description:  Automatically add stable test attributes (data-testid, data-cy, etc.) to any WordPress site for Playwright, Cypress, Selenium, and other UI automation tools.
  * Version:      1.4.1
  * Author:       Gary Young III
  * Author URI:   https://garyyoungiii.com
