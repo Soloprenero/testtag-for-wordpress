@@ -37,7 +37,7 @@ jobs:
 
       - name: Validate Playwright UI boot
         run: |
-          timeout 45s xvfb-run --auto-servernum npm run test:playwright:ui
+          SKIP_GLOBAL_SETUP=true SKIP_WEB_SERVER=true USE_DOCKER=false timeout 45s xvfb-run --auto-servernum npm run test:playwright:ui
           code=$?
           if [ "$code" -ne 0 ] && [ "$code" -ne 124 ]; then
             exit "$code"
