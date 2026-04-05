@@ -1,0 +1,187 @@
+
+Running 2 tests using 1 worker
+├ù├ùF├ù├ùFStopping Docker containers...
+ Container testtag-for-wordpress-wordpress-1 Stopping 
+ Container testtag-for-wordpress-wordpress-1 Stopped 
+ Container testtag-for-wordpress-wordpress-1 Removing 
+ Container testtag-for-wordpress-wordpress-1 Removed 
+ Container testtag-for-wordpress-mysql-1 Stopping 
+ Container testtag-for-wordpress-mysql-1 Stopped 
+ Container testtag-for-wordpress-mysql-1 Removing 
+ Container testtag-for-wordpress-mysql-1 Removed 
+ Network testtag-for-wordpress_default Removing 
+ Network testtag-for-wordpress_default Removed 
+Docker containers stopped.
+
+
+  1) [chromium] ΓÇ║ tests\e2e\block-editor\block-editor.spec.ts:8:7 ΓÇ║ TestTag Plugin - Block Editor ΓÇ║ Block editor TestTag panel 
+
+    [31mTest timeout of 90000ms exceeded.[39m
+
+    Error: locator.click: Test timeout of 90000ms exceeded.
+    Call log:
+    [2m  - waiting for locator('#the-list .row-title').first()[22m
+
+
+       at ..\pageObjects\BlockEditorPage.ts:55
+
+      53 |     } else {
+      54 |       // Fallback to the first page row when the expected title does not exist.
+    > 55 |       await this.page.locator('#the-list .row-title').first().click();
+         |                                                               ^
+      56 |     }
+      57 |
+      58 |     await this.page.waitForURL(/\/wp-admin\/post\.php\?post=\d+&action=edit/, { timeout: 20000 });
+        at BlockEditorPage.openExistingPage (C:\Users\Gary\Repositories\WP Plugins\testtag-for-wordpress\tests\pageObjects\BlockEditorPage.ts:55:63)
+        at C:\Users\Gary\Repositories\WP Plugins\testtag-for-wordpress\tests\e2e\block-editor\block-editor.spec.ts:13:5
+
+    attachment #1: screenshot (image/png) ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+    test-results\block-editor-block-editor--148fe--Block-editor-TestTag-panel-chromium\test-failed-1.png
+    ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+
+    Error Context: test-results\block-editor-block-editor--148fe--Block-editor-TestTag-panel-chromium\error-context.md
+
+    Retry #1 ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+
+    Error: page.goto: net::ERR_CONNECTION_RESET at http://localhost:8080/wp-admin/plugins.php
+    Call log:
+    [2m  - navigating to "http://localhost:8080/wp-admin/plugins.php", waiting until "domcontentloaded"[22m
+
+
+       at ..\pageObjects\WordPressAuthPage.ts:107
+
+      105 |
+      106 |   async ensureTestTagPluginIsActive(): Promise<void> {
+    > 107 |     await this.page.goto(TEST_URLS.PLUGINS, { waitUntil: 'domcontentloaded', timeout: 60000 });
+          |                     ^
+      108 |     await this.page.waitForLoadState('networkidle');
+      109 |
+      110 |     const activateLink = this.page
+        at WordPressAuthPage.ensureTestTagPluginIsActive (C:\Users\Gary\Repositories\WP Plugins\testtag-for-wordpress\tests\pageObjects\WordPressAuthPage.ts:107:21)
+        at C:\Users\Gary\Repositories\WP Plugins\testtag-for-wordpress\tests\e2e\block-editor\block-editor.spec.ts:12:16
+
+    attachment #1: screenshot (image/png) ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+    test-results\block-editor-block-editor--148fe--Block-editor-TestTag-panel-chromium-retry1\test-failed-1.png
+    ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+
+    Error Context: test-results\block-editor-block-editor--148fe--Block-editor-TestTag-panel-chromium-retry1\error-context.md
+
+    attachment #3: trace (application/zip) ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+    test-results\block-editor-block-editor--148fe--Block-editor-TestTag-panel-chromium-retry1\trace.zip
+    Usage:
+
+        npx playwright show-trace test-results\block-editor-block-editor--148fe--Block-editor-TestTag-panel-chromium-retry1\trace.zip
+
+    ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+
+    Retry #2 ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+
+    Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:8080/wp-admin/plugins.php
+    Call log:
+    [2m  - navigating to "http://localhost:8080/wp-admin/plugins.php", waiting until "domcontentloaded"[22m
+
+
+       at ..\pageObjects\WordPressAuthPage.ts:107
+
+      105 |
+      106 |   async ensureTestTagPluginIsActive(): Promise<void> {
+    > 107 |     await this.page.goto(TEST_URLS.PLUGINS, { waitUntil: 'domcontentloaded', timeout: 60000 });
+          |                     ^
+      108 |     await this.page.waitForLoadState('networkidle');
+      109 |
+      110 |     const activateLink = this.page
+        at WordPressAuthPage.ensureTestTagPluginIsActive (C:\Users\Gary\Repositories\WP Plugins\testtag-for-wordpress\tests\pageObjects\WordPressAuthPage.ts:107:21)
+        at C:\Users\Gary\Repositories\WP Plugins\testtag-for-wordpress\tests\e2e\block-editor\block-editor.spec.ts:12:16
+
+    attachment #1: screenshot (image/png) ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+    test-results\block-editor-block-editor--148fe--Block-editor-TestTag-panel-chromium-retry2\test-failed-1.png
+    ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+
+    Error Context: test-results\block-editor-block-editor--148fe--Block-editor-TestTag-panel-chromium-retry2\error-context.md
+
+  2) [chromium] ΓÇ║ tests\e2e\block-editor\block-editor.spec.ts:22:7 ΓÇ║ TestTag Plugin - Block Editor ΓÇ║ Block with manual TestTag override 
+
+    Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:8080/wp-admin/plugins.php
+    Call log:
+    [2m  - navigating to "http://localhost:8080/wp-admin/plugins.php", waiting until "domcontentloaded"[22m
+
+
+       at ..\pageObjects\WordPressAuthPage.ts:107
+
+      105 |
+      106 |   async ensureTestTagPluginIsActive(): Promise<void> {
+    > 107 |     await this.page.goto(TEST_URLS.PLUGINS, { waitUntil: 'domcontentloaded', timeout: 60000 });
+          |                     ^
+      108 |     await this.page.waitForLoadState('networkidle');
+      109 |
+      110 |     const activateLink = this.page
+        at WordPressAuthPage.ensureTestTagPluginIsActive (C:\Users\Gary\Repositories\WP Plugins\testtag-for-wordpress\tests\pageObjects\WordPressAuthPage.ts:107:21)
+        at C:\Users\Gary\Repositories\WP Plugins\testtag-for-wordpress\tests\e2e\block-editor\block-editor.spec.ts:26:16
+
+    attachment #1: screenshot (image/png) ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+    test-results\block-editor-block-editor--d0ae6-ith-manual-TestTag-override-chromium\test-failed-1.png
+    ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+
+    Error Context: test-results\block-editor-block-editor--d0ae6-ith-manual-TestTag-override-chromium\error-context.md
+
+    Retry #1 ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+
+    Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:8080/wp-admin/plugins.php
+    Call log:
+    [2m  - navigating to "http://localhost:8080/wp-admin/plugins.php", waiting until "domcontentloaded"[22m
+
+
+       at ..\pageObjects\WordPressAuthPage.ts:107
+
+      105 |
+      106 |   async ensureTestTagPluginIsActive(): Promise<void> {
+    > 107 |     await this.page.goto(TEST_URLS.PLUGINS, { waitUntil: 'domcontentloaded', timeout: 60000 });
+          |                     ^
+      108 |     await this.page.waitForLoadState('networkidle');
+      109 |
+      110 |     const activateLink = this.page
+        at WordPressAuthPage.ensureTestTagPluginIsActive (C:\Users\Gary\Repositories\WP Plugins\testtag-for-wordpress\tests\pageObjects\WordPressAuthPage.ts:107:21)
+        at C:\Users\Gary\Repositories\WP Plugins\testtag-for-wordpress\tests\e2e\block-editor\block-editor.spec.ts:26:16
+
+    attachment #1: screenshot (image/png) ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+    test-results\block-editor-block-editor--d0ae6-ith-manual-TestTag-override-chromium-retry1\test-failed-1.png
+    ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+
+    Error Context: test-results\block-editor-block-editor--d0ae6-ith-manual-TestTag-override-chromium-retry1\error-context.md
+
+    attachment #3: trace (application/zip) ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+    test-results\block-editor-block-editor--d0ae6-ith-manual-TestTag-override-chromium-retry1\trace.zip
+    Usage:
+
+        npx playwright show-trace test-results\block-editor-block-editor--d0ae6-ith-manual-TestTag-override-chromium-retry1\trace.zip
+
+    ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+
+    Retry #2 ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+
+    Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:8080/wp-admin/plugins.php
+    Call log:
+    [2m  - navigating to "http://localhost:8080/wp-admin/plugins.php", waiting until "domcontentloaded"[22m
+
+
+       at ..\pageObjects\WordPressAuthPage.ts:107
+
+      105 |
+      106 |   async ensureTestTagPluginIsActive(): Promise<void> {
+    > 107 |     await this.page.goto(TEST_URLS.PLUGINS, { waitUntil: 'domcontentloaded', timeout: 60000 });
+          |                     ^
+      108 |     await this.page.waitForLoadState('networkidle');
+      109 |
+      110 |     const activateLink = this.page
+        at WordPressAuthPage.ensureTestTagPluginIsActive (C:\Users\Gary\Repositories\WP Plugins\testtag-for-wordpress\tests\pageObjects\WordPressAuthPage.ts:107:21)
+        at C:\Users\Gary\Repositories\WP Plugins\testtag-for-wordpress\tests\e2e\block-editor\block-editor.spec.ts:26:16
+
+    attachment #1: screenshot (image/png) ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+    test-results\block-editor-block-editor--d0ae6-ith-manual-TestTag-override-chromium-retry2\test-failed-1.png
+    ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+
+    Error Context: test-results\block-editor-block-editor--d0ae6-ith-manual-TestTag-override-chromium-retry2\error-context.md
+
+  2 failed
+    [chromium] ΓÇ║ tests\e2e\block-editor\block-editor.spec.ts:8:7 ΓÇ║ TestTag Plugin - Block Editor ΓÇ║ Block editor TestTag panel 
+    [chromium] ΓÇ║ tests\e2e\block-editor\block-editor.spec.ts:22:7 ΓÇ║ TestTag Plugin - Block Editor ΓÇ║ Block with manual TestTag override 

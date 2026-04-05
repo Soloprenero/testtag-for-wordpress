@@ -8,22 +8,21 @@ defined( 'ABSPATH' ) || exit;
  * (data-testid, data-cy, etc.) server-side, so tags are present in the
  * raw HTML source before any JavaScript runs.
  *
- * Three layers applied in order — same priority as the JS engine:
- *   1. Block editor   — already in the HTML via render_block filter (highest)
- *   2. Selector map   — mapped via CSS-to-XPath translation
- *   3. Auto-generate  — inferred from element semantics
+ * Two layers applied in order — same priority as the JS engine:
+ *   1. Selector map   — mapped via CSS-to-XPath translation
+ *   2. Auto-generate  — inferred from element semantics
  *
  * After all layers run, duplicate values are suffixed (-2, -3, …).
- * Block-editor tags are never touched by dedup.
  */
 class TestTag_HTML_Processor {
 
     private static string $attr      = 'data-testid';
     private static string $layer_key = 'data-testtag-layer';
+    private static bool $buffer_started = false;
 
     public static function init(): void {
-        // Only buffer when TestTag is active.
         add_action( 'template_redirect', [ __CLASS__, 'start_buffer' ] );
+        add_action( 'current_screen',    [ __CLASS__, 'maybe_start_admin_buffer' ] );
     }
 
     // ─────────────────────────────────────────────────────────────
@@ -31,9 +30,36 @@ class TestTag_HTML_Processor {
     // ─────────────────────────────────────────────────────────────
 
     public static function start_buffer(): void {
+        if ( self::$buffer_started ) return;
         if ( ! TestTag_Settings::is_enabled() ) return;
+
+        if ( is_admin() && ! self::is_admin_html_request() ) return;
+
         self::$attr = TestTag_Settings::get_attribute_key();
+        self::$buffer_started = true;
         ob_start( [ __CLASS__, 'process_html' ] );
+    }
+
+    public static function maybe_start_admin_buffer( WP_Screen $screen ): void {
+        if ( ! is_admin() ) return;
+        if ( ! self::should_buffer_admin_screen( $screen ) ) return;
+        self::start_buffer();
+    }
+
+    private static function should_buffer_admin_screen( WP_Screen $screen ): bool {
+        if ( $screen->base === 'admin-post' ) return false;
+        if ( $screen->base === 'admin-ajax' ) return false;
+        if ( $screen->is_network ) return false;
+        return true;
+    }
+
+    private static function is_admin_html_request(): bool {
+        if ( wp_doing_ajax() ) return false;
+        if ( wp_doing_cron() ) return false;
+        if ( function_exists( 'wp_is_json_request' ) && wp_is_json_request() ) return false;
+        if ( defined( 'REST_REQUEST' ) && REST_REQUEST ) return false;
+        if ( defined( 'XMLRPC_REQUEST' ) && XMLRPC_REQUEST ) return false;
+        return true;
     }
 
     public static function process_html( string $html ): string {
@@ -55,9 +81,6 @@ class TestTag_HTML_Processor {
 
         $xpath = new DOMXPath( $doc );
 
-        // Mark elements already tagged by the block editor before we touch anything.
-        self::mark_block_editor_tags( $xpath );
-
         // Layer 1 — selector map.
         self::apply_selector_map( $doc, $xpath );
 
@@ -72,18 +95,6 @@ class TestTag_HTML_Processor {
         $out = preg_replace( '/^<\?xml[^>]+>\n?/', '', $out );
 
         return $out ?: $html;
-    }
-
-    // ─────────────────────────────────────────────────────────────
-    // Mark block-editor tags (already present in HTML)
-    // ─────────────────────────────────────────────────────────────
-
-    private static function mark_block_editor_tags( DOMXPath $xpath ): void {
-        $attr = self::$attr;
-        $nodes = $xpath->query( '//*[@' . $attr . ' and not(@' . self::$layer_key . ')]' );
-        foreach ( $nodes as $node ) {
-            $node->setAttribute( self::$layer_key, 'block-editor' );
-        }
     }
 
     // ─────────────────────────────────────────────────────────────
@@ -463,7 +474,6 @@ class TestTag_HTML_Processor {
         $by_parent = [];
         foreach ( $nodes as $node ) {
             if ( ! ( $node instanceof DOMElement ) ) continue;
-            if ( $node->getAttribute( self::$layer_key ) === 'block-editor' ) continue;
             $by_parent[ spl_object_id( $node->parentNode ) ][] = $node;
         }
 

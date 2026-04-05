@@ -1,3 +1,21 @@
 node_modules/
 *.zip
 .history/
+
+# Test artifacts
+tests/screenshots/**/*.png
+playwright-report/
+test-results/
+test-results.json
+.env.test
+
+# Playwright
+.auth/
+tests/test-results/
+
+# Docker volumes
+wordpress_data/
+mysql_data/
+
+# Local environment
+.env.local

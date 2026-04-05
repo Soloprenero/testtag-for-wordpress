@@ -6,9 +6,24 @@
   "scripts": {
     "build": "webpack --mode production",
     "dev":   "webpack --mode development --watch",
-    "lint":  "eslint block-editor/src"
+    "test:screenshots": "cross-env USE_DOCKER=true CI=true SKIP_WEB_SERVER=true playwright test --config=playwright.config.ts",
+    "test:screenshots:ui": "playwright test --config=playwright.config.ts --ui",
+    "test:screenshots:headed": "playwright test --config=playwright.config.ts --headed",
+    "test:screenshots:update": "playwright test --config=playwright.config.ts --update-snapshots",
+    "quick:test": "cross-env USE_DOCKER=true CI=true SKIP_WEB_SERVER=true playwright test --config=playwright.config.ts --workers=1",
+    "setup:local:win": "cd ci && setup-local.bat",
+    "setup:local:unix": "bash ci/setup-local.sh",
+    "verify:setup:win": "cd ci && verify-setup.bat",
+    "verify:setup:unix": "bash ci/verify-setup.sh",
+    "wp:docker:up": "docker compose up -d",
+    "wp:docker:down": "docker compose down",
+    "wp:docker:reset": "docker compose down -v && docker compose up -d"
   },
   "devDependencies": {
-    "@wordpress/scripts": "^27.0.0"
+    "@wordpress/scripts": "^27.0.0",
+    "@playwright/test": "^1.48.0",
+    "@types/node": "^22.0.0",
+    "typescript": "^5.0.0",
+    "cross-env": "^7.0.3"
   }
 }
