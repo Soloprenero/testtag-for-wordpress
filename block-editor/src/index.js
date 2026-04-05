@@ -4,11 +4,11 @@
  * Run `npm run build` to output to block-editor/build/index.js
  */
 
-const { addFilter }                  = wp.hooks;
-const { createHigherOrderComponent } = wp.compose;
-const { InspectorAdvancedControls }  = wp.blockEditor;
-const { PanelBody, TextControl, Notice } = wp.components;
-const { Fragment }                   = wp.element;
+const { addFilter } = wp.hooks;
+const { registerPlugin } = wp.plugins;
+const { PluginDocumentSettingPanel } = wp.editPost;
+const { TextControl, Notice } = wp.components;
+const { useSelect, useDispatch } = wp.data;
 
 const attrKey = window.TESTTAG_EDITOR?.attributeKey || 'data-testid';
 
@@ -39,38 +39,61 @@ addFilter('blocks.registerBlockType', 'testtag/add-attribute', (settings) => ({
     },
 }));
 
-addFilter('editor.BlockEdit', 'testtag/inspector-panel',
-    createHigherOrderComponent((BlockEdit) => (props) => {
-        if (!props.isSelected) return <BlockEdit {...props} />;
+function TestTagDocumentPanel() {
+    const selectedBlock = useSelect(
+        (select) => select('core/block-editor').getSelectedBlock(),
+        []
+    );
+    const { updateBlockAttributes } = useDispatch('core/block-editor');
 
-        const { testtagValue } = props.attributes;
-        const preview = getAutoPreview(props);
-
+    if (!selectedBlock) {
         return (
-            <Fragment>
-                <BlockEdit {...props} />
-                <InspectorAdvancedControls>
-                    <PanelBody title="🏷️ TestTag" initialOpen={false}>
-                        <TextControl
-                            label={attrKey}
-                            value={testtagValue}
-                            placeholder={preview}
-                            onChange={(v) => props.setAttributes({ testtagValue: v })}
-                            help={testtagValue
-                                ? `${attrKey}="${testtagValue}" (manual override — rendered server-side)`
-                                : `Auto-generated: "${preview}". Type to override.`}
-                        />
-                        {testtagValue && (
-                            <Notice status="info" isDismissible={false}>
-                                Manual override set. Rendered server-side and takes priority over auto-generation.
-                            </Notice>
-                        )}
-                    </PanelBody>
-                </InspectorAdvancedControls>
-            </Fragment>
+            <PluginDocumentSettingPanel
+                name="testtag-document-panel"
+                title="TestTag"
+                initialOpen={true}
+            >
+                <Notice status="info" isDismissible={false}>
+                    Select a block to set a manual TestTag override.
+                </Notice>
+            </PluginDocumentSettingPanel>
         );
-    }, 'testtagInspectorPanel')
-);
+    }
+
+    const { clientId, name, attributes } = selectedBlock;
+    const testtagValue = attributes?.testtagValue || '';
+    const preview = getAutoPreview({ name, attributes: attributes || {} });
+
+    return (
+        <PluginDocumentSettingPanel
+            name="testtag-document-panel"
+            title="TestTag"
+            initialOpen={true}
+        >
+            <Notice status="info" isDismissible={false}>
+                {`Selected block: ${name}`}
+            </Notice>
+            <TextControl
+                label={attrKey}
+                value={testtagValue}
+                placeholder={preview}
+                onChange={(value) => updateBlockAttributes(clientId, { testtagValue: value })}
+                help={testtagValue
+                    ? `${attrKey}="${testtagValue}" (manual override — rendered server-side)`
+                    : `Auto-generated: "${preview}". Type to override.`}
+            />
+            {testtagValue && (
+                <Notice status="success" isDismissible={false}>
+                    Manual override is active for the selected block.
+                </Notice>
+            )}
+        </PluginDocumentSettingPanel>
+    );
+}
+
+registerPlugin('testtag-document-panel', {
+    render: TestTagDocumentPanel,
+});
 
 addFilter('blocks.getSaveContent.extraProps', 'testtag/save-props', (extraProps, blockType, { testtagValue }) => {
     if (testtagValue) return { ...extraProps, [attrKey]: testtagValue };

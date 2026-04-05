@@ -21,22 +21,22 @@ You can help keep this project alive by:
 
 ## How it Works: The Three-Layer System
 
-TestTag ensures comprehensive coverage without breaking your existing setup. It uses three injection layers applied in a strict priority order. **TestTag is completely non-destructive: an existing attribute is never overwritten.** Higher priority layers always win.
+TestTag tags elements across three distinct layers as the plugin processes the page. **TestTag is completely non-destructive: an existing attribute is never overwritten.** Each layer applies only to untagged elements.
 
-| Layer | What it covers | Priority |
+| Layer | What it covers | When applied |
 | :--- | :--- | :--- |
-| **1. Block Editor Sidebar** | Any Gutenberg block (manual override). | **Highest** — Server-rendered. |
-| **2. CSS Selector Map** | Nav, footers, widgets, Elementor sections. | Applied first client-side. |
-| **3. Auto-Generation** | Everything else. | Fills in the remaining gaps. |
+| **1. Custom Attributes** | Hardcoded in HTML markup in the editor. | During initial HTML render. |
+| **2. Selector Map** | Auto-generated via CSS selector matching. | After page load, via selectors. |
+| **3. Dynamic** | Items added via JavaScript after page load. | Detected via MutationObserver. |
 
 ---
 
 ## Core Features
 
 * **Configurable Attribute Key:** Seamlessly match your framework. Choose from `data-testid`, `data-cy`, `data-test`, or define any custom `data-*` attribute.
-* **Intelligent Auto-Generation:** Infers highly meaningful IDs directly from element semantics (labels, placeholders, inner text, anchors).
-* **CSS Selector Map:** Create explicit overrides for hard-to-target theme elements, navigation menus, widgets, or complex Elementor sections.
-* **Block Editor Integration:** A dedicated Gutenberg sidebar panel allows for per-block manual overrides, complete with an auto-generated preview.
+* **Custom Attributes:** Add attributes directly to your HTML in the editor for explicit, hardcoded control.
+* **Selector Map:** Auto-generate tags for hard-to-target theme elements using CSS selector rules (nav, footers, widgets, Elementor sections).
+* **Dynamic Layer:** Automatically tags elements added to the page via JavaScript after initial load.
 * **Environment Guard:** Built for safety. By default, it only injects tags for logged-in admins and non-production environments (`local`, `development`, `staging`). 
 * **Elementor Aware:** Smart enough to handle deep nesting by reading `data-element_type` and `data-widget_type` attributes.
 
@@ -54,14 +54,14 @@ Stop guessing if your elements are targetable. Audit Mode provides a visual over
 Every tagged element receives a colored border and a badge displaying its tag value. Hovering over any element reveals a tooltip showing:
 * The exact tag value.
 * The attribute key in use (e.g., `data-testid`).
-* Which layer injected the tag (Block Editor, Selector Map, or Auto-generated).
+* Which layer applied the tag (Custom Attributes, Selector Map, or Dynamic).
 * The raw element descriptor (`tag#id.class`).
 
 **Layer Color Legend:**
-The legend sits neatly in the bottom-right corner while Audit Mode is active.
-* 🟣**Purple:** Block Editor (Server-rendered)
-* 🔵**Blue:** CSS Selector Map
-* 🟢**Green:** Auto-generated
+The legend sits neatly in the bottom-right corner while Audit Mode is active, showing the order layers are applied:
+* 🔴**Red:** Custom Attributes (hardcoded in HTML)
+* 🔵**Blue:** Selector Map (CSS selector-based)
+* 🟠**Orange:** Dynamic (JavaScript-added elements)
 
 *Note: Audit Mode state persists across page navigations within the same browser session via `sessionStorage`. The entire overlay is built inside a **shadow DOM**, ensuring its styles are fully isolated and never interfere with your page's actual CSS.*
 
@@ -74,9 +74,6 @@ Navigate to **Settings → TestTag** in your `wp-admin` dashboard to configure t
 * **Attribute Key:** Set the target attribute (`data-testid` for Playwright, `data-cy` for Cypress, `data-test` for Selenium, etc.).
 * **Force Enable:** Override the environment guard to inject tags for all visitors on all environments—perfect for running automation suites against a live staging or production URL.
 * **CSS Selector Map:** Add, edit, remove, or reset your explicit `selector → tag` mappings. (PHP defaults live safely in `includes/class-testtag-settings.php`).
-
-### Block Editor Manual Overrides
-When editing any block in Gutenberg, open the **Advanced** panel in the sidebar. You'll find a **TestTag** field displaying the auto-generated value as a placeholder. Simply type to override it. Manual values are rendered server-side and take absolute priority.
 
 ---
 
