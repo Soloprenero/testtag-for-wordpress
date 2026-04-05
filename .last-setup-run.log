@@ -1,0 +1,35 @@
+Building plugin assets...
+
+> testtag-for-wordpress@1.4.1 build
+> webpack --mode production
+
+asset [1m[32mindex.js[39m[22m 2.5 KiB [1m[32m[emitted][39m[22m [1m[32m[minimized][39m[22m (name: index) 1 related asset
+asset [1m[32mindex.asset.php[39m[22m 91 bytes [1m[32m[emitted][39m[22m (name: index)
+Entrypoint [1mindex[39m[22m 2.59 KiB (9.07 KiB) = [1m[32mindex.js[39m[22m 2.5 KiB [1m[32mindex.asset.php[39m[22m 91 bytes 1 auxiliary asset
+runtime modules 663 bytes 3 modules
+built modules 3.5 KiB [1m[33m[built][39m[22m
+  [1m./block-editor/src/index.js[39m[22m 3.46 KiB [1m[33m[built][39m[22m [1m[33m[code generated][39m[22m
+  [1mexternal "React"[39m[22m 42 bytes [1m[33m[built][39m[22m [1m[33m[code generated][39m[22m
+webpack 5.105.4 compiled [1m[32msuccessfully[39m[22m in 738 ms
+Plugin assets built successfully!
+Starting Docker services...
+ Network testtag-for-wordpress_default Creating 
+ Network testtag-for-wordpress_default Created 
+ Volume testtag-for-wordpress_wordpress_data Creating 
+ Volume testtag-for-wordpress_wordpress_data Created 
+ Volume testtag-for-wordpress_mysql_data Creating 
+ Volume testtag-for-wordpress_mysql_data Created 
+ Container testtag-for-wordpress-mysql-1 Creating 
+ Container testtag-for-wordpress-mysql-1 Created 
+ Container testtag-for-wordpress-wordpress-1 Creating 
+ Container testtag-for-wordpress-wordpress-1 Created 
+ Container testtag-for-wordpress-mysql-1 Starting 
+ Container testtag-for-wordpress-mysql-1 Started 
+ Container testtag-for-wordpress-mysql-1 Waiting 
+ Container testtag-for-wordpress-mysql-1 Healthy 
+ Container testtag-for-wordpress-wordpress-1 Starting 
+ Container testtag-for-wordpress-wordpress-1 Started 
+Waiting for WordPress to become ready...
+WordPress is ready (status: 200).
+Setting up WordPress via browser...
+Ensuring admin authentication...
