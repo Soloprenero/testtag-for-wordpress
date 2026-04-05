@@ -129,6 +129,15 @@ async function setupViaApi(): Promise<void> {
     }
     
     // Set pretty permalinks to /%postname%/ and flush rewrite rules.
+    console.log('Normalizing site URL settings...');
+    try {
+      await api.updateOption('home', baseURL);
+      await api.updateOption('siteurl', baseURL);
+      console.log(`WordPress home/siteurl set to ${baseURL}`);
+    } catch (error) {
+      console.log(`Note: unable to update home/siteurl via REST API (${error instanceof Error ? error.message : String(error)})`);
+    }
+
     console.log('Configuring permalink structure...');
     await api.ensurePrettyPermalinks(PRETTY_PERMALINK_STRUCTURE);
     console.log(`Permalink structure set to ${PRETTY_PERMALINK_STRUCTURE}`);

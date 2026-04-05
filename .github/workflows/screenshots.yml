@@ -37,7 +37,7 @@ jobs:
         run: npx playwright install chromium --with-deps
 
       - name: Run screenshot tests
-        run: npm run test:screenshots -- --reporter=html
+        run: npm run test:screenshots
         env:
           CI: true
           USE_DOCKER: true
@@ -73,11 +73,56 @@ jobs:
         with:
           script: |
             const fs = require('fs');
-            const testResults = JSON.parse(fs.readFileSync('test-results.json', 'utf8'));
-            
-            const passed = testResults.stats.expected || 0;
-            const failed = testResults.stats.unexpected || 0;
-            const skipped = testResults.stats.skipped || 0;
+            const path = require('path');
+
+            function collectJsonFiles(dir, out = []) {
+              if (!fs.existsSync(dir)) {
+                return out;
+              }
+              for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+                const fullPath = path.join(dir, entry.name);
+                if (entry.isDirectory()) {
+                  collectJsonFiles(fullPath, out);
+                } else if (entry.isFile() && entry.name.endsWith('.json')) {
+                  out.push(fullPath);
+                }
+              }
+              return out;
+            }
+
+            let testResults = null;
+            let resultSource = 'none';
+
+            const candidates = [];
+            if (fs.existsSync('test-results.json')) {
+              candidates.push('test-results.json');
+            }
+            candidates.push(...collectJsonFiles('test-results'));
+            candidates.push(...collectJsonFiles('playwright-report'));
+
+            const uniqueCandidates = [...new Set(candidates)]
+              .filter(file => fs.existsSync(file))
+              .sort((a, b) => fs.statSync(b).mtimeMs - fs.statSync(a).mtimeMs);
+
+            for (const file of uniqueCandidates) {
+              try {
+                const parsed = JSON.parse(fs.readFileSync(file, 'utf8'));
+                if (parsed && typeof parsed === 'object' && parsed.stats && typeof parsed.stats === 'object') {
+                  testResults = parsed;
+                  resultSource = file;
+                  break;
+                }
+              } catch {
+                // Ignore non-Playwright or malformed JSON files.
+              }
+            }
+
+            const passed = testResults?.stats?.expected ?? 0;
+            const failed = testResults?.stats?.unexpected ?? 0;
+            const skipped = testResults?.stats?.skipped ?? 0;
+            const sourceNote = resultSource === 'none'
+              ? 'No JSON result file was found; counts may be incomplete.'
+              : `Results source: ${resultSource}`;
             
             const body = `## 📸 Screenshot Test Results
             
@@ -86,6 +131,8 @@ jobs:
             | ✅ Passed | ${passed} |
             | ❌ Failed | ${failed} |
             | ⏭️ Skipped | ${skipped} |
+
+            _${sourceNote}_
             
             📊 Screenshots available in artifacts: [Playwright Report](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})
             
