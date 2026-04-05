@@ -17,8 +17,9 @@ defined( 'ABSPATH' ) || exit;
 class TestTag_Audit {
 
     public static function init(): void {
-        add_action( 'wp_enqueue_scripts',   [ __CLASS__, 'enqueue_overlay_assets' ] );
-        add_action( 'admin_bar_menu',       [ __CLASS__, 'add_admin_bar_button' ], 999 );
+        add_action( 'wp_enqueue_scripts',    [ __CLASS__, 'enqueue_overlay_assets' ] );
+        add_action( 'admin_enqueue_scripts', [ __CLASS__, 'enqueue_overlay_assets' ] );
+        add_action( 'admin_bar_menu',        [ __CLASS__, 'add_admin_bar_button' ], 999 );
     }
 
     // ─────────────────────────────────────────────────────────────
@@ -26,11 +27,9 @@ class TestTag_Audit {
     // ─────────────────────────────────────────────────────────────
 
     public static function enqueue_overlay_assets(): void {
-        // Only load when TestTag itself is active and the admin bar is visible.
-        // The admin bar condition is a proxy for "this is a real user session"
-        // — automation runs won't see the admin bar so the overlay won't load.
+        // Load whenever TestTag is enabled so keyboard toggle works even when
+        // the admin bar is hidden (for example, frontend automation sessions).
         if ( ! TestTag_Settings::is_enabled() ) return;
-        if ( ! is_admin_bar_showing() ) return;
 
         wp_enqueue_script(
             'testtag-audit-overlay',
@@ -47,7 +46,7 @@ class TestTag_Audit {
 
     public static function add_admin_bar_button( WP_Admin_Bar $admin_bar ): void {
         if ( ! TestTag_Settings::is_enabled() ) return;
-        if ( is_admin() ) return; // front-end only
+        if ( ! is_admin_bar_showing() ) return;
 
         $admin_bar->add_node( [
             'id'    => 'testtag-audit',

@@ -4,7 +4,8 @@ defined( 'ABSPATH' ) || exit;
 class TestTag_Layer_Marker {
 
     public static function init(): void {
-        add_action( 'wp_enqueue_scripts', [ __CLASS__, 'enqueue' ] );
+        add_action( 'wp_enqueue_scripts',    [ __CLASS__, 'enqueue' ] );
+        add_action( 'admin_enqueue_scripts', [ __CLASS__, 'enqueue' ] );
     }
 
     public static function enqueue(): void {
