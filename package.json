@@ -6,9 +6,11 @@
   "scripts": {
     "build": "webpack --mode production",
     "dev":   "webpack --mode development --watch",
-    "lint":  "eslint block-editor/src"
+    "lint":  "eslint block-editor/src",
+    "test:playwright:ui": "playwright test --ui --pass-with-no-tests"
   },
   "devDependencies": {
+    "@playwright/test": "^1.59.1",
     "@wordpress/scripts": "^27.0.0"
   }
 }

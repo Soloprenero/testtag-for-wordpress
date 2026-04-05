@@ -32,6 +32,17 @@ jobs:
       - name: Build block editor assets
         run: npm run build
 
+      - name: Install Playwright browser
+        run: npx playwright install chromium --with-deps
+
+      - name: Validate Playwright UI boot
+        run: |
+          timeout 45s xvfb-run --auto-servernum npm run test:playwright:ui
+          code=$?
+          if [ "$code" -ne 0 ] && [ "$code" -ne 124 ]; then
+            exit "$code"
+          fi
+
       - name: Validate PHP syntax
         run: |
           while IFS= read -r -d '' file; do
