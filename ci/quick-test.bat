@@ -10,6 +10,9 @@ echo    Quick Docker Setup
 echo ======================================
 echo.
 
+if "%WORDPRESS_PORT%"=="" set "WORDPRESS_PORT=8080"
+if "%TEST_URL%"=="" set "TEST_URL=http://localhost:%WORDPRESS_PORT%"
+
 echo [*] Stopping Docker containers...
 docker compose down -v 2>nul
 
@@ -24,7 +27,7 @@ timeout /t 40 /nobreak
 
 echo [*] Checking if WordPress is ready...
 :wait_loop
-curl -s http://localhost:8080/ -o nul
+curl -s %TEST_URL%/ -o nul
 if errorlevel 1 (
     echo [*] WordPress not ready yet, waiting...
     timeout /t 5 /nobreak

@@ -2,7 +2,7 @@ services:
   wordpress:
     image: wordpress:latest
     ports:
-      - "8080:80"
+      - "${WORDPRESS_PORT:-8080}:80"
     environment:
       WORDPRESS_DB_HOST: mysql
       WORDPRESS_DB_USER: wordpress
@@ -12,6 +12,8 @@ services:
       WORDPRESS_DEBUG: 1
       WORDPRESS_DEBUG_LOG: /var/www/html/wp-content/debug.log
       WORDPRESS_DEBUG_DISPLAY: 0
+      WORDPRESS_PORT: ${WORDPRESS_PORT:-8080}
+      TEST_URL: ${TEST_URL:-}
     volumes:
       - wordpress_data:/var/www/html
       - ./:/var/www/html/wp-content/plugins/testtag-for-wordpress
