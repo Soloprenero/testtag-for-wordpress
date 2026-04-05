@@ -4,7 +4,7 @@
  * When active, hovering any tagged element shows a fixed tooltip with:
  *   - Tag value
  *   - Attribute key
- *   - Which layer set it (block-editor / selector-map / auto)
+ *   - Which layer applied it (custom / selector-map / dynamic)
  *   - Element descriptor
  *
  * No overlay boxes are drawn — avoids all scroll/positioning complexity.
@@ -21,10 +21,10 @@
 
     // ── Layer colours ─────────────────────────────────────────────
     var LAYER_META = {
-        'block-editor': { label: '🟣 Block editor',   color: '#9b59b6' },
-        'selector-map': { label: '🔵 Selector map',   color: '#2980b9' },
-        'auto':         { label: '🟢 Auto-generated', color: '#27ae60' },
-        'server':       { label: '🟢 Server-side',    color: '#27ae60' },
+        'custom':       { label: '🔴 Custom attributes', color: '#e74c3c' },
+        'selector-map': { label: '🔵 Selector map',     color: '#2980b9' },
+        'dynamic':      { label: '🟠 Dynamic',          color: '#e67e22' },
+        'auto':         { label: '🟠 Dynamic',          color: '#e67e22' },
     };
 
     // ── Tooltip ───────────────────────────────────────────────────
@@ -157,9 +157,9 @@
         ].join(';');
         legendEl.innerHTML = [
             '<div style="font:700 11px/1 ui-sans-serif,sans-serif;letter-spacing:.05em;text-transform:uppercase;color:#6c7086;margin-bottom:8px">TestTag Audit Mode</div>',
-            swatch('#9b59b6', 'Block editor (manual)'),
+            swatch('#e74c3c', 'Custom attributes'),
             swatch('#2980b9', 'Selector map'),
-            swatch('#27ae60', 'Auto-generated'),
+            swatch('#e67e22', 'Dynamic layer'),
             '<div style="margin-top:8px;font-size:11px;color:#6c7086">Hover elements · Alt+Shift+T to toggle</div>',
         ].join('');
         document.body.appendChild(legendEl);
@@ -183,7 +183,12 @@
         if (highlightStyle) return;
         highlightStyle = document.createElement('style');
         highlightStyle.id = 'testtag-audit-style';
-        highlightStyle.textContent = '[data-testtag-layer]:hover{outline:2px solid #f39c12!important;outline-offset:2px!important;}';
+        highlightStyle.textContent = [
+            '[data-testtag-layer]:hover{outline:2px solid #f39c12!important;outline-offset:2px!important;}',
+            '[data-testtag-layer="custom"]:hover{outline-color:#e74c3c!important;}',
+            '[data-testtag-layer="selector-map"]:hover{outline-color:#2980b9!important;}',
+            '[data-testtag-layer="dynamic"]:hover,[data-testtag-layer="auto"]:hover{outline-color:#e67e22!important;}',
+        ].join('');
         document.head.appendChild(highlightStyle);
     }
 
