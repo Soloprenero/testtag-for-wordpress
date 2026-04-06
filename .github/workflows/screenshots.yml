@@ -219,6 +219,10 @@ jobs:
         with:
           script: |
             const fs = require('fs');
+            if (!fs.existsSync('test-results.json')) {
+              console.log('No test-results.json found, skipping PR comment.');
+              return;
+            }
             const testResults = JSON.parse(fs.readFileSync('test-results.json', 'utf8'));
             
             const passed = testResults.stats.expected || 0;
