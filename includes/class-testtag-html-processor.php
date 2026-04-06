@@ -239,21 +239,22 @@ class TestTag_HTML_Processor {
             '//*[@rel and self::li]',
         ] );
 
-        $attr = self::$attr;
-        $nodes = $xpath->query( $targets_xp );
+        $attr          = self::$attr;
+        $text_fallback = TestTag_Settings::get_text_fallback();
+        $nodes         = $xpath->query( $targets_xp );
         if ( ! $nodes ) return;
 
         foreach ( $nodes as $node ) {
             if ( ! ( $node instanceof DOMElement ) ) continue;
             if ( $node->hasAttribute( $attr ) ) continue;
-            $value = self::auto_id( $node, $xpath );
+            $value = self::auto_id( $node, $xpath, $text_fallback );
             if ( ! $value ) continue;
             $node->setAttribute( $attr, $value );
             $node->setAttribute( self::$layer_key, 'auto' );
         }
     }
 
-    private static function auto_id( DOMElement $el, DOMXPath $xpath ): ?string {
+    private static function auto_id( DOMElement $el, DOMXPath $xpath, bool $text_fallback = true ): ?string {
         $tag = strtolower( $el->tagName );
 
         // ── Form controls ─────────────────────────────────────────
@@ -277,8 +278,22 @@ class TestTag_HTML_Processor {
 
         // ── Buttons ───────────────────────────────────────────────
         if ( $tag === 'button' ) {
-            $text = trim( $el->textContent ) ?: $el->getAttribute( 'aria-label' ) ?: $el->getAttribute( 'value' );
-            return 'button-' . self::slug( $text );
+            $al = $el->getAttribute( 'aria-label' );
+            if ( $al ) return 'button-' . self::slug( $al );
+            $id = $el->getAttribute( 'id' );
+            if ( $id ) {
+                $clean = self::clean( self::slug( $id ) );
+                if ( $clean && ! ctype_digit( $clean ) && strlen( $clean ) > 1 ) return 'button-' . $clean;
+            }
+            $name = $el->getAttribute( 'name' );
+            if ( $name ) return 'button-' . self::slug( $name );
+            $value = $el->getAttribute( 'value' );
+            if ( $value ) return 'button-' . self::slug( $value );
+            if ( $text_fallback ) {
+                $text = trim( $el->textContent );
+                if ( $text ) return 'button-' . self::slug( $text );
+            }
+            return null;
         }
 
         // ── Links ─────────────────────────────────────────────────
@@ -288,12 +303,21 @@ class TestTag_HTML_Processor {
 
             if ( self::ancestor_matches( $el, [ 'nav', 'header' ] ) ||
                  self::has_class_fragment( $el, 'elementor-nav' ) ) {
+                $al = $el->getAttribute( 'aria-label' );
+                if ( $al ) return 'nav-' . self::slug( $al );
                 if ( $href === '/' ) return 'nav-home';
                 if ( str_starts_with( $href, '#' ) ) return 'nav-' . self::slug( substr( $href, 1 ) );
-                return 'nav-' . self::slug( $linkText ?: $href );
+                $frag = self::href_path_fragment( $href );
+                if ( $frag ) return 'nav-' . $frag;
+                if ( $text_fallback ) return 'nav-' . self::slug( $linkText ?: $href );
+                return null;
             }
+
             if ( preg_match( '/\.(pdf|docx?|xlsx?|pptx?|zip)$/i', $href ) ) {
-                return 'download-' . self::slug( $linkText ?: basename( $href ) );
+                $al = $el->getAttribute( 'aria-label' );
+                if ( $al ) return 'download-' . self::slug( $al );
+                if ( $text_fallback && $linkText ) return 'download-' . self::slug( $linkText );
+                return 'download-' . self::slug( basename( $href ) );
             }
 
             // Card-style anchor: an <a> wrapping block-level content (image, heading,
@@ -312,29 +336,51 @@ class TestTag_HTML_Processor {
                 }
             }
 
-            if ( $linkText ) return 'link-' . self::slug( $linkText );
+            // Regular link — stable-first
+            $al = $el->getAttribute( 'aria-label' );
+            if ( $al ) return 'link-' . self::slug( $al );
+            $id = $el->getAttribute( 'id' );
+            if ( $id ) {
+                $clean = self::clean( self::slug( $id ) );
+                if ( $clean && ! ctype_digit( $clean ) && strlen( $clean ) > 1 ) return 'link-' . $clean;
+            }
+            $frag = self::href_path_fragment( $href );
+            if ( $frag ) return 'link-' . $frag;
             if ( str_starts_with( $href, '#' ) ) return 'link-' . self::slug( substr( $href, 1 ) );
+            if ( $text_fallback && $linkText ) return 'link-' . self::slug( $linkText );
             return null;
         }
 
         // ── Landmark elements ─────────────────────────────────────
         if ( in_array( $tag, [ 'section', 'article', 'aside', 'main', 'header', 'footer' ], true ) ) {
+            $al = $el->getAttribute( 'aria-label' );
+            if ( $al ) return $tag . '-' . self::slug( $al );
             $id = $el->getAttribute( 'id' );
             if ( $id ) {
                 $clean = self::clean( self::slug( $id ) );
                 if ( $clean && ! ctype_digit( $clean ) && strlen( $clean ) > 1 ) return $tag . '-' . $clean;
             }
-            $h = self::first_heading_text( $el );
-            if ( $h ) return $tag . '-' . self::slug( $h );
-            $al = $el->getAttribute( 'aria-label' );
-            if ( $al ) return $tag . '-' . self::slug( $al );
+            if ( $text_fallback ) {
+                $h = self::first_heading_text( $el );
+                if ( $h ) return $tag . '-' . self::slug( $h );
+            }
             return null;
         }
 
         // ── Headings ──────────────────────────────────────────────
         if ( preg_match( '/^h[1-6]$/', $tag ) ) {
-            $text = trim( $el->textContent );
-            return $text ? 'heading-' . self::slug( $text ) : null;
+            $al = $el->getAttribute( 'aria-label' );
+            if ( $al ) return 'heading-' . self::slug( $al );
+            $id = $el->getAttribute( 'id' );
+            if ( $id ) {
+                $clean = self::clean( self::slug( $id ) );
+                if ( $clean && ! ctype_digit( $clean ) && strlen( $clean ) > 1 ) return 'heading-' . $clean;
+            }
+            if ( $text_fallback ) {
+                $text = trim( $el->textContent );
+                if ( $text ) return 'heading-' . self::slug( $text );
+            }
+            return null;
         }
 
         // ── Paragraphs ────────────────────────────────────────────
@@ -353,16 +399,20 @@ class TestTag_HTML_Processor {
 
         // ── Forms ─────────────────────────────────────────────────
         if ( $tag === 'form' ) {
-            $fl = $el->getElementsByTagName( 'legend' )->item( 0 )
-               ?? self::first_heading_element( $el );
-            if ( $fl ) {
-                $t = trim( $fl->textContent );
-                if ( $t ) return 'form-' . self::slug( $t );
-            }
+            $al = $el->getAttribute( 'aria-label' );
+            if ( $al ) return 'form-' . self::slug( $al );
             $id = $el->getAttribute( 'id' );
             if ( $id ) {
                 $clean = self::clean( self::slug( $id ) );
                 if ( $clean && ! ctype_digit( $clean ) && strlen( $clean ) > 1 ) return 'form-' . $clean;
+            }
+            if ( $text_fallback ) {
+                $fl = $el->getElementsByTagName( 'legend' )->item( 0 )
+                   ?? self::first_heading_element( $el );
+                if ( $fl ) {
+                    $t = trim( $fl->textContent );
+                    if ( $t ) return 'form-' . self::slug( $t );
+                }
             }
             return 'form';
         }
@@ -375,7 +425,8 @@ class TestTag_HTML_Processor {
 
         // ── Custom select options ─────────────────────────────────
         if ( $tag === 'li' ) {
-            $optValue = $el->getAttribute( 'rel' ) ?: trim( $el->textContent );
+            $relVal = $el->getAttribute( 'rel' );
+            $optValue = $relVal ?: ( $text_fallback ? trim( $el->textContent ) : '' );
             if ( ! $optValue ) return null;
             $optSlug = self::slug( $optValue );
             if ( ! $optSlug ) return null;
@@ -409,50 +460,61 @@ class TestTag_HTML_Processor {
             // as a prefix so the element type is always identifiable.
             $prefix = $el->getAttribute( 'role' ) ?: $tag;
 
-            $eType = $el->getAttribute( 'data-element_type' );
-            if ( $eType === 'section' || $eType === 'container' ) {
-                $h = self::first_heading_text( $el );
-                if ( $h ) return 'section-' . self::slug( $h );
-                $al = $el->getAttribute( 'aria-label' );
-                if ( $al ) return 'section-' . self::slug( $al );
-                return null;
-            }
+            // 1. aria-label (most reliable stable source)
+            $al = $el->getAttribute( 'aria-label' );
+            if ( $al ) return $prefix . '-' . self::slug( $al );
 
-            $eWidget = $el->getAttribute( 'data-widget_type' );
-            if ( $eWidget ) {
-                $h = self::first_heading_text( $el );
-                if ( $h ) return $prefix . '-' . self::slug( $h );
-                $al = $el->getAttribute( 'aria-label' );
-                if ( $al ) return $prefix . '-' . self::slug( $al );
-                $wType = preg_replace( '/\.default$/', '', $eWidget );
-                $wType = preg_replace( '/^wp-widget-/', '', $wType );
-                $cleaned = self::clean( self::slug( $wType ) );
-                return $cleaned ? $prefix . '-' . $cleaned : null;
-            }
-
-            // Gutenberg blocks
-            $classes = preg_split( '/\s+/', $el->getAttribute( 'class' ) );
-            foreach ( $classes as $cls ) {
-                if ( str_starts_with( $cls, 'wp-block-' ) ) {
-                    $h = self::first_heading_text( $el );
-                    if ( $h ) return $prefix . '-' . self::slug( $h );
-                    $blockName = substr( $cls, strlen( 'wp-block-' ) );
-                    $cleaned   = self::clean( self::slug( $blockName ) );
-                    return $cleaned ? $prefix . '-' . $cleaned : null;
-                }
-            }
-
+            // 2. Stable id (non-numeric, cleaned)
             $id = $el->getAttribute( 'id' );
             if ( $id ) {
                 $clean = self::clean( self::slug( $id ) );
                 if ( $clean && ! ctype_digit( $clean ) && strlen( $clean ) > 1 ) return $prefix . '-' . $clean;
+            }
+
+            // 3. Elementor section/container — data-element_type
+            $eType = $el->getAttribute( 'data-element_type' );
+            if ( $eType === 'section' || $eType === 'container' ) {
+                if ( $text_fallback ) {
+                    $h = self::first_heading_text( $el );
+                    if ( $h ) return 'section-' . self::slug( $h );
+                }
                 return null;
             }
 
+            // 4. Elementor widget — data-widget_type
+            $eWidget = $el->getAttribute( 'data-widget_type' );
+            if ( $eWidget ) {
+                $wType   = preg_replace( '/\.default$/', '', $eWidget );
+                $wType   = preg_replace( '/^wp-widget-/', '', $wType );
+                $cleaned = self::clean( self::slug( $wType ) );
+                if ( $cleaned ) return $prefix . '-' . $cleaned;
+                if ( $text_fallback ) {
+                    $h = self::first_heading_text( $el );
+                    if ( $h ) return $prefix . '-' . self::slug( $h );
+                }
+                return null;
+            }
+
+            // 5. Gutenberg blocks — wp-block-* class slug
+            $classes = preg_split( '/\s+/', $el->getAttribute( 'class' ) );
+            foreach ( $classes as $cls ) {
+                if ( str_starts_with( $cls, 'wp-block-' ) ) {
+                    $blockName = substr( $cls, strlen( 'wp-block-' ) );
+                    $cleaned   = self::clean( self::slug( $blockName ) );
+                    if ( $cleaned ) return $prefix . '-' . $cleaned;
+                    if ( $text_fallback ) {
+                        $h = self::first_heading_text( $el );
+                        if ( $h ) return $prefix . '-' . self::slug( $h );
+                    }
+                    return null;
+                }
+            }
+
+            // 6. role with text fallback label
             $role = $el->getAttribute( 'role' );
-            if ( $role ) {
-                $label = $el->getAttribute( 'id' ) ?: self::slug( substr( trim( $el->textContent ), 0, 30 ) );
-                return $role . '-' . self::slug( $label );
+            if ( $role && $text_fallback ) {
+                $label = self::slug( substr( trim( $el->textContent ), 0, 30 ) );
+                if ( $label ) return $role . '-' . $label;
             }
         }
 
@@ -571,6 +633,29 @@ class TestTag_HTML_Processor {
 
     private static function has_class_fragment( DOMElement $el, string $fragment ): bool {
         return str_contains( $el->getAttribute( 'class' ), $fragment );
+    }
+
+    /**
+     * Extracts a stable, slug-friendly path fragment from an href.
+     * Returns the last non-empty path segment, or null for anchors / mailto / bare hosts.
+     */
+    private static function href_path_fragment( string $href ): ?string {
+        if ( ! $href || $href === '/' ) return null;
+        if ( str_starts_with( $href, '#' ) ) return null;
+        if ( str_starts_with( $href, 'mailto:' ) ) return null;
+        if ( str_starts_with( $href, 'tel:' ) ) return null;
+
+        $path = parse_url( $href, PHP_URL_PATH ) ?: '';
+        $path = trim( $path, '/' );
+        if ( ! $path ) return null;
+
+        // Use only the last path segment — strip file extensions
+        $segments = explode( '/', $path );
+        $segment  = end( $segments );
+        $segment  = preg_replace( '/\.[a-z0-9]+$/i', '', $segment ); // strip extension
+        $clean    = self::slug( $segment );
+
+        return ( $clean && strlen( $clean ) > 1 ) ? $clean : null;
     }
 
     // ─────────────────────────────────────────────────────────────

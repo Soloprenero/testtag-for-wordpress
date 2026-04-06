@@ -6,6 +6,7 @@ class TestTag_Settings {
     const OPTION_SELECTOR_MAP  = 'testtag_selector_map';
     const OPTION_FORCE_ENABLE  = 'testtag_force_enable';
     const OPTION_ATTRIBUTE_KEY = 'testtag_attribute_key';
+    const OPTION_TEXT_FALLBACK = 'testtag_text_fallback';
     const DEFAULT_ATTRIBUTE    = 'data-testid';
 
     public static function init(): void {
@@ -29,6 +30,16 @@ class TestTag_Settings {
             return self::DEFAULT_ATTRIBUTE;
         }
         return $key;
+    }
+
+    /**
+     * Whether visible-text fallback is enabled for auto-generated tags.
+     * Defaults to true for backward compatibility.
+     * When disabled, elements without stable attributes (id/name/aria/etc.)
+     * are skipped rather than generating text-based tags.
+     */
+    public static function get_text_fallback(): bool {
+        return get_option( self::OPTION_TEXT_FALLBACK, '1' ) === '1';
     }
 
     // ─────────────────────────────────────────────────────────────
@@ -111,6 +122,7 @@ class TestTag_Settings {
 
     public static function register_settings(): void {
         register_setting( 'testtag_group', self::OPTION_FORCE_ENABLE );
+        register_setting( 'testtag_group', self::OPTION_TEXT_FALLBACK );
         register_setting( 'testtag_group', self::OPTION_ATTRIBUTE_KEY, [
             'sanitize_callback' => function ( $val ) {
                 $val = sanitize_text_field( $val );
@@ -137,6 +149,7 @@ class TestTag_Settings {
             'settings' => [
                 self::OPTION_ATTRIBUTE_KEY => self::get_attribute_key(),
                 self::OPTION_FORCE_ENABLE  => get_option( self::OPTION_FORCE_ENABLE, '0' ),
+                self::OPTION_TEXT_FALLBACK => get_option( self::OPTION_TEXT_FALLBACK, '1' ),
                 self::OPTION_SELECTOR_MAP  => self::get_selector_map(),
             ],
         ];
@@ -200,6 +213,10 @@ class TestTag_Settings {
             update_option( self::OPTION_FORCE_ENABLE, $s[ self::OPTION_FORCE_ENABLE ] === '1' ? '1' : '0' );
         }
 
+        if ( isset( $s[ self::OPTION_TEXT_FALLBACK ] ) ) {
+            update_option( self::OPTION_TEXT_FALLBACK, $s[ self::OPTION_TEXT_FALLBACK ] === '0' ? '0' : '1' );
+        }
+
         if ( isset( $s[ self::OPTION_SELECTOR_MAP ] ) ) {
             update_option( self::OPTION_SELECTOR_MAP, self::sanitize_selector_map( $s[ self::OPTION_SELECTOR_MAP ] ) );
         }
@@ -234,9 +251,10 @@ class TestTag_Settings {
         // phpcs:ignore WordPress.Security.NonceVerification.Recommended
         $tab = isset( $_GET['tab'] ) ? sanitize_key( $_GET['tab'] ) : 'settings';
 
-        $map     = self::get_selector_map();
-        $force   = get_option( self::OPTION_FORCE_ENABLE, '0' );
-        $attrKey = self::get_attribute_key();
+        $map          = self::get_selector_map();
+        $force        = get_option( self::OPTION_FORCE_ENABLE, '0' );
+        $attrKey      = self::get_attribute_key();
+        $textFallback = get_option( self::OPTION_TEXT_FALLBACK, '1' );
 
         $base_url = admin_url( 'tools.php?page=testtag' );
         ?>
@@ -330,6 +348,22 @@ class TestTag_Settings {
                                     Leave unchecked to inject only for logged-in admins and
                                     <code>local</code> / <code>development</code> / <code>staging</code> environments.
                                     Enable this when running automation against a production URL.
+                                </p>
+                            </td>
+                        </tr>
+                        <tr>
+                            <th scope="row">Text Fallback</th>
+                            <td>
+                                <label>
+                                    <input type="checkbox" name="<?php echo self::OPTION_TEXT_FALLBACK; ?>"
+                                        value="1" <?php checked( $textFallback, '1' ); ?> />
+                                    Use visible text as a <strong>last-resort</strong> source for auto-generated tags
+                                </label>
+                                <p class="description">
+                                    When checked, elements with no stable attribute (aria-label, id, name, etc.) fall
+                                    back to button text, heading text, or link text. Uncheck to skip those elements
+                                    entirely — tags stay stable even when copy or translations change.
+                                    <strong>Checked by default for backward compatibility.</strong>
                                 </p>
                             </td>
                         </tr>
