@@ -126,12 +126,10 @@ test.describe('TestTag Plugin - Settings Configuration', () => {
       });
 
       await test.step('Assert the attribute key field still shows data-cy', async () => {
-        const fieldValue = await settingsPage.attributeKeyField.inputValue().catch(async () => {
-          // Fall back to reading the selected option for a <select> element.
-          return settingsPage.attributeKeyField.evaluate(
-            (el) => (el as HTMLSelectElement).value
-          );
-        });
+        const tagName = await settingsPage.attributeKeyField.evaluate(el => el.tagName.toLowerCase());
+        const fieldValue = tagName === 'select'
+          ? await settingsPage.attributeKeyField.evaluate(el => (el as HTMLSelectElement).value)
+          : await settingsPage.attributeKeyField.inputValue();
         expect(fieldValue).toBe('data-cy');
       });
 

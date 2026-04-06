@@ -64,7 +64,7 @@ test.describe('TestTag Plugin - Tagging Layers', () => {
         await expect(page.locator('[data-testtag-layer="selector-map"]').first()).toBeVisible();
       });
 
-      await test.step('Capture screenshot showing selector-map tagged elements', async ({ page: _p } = { page }) => {
+      await test.step('Capture screenshot showing selector-map tagged elements', async () => {
         await page.screenshot({
           path: `${screenshotDir}/30-tagging-layer-selector-map.png`,
           fullPage: true,
