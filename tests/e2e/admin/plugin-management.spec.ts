@@ -151,7 +151,8 @@ test.describe('TestTag Plugin - Plugin Management', () => {
     });
 
     await test.step('Assert the settings page heading is visible', async () => {
-      const heading = page.locator('h1, h2').filter({ hasText: /testtag/i }).first();
+      // The settings page always renders its title as the sole h1 inside .testtag-wrap.
+      const heading = page.locator('.testtag-wrap h1');
       await expect(heading).toBeVisible();
     });
   });

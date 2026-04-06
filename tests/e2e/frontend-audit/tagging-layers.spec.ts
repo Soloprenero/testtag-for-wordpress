@@ -27,29 +27,21 @@ test.describe('TestTag Plugin - Tagging Layers', () => {
         await frontendPage.open(TEST_URLS.LAYER_FIXTURE_PAGE);
       });
 
-      await test.step('Assert the search form has data-testtag-layer="selector-map"', async () => {
-        const form = page.locator('form.search-form[data-testtag-layer="selector-map"]').first();
+      await test.step('Assert the search form is tagged with testid "search-form"', async () => {
+        // The default selector-map entry maps `.search-form, form[role="search"]`
+        // to testid "search-form". Use that testid rather than a theme-class selector.
+        const form = page.locator('[data-testid="search-form"]').first();
         await expect(form).toBeVisible();
       });
 
-      await test.step('Assert the search form carries a test attribute', async () => {
-        const form = page.locator('form.search-form[data-testtag-layer="selector-map"]').first();
-        const hasTestAttr = await form.evaluate(el =>
-          ['data-testid', 'data-cy', 'data-test'].some(a => el.hasAttribute(a))
-        );
-        expect(hasTestAttr).toBe(true);
+      await test.step('Assert the search form has data-testtag-layer="selector-map"', async () => {
+        const form = page.locator('[data-testid="search-form"]').first();
+        await expect(form).toHaveAttribute('data-testtag-layer', 'selector-map');
       });
 
-      await test.step('Assert the test attribute value matches the configured testid', async () => {
-        const form = page.locator('form.search-form[data-testtag-layer="selector-map"]').first();
-        const testAttrValue = await form.evaluate(el => {
-          for (const a of ['data-testid', 'data-cy', 'data-test']) {
-            const v = el.getAttribute(a);
-            if (v) return v;
-          }
-          return null;
-        });
-        expect(testAttrValue).toBe('search-form');
+      await test.step('Assert the test attribute value is "search-form"', async () => {
+        const form = page.locator('[data-testid="search-form"]').first();
+        await expect(form).toHaveAttribute('data-testid', 'search-form');
       });
     });
 

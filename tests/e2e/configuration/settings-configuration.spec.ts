@@ -156,8 +156,9 @@ test.describe('TestTag Plugin - Settings Configuration', () => {
         await settingsPage.saveSettings();
       });
 
-      await test.step('Assert a WordPress settings-saved notice is visible', async () => {
-        const notice = page.locator('.updated, .notice-success, #setting-error-settings_updated').first();
+      await test.step('Assert the WordPress settings-saved notice is visible', async () => {
+        // WordPress renders this element after a successful options.php save.
+        const notice = page.locator('#setting-error-settings_updated');
         await expect(notice).toBeVisible({ timeout: 5000 });
       });
     });
