@@ -7,7 +7,7 @@
  *               framework. Two layers: auto-generation from element semantics
  *               and a CSS selector map for explicit overrides. Works on any WordPress site —
  *               Elementor, Gutenberg, or classic themes.
- * Version:      1.4.1
+ * Version:      1.5.0-beta
  * Author:       Gary Young III
  * Author URI:   https://garyyoungiii.com
  * Requires at least: 6.0
@@ -19,7 +19,7 @@
 
 defined( 'ABSPATH' ) || exit;
 
-define( 'TESTTAG_VERSION',    '1.4.1' );
+define( 'TESTTAG_VERSION',    '1.5.0-beta' );
 define( 'TESTTAG_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
 define( 'TESTTAG_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
 
