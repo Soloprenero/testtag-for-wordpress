@@ -19,23 +19,25 @@ You can help keep this project alive by:
 3. **Contributing:** Code is only half the battle. You can contribute by submitting feature ideas, reporting bugs, or opening pull requests.
 ---
 
-## How it Works: The Three-Layer System
+## How it Works: The Four-Layer System
 
-TestTag tags elements across three distinct layers as the plugin processes the page. **TestTag is completely non-destructive: an existing attribute is never overwritten.** Each layer applies only to untagged elements.
+TestTag applies tags through four layers. **TestTag is completely non-destructive: an existing attribute is never overwritten.** Each layer only applies to untagged elements.
 
 | Layer | What it covers | When applied |
 | :--- | :--- | :--- |
-| **1. Custom Attributes** | Hardcoded in HTML markup in the editor. | During initial HTML render. |
-| **2. Selector Map** | Auto-generated via CSS selector matching. | After page load, via selectors. |
-| **3. Dynamic** | Items added via JavaScript after page load. | Detected via MutationObserver. |
+| **1. Inline** | Hardcoded attributes already present in markup (`data-testid`, `data-cy`, etc.). | Existing in initial HTML. |
+| **2. Selector Map** | Explicit `selector -> value` mappings from settings. | Server-render + dynamic pass. |
+| **3. Auto** | Generated values inferred from element semantics. | Server-render + dynamic pass fallback. |
+| **4. Dynamic** | Elements inserted after initial render via JavaScript/AJAX. | MutationObserver after page load. |
 
 ---
 
 ## Core Features
 
 * **Configurable Attribute Key:** Seamlessly match your framework. Choose from `data-testid`, `data-cy`, `data-test`, or define any custom `data-*` attribute.
-* **Custom Attributes:** Add attributes directly to your HTML in the editor for explicit, hardcoded control.
+* **Inline Attributes:** Keep direct, handwritten `data-*` values in your markup for exact control.
 * **Selector Map:** Auto-generate tags for hard-to-target theme elements using CSS selector rules (nav, footers, widgets, Elementor sections).
+* **Auto Layer:** Fill in everything else with predictable semantic IDs.
 * **Dynamic Layer:** Automatically tags elements added to the page via JavaScript after initial load.
 * **Environment Guard:** Built for safety. By default, it only injects tags for logged-in admins and non-production environments (`local`, `development`, `staging`). 
 * **Elementor Aware:** Smart enough to handle deep nesting by reading `data-element_type` and `data-widget_type` attributes.
@@ -54,14 +56,15 @@ Stop guessing if your elements are targetable. Audit Mode provides a visual over
 Every tagged element receives a colored border and a badge displaying its tag value. Hovering over any element reveals a tooltip showing:
 * The exact tag value.
 * The attribute key in use (e.g., `data-testid`).
-* Which layer applied the tag (Custom Attributes, Selector Map, or Dynamic).
+* Which layer applied the tag (Inline, Selector Map, Auto, or Dynamic).
 * The raw element descriptor (`tag#id.class`).
 
 **Layer Color Legend:**
 The legend sits neatly in the bottom-right corner while Audit Mode is active, showing the order layers are applied:
-* 🔴**Red:** Custom Attributes (hardcoded in HTML)
+* 🔴**Red:** Inline (hardcoded in HTML)
 * 🔵**Blue:** Selector Map (CSS selector-based)
-* 🟠**Orange:** Dynamic (JavaScript-added elements)
+* 🟢**Green:** Auto (semantic fallback tagging)
+* 🟣**Purple:** Dynamic (JavaScript-added elements)
 
 *Note: Audit Mode state persists across page navigations within the same browser session via `sessionStorage`. The entire overlay is built inside a **shadow DOM**, ensuring its styles are fully isolated and never interfere with your page's actual CSS.*
 

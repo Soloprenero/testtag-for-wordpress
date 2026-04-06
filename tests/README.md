@@ -49,14 +49,14 @@ npm run test:screenshots
 
 Tests are organized by feature/area:
 
-- **Admin Interface**: Settings pages, configuration panels
-- **Frontend**: Element tagging, Audit Mode overlay, user interactions
-- **Configuration**: Different attribute types, environment settings
 
 Each test follows this pattern:
-1. Log in to WordPress
-2. Navigate to specific page
-3. Perform interactions if needed
+
+Layer model used by tests and overlay:
+- **Inline**: existing handwritten `data-*` attributes
+- **Selector map**: explicit selector mappings
+- **Auto**: semantic fallback generation
+- **Dynamic**: MutationObserver tagging for post-load elements
 4. Take screenshot(s)
 5. Verify elements/content
 

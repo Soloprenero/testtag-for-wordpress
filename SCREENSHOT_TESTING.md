@@ -97,6 +97,12 @@ tests/
 - **Audit Mode**: Visual overlay highlighting tagged elements
 - **Legend**: Color-coded layer information display
 
+Audit Mode layer order and colors:
+- **Inline** (red)
+- **Selector map** (blue)
+- **Auto** (green)
+- **Dynamic** (purple)
+
 ### Configuration Tests
 - **Alternative Attributes**: Different `data-*` attribute types (data-cy, etc.)
 

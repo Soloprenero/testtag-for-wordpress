@@ -4,7 +4,7 @@
  * When active, hovering any tagged element shows a fixed tooltip with:
  *   - Tag value
  *   - Attribute key
- *   - Which layer applied it (custom / selector-map / dynamic)
+ *   - Which layer applied it (inline / selector-map / auto / dynamic)
  *   - Element descriptor
  *
  * No overlay boxes are drawn — avoids all scroll/positioning complexity.
@@ -19,12 +19,21 @@
     var active  = false;
     var tip     = null;   // the tooltip DOM element
 
+    var COLORS = {
+        inline: '#e11d48',
+        selectorMap: '#2563eb',
+        auto: '#16a34a',
+        dynamic: '#7c3aed',
+    };
+
     // ── Layer colours ─────────────────────────────────────────────
     var LAYER_META = {
-        'custom':       { label: '🔴 Custom attributes', color: '#e74c3c' },
-        'selector-map': { label: '🔵 Selector map',     color: '#2980b9' },
-        'dynamic':      { label: '🟠 Dynamic',          color: '#e67e22' },
-        'auto':         { label: '🟠 Dynamic',          color: '#e67e22' },
+        'inline':       { label: '🔴 Inline',        color: COLORS.inline },
+        'custom':       { label: '🔴 Inline',        color: COLORS.inline },
+        'server':       { label: '🔴 Inline',        color: COLORS.inline },
+        'selector-map': { label: '🔵 Selector map',  color: COLORS.selectorMap },
+        'dynamic':      { label: '🟣 Dynamic',       color: COLORS.dynamic },
+        'auto':         { label: '🟢 Auto',          color: COLORS.auto },
     };
 
     // ── Tooltip ───────────────────────────────────────────────────
@@ -54,7 +63,7 @@
     function showTip(el, x, y) {
         var value = el.getAttribute(ATTR);
         var layer = el.getAttribute('data-testtag-layer') || 'auto';
-        var meta  = LAYER_META[layer] || { label: layer, color: '#e67e22' };
+        var meta  = LAYER_META[layer] || { label: layer, color: COLORS.dynamic };
 
         tip.innerHTML = [
             row('Tag', '<code style="font:bold 13px/1 ui-monospace,monospace;color:#cba6f7">' + esc(value) + '</code>'),
@@ -157,9 +166,10 @@
         ].join(';');
         legendEl.innerHTML = [
             '<div style="font:700 11px/1 ui-sans-serif,sans-serif;letter-spacing:.05em;text-transform:uppercase;color:#6c7086;margin-bottom:8px">TestTag Audit Mode</div>',
-            swatch('#e74c3c', 'Custom attributes'),
-            swatch('#2980b9', 'Selector map'),
-            swatch('#e67e22', 'Dynamic layer'),
+            swatch(COLORS.inline, 'Inline'),
+            swatch(COLORS.selectorMap, 'Selector map'),
+            swatch(COLORS.auto, 'Auto layer'),
+            swatch(COLORS.dynamic, 'Dynamic layer'),
             '<div style="margin-top:8px;font-size:11px;color:#6c7086">Hover elements · Alt+Shift+T to toggle</div>',
         ].join('');
         document.body.appendChild(legendEl);
@@ -184,10 +194,11 @@
         highlightStyle = document.createElement('style');
         highlightStyle.id = 'testtag-audit-style';
         highlightStyle.textContent = [
-            '[data-testtag-layer]:hover{outline:2px solid #f39c12!important;outline-offset:2px!important;}',
-            '[data-testtag-layer="custom"]:hover{outline-color:#e74c3c!important;}',
-            '[data-testtag-layer="selector-map"]:hover{outline-color:#2980b9!important;}',
-            '[data-testtag-layer="dynamic"]:hover,[data-testtag-layer="auto"]:hover{outline-color:#e67e22!important;}',
+            '[data-testtag-layer]:hover{outline:2px solid ' + COLORS.auto + '!important;outline-offset:2px!important;}',
+            '[data-testtag-layer="inline"]:hover,[data-testtag-layer="custom"]:hover,[data-testtag-layer="server"]:hover{outline-color:' + COLORS.inline + '!important;}',
+            '[data-testtag-layer="selector-map"]:hover{outline-color:' + COLORS.selectorMap + '!important;}',
+            '[data-testtag-layer="auto"]:hover{outline-color:' + COLORS.auto + '!important;}',
+            '[data-testtag-layer="dynamic"]:hover{outline-color:' + COLORS.dynamic + '!important;}',
         ].join('');
         document.head.appendChild(highlightStyle);
     }
