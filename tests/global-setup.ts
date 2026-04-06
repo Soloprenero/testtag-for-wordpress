@@ -12,8 +12,13 @@ import { WordPressRestClient } from './helpers/wp-api';
  * - Configures plugin settings
  */
 
-const baseURL = process.env.TEST_URL || 'http://localhost:8080';
-const isDockerMode = ['true', '1', 'yes'].includes((process.env.USE_DOCKER || '').trim().toLowerCase());
+const isTrue = (value: string | undefined): boolean => {
+  const normalized = value?.trim().toLowerCase();
+  return normalized === 'true' || normalized === '1' || normalized === 'yes';
+};
+const dockerPort = (process.env.WORDPRESS_PORT || '8080').trim() || '8080';
+const baseURL = (process.env.TEST_URL || `http://localhost:${dockerPort}`).trim();
+const isDockerMode = isTrue(process.env.USE_DOCKER);
 const PRETTY_PERMALINK_STRUCTURE = '/%postname%/';
 
 const FIXTURE_PAGE_CONTENT =
@@ -45,6 +50,19 @@ async function waitForWordPressReady(timeoutMs: number = 120000): Promise<void> 
   }
 
   throw new Error(`WordPress did not become ready within ${timeoutMs}ms.`);
+}
+
+async function isWordPressReachable(): Promise<boolean> {
+  const api = await request.newContext({ baseURL, ignoreHTTPSErrors: true });
+
+  try {
+    const response = await api.get(TEST_URLS.LOGIN, { failOnStatusCode: false, timeout: 5000 });
+    return response.status() >= 200 && response.status() < 500;
+  } catch {
+    return false;
+  } finally {
+    await api.dispose();
+  }
 }
 
 async function assertFixturePermalinkExists(): Promise<void> {
@@ -111,6 +129,15 @@ async function setupViaApi(): Promise<void> {
     }
     
     // Set pretty permalinks to /%postname%/ and flush rewrite rules.
+    console.log('Normalizing site URL settings...');
+    try {
+      await api.updateOption('home', baseURL);
+      await api.updateOption('siteurl', baseURL);
+      console.log(`WordPress home/siteurl set to ${baseURL}`);
+    } catch (error) {
+      console.log(`Note: unable to update home/siteurl via REST API (${error instanceof Error ? error.message : String(error)})`);
+    }
+
     console.log('Configuring permalink structure...');
     await api.ensurePrettyPermalinks(PRETTY_PERMALINK_STRUCTURE);
     console.log(`Permalink structure set to ${PRETTY_PERMALINK_STRUCTURE}`);
@@ -165,6 +192,8 @@ async function globalSetup(): Promise<void> {
   }
 
   if (isDockerMode) {
+    const reachableSite = await isWordPressReachable();
+
     // Check if both required services are already running.
     let servicesRunning = false;
     try {
@@ -184,6 +213,8 @@ async function globalSetup(): Promise<void> {
       // If services are already running, restart WordPress to pick up fresh plugin builds.
       console.log('Docker services already running. Restarting WordPress to load updated plugin...');
       execSync('docker compose restart wordpress', { stdio: 'inherit' });
+    } else if (reachableSite) {
+      console.log(`Reusing existing WordPress instance at ${baseURL}.`);
     } else {
       // Start containers when any required service is missing.
       console.log('Starting Docker services...');

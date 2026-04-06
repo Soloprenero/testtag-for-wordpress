@@ -10,6 +10,9 @@ echo   Verification (Windows)
 echo ======================================
 echo.
 
+if "%WORDPRESS_PORT%"=="" set "WORDPRESS_PORT=8080"
+if "%TEST_URL%"=="" set "TEST_URL=http://localhost:%WORDPRESS_PORT%"
+
 set "ERRORS=0"
 set "WARNINGS=0"
 
@@ -72,11 +75,11 @@ echo.
 echo [4/9] Checking required files...
 
 for %%F in (
-    "playwright.config.js"
+    "playwright.config.ts"
     "docker-compose.yml"
-    "tests\e2e\screenshots.spec.js"
-    "tests\helpers\wordpress.js"
-    "tests\global-setup.js"
+    "tests\e2e\admin\admin-interface.spec.ts"
+    "tests\helpers\wordpress.ts"
+    "tests\global-setup.ts"
     ".github\workflows\screenshots.yml"
     "SCREENSHOT_TESTING.md"
 ) do (
@@ -175,7 +178,7 @@ if !ERRORS! equ 0 (
         echo Next steps:
         echo   1. npm ci                       (install dependencies^)
         echo   2. npm run build                (build plugin assets^)
-        echo   3. docker-compose up -d         (start WordPress^)
+        echo   3. docker compose up -d         (start WordPress^)
         echo   4. npx playwright install       (install browsers^)
         echo   5. npm run test:screenshots     (run tests^)
         echo.

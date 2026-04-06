@@ -10,6 +10,9 @@ NC='\033[0m' # No Color
 echo -e "${YELLOW}TestTag Screenshot Testing - Setup${NC}"
 echo "======================================"
 
+WORDPRESS_PORT="${WORDPRESS_PORT:-8080}"
+TEST_URL="${TEST_URL:-http://localhost:${WORDPRESS_PORT}}"
+
 # Check if Docker is running
 if ! docker info > /dev/null 2>&1; then
   echo -e "${RED}✗ Docker is not running. Please start Docker first.${NC}"
@@ -20,7 +23,7 @@ echo -e "${GREEN}✓ Docker is running${NC}"
 
 # Start Docker Compose services
 echo -e "${YELLOW}Starting WordPress and MySQL...${NC}"
-docker-compose up -d
+docker compose up -d
 
 # Wait for services to be healthy
 echo -e "${YELLOW}Waiting for services to be ready...${NC}"
@@ -29,10 +32,10 @@ sleep 10
 # Check if WordPress is responding
 max_attempts=30
 attempt=1
-until curl -f http://localhost:8080/ > /dev/null 2>&1; do
+until curl -f "$TEST_URL/" > /dev/null 2>&1; do
   if [ $attempt -eq $max_attempts ]; then
     echo -e "${RED}✗ WordPress did not start in time${NC}"
-    docker-compose logs wordpress
+    docker compose logs wordpress
     exit 1
   fi
   echo "Waiting for WordPress... (attempt $attempt/$max_attempts)"
@@ -43,7 +46,7 @@ done
 echo -e "${GREEN}✓ WordPress is responding${NC}"
 
 # Get WordPress container ID
-WP_CONTAINER=$(docker-compose ps -q wordpress)
+WP_CONTAINER=$(docker compose ps -q wordpress)
 
 if [ -z "$WP_CONTAINER" ]; then
   echo -e "${RED}✗ Could not find WordPress container${NC}"
@@ -53,7 +56,7 @@ fi
 # Install WordPress core
 echo -e "${YELLOW}Installing WordPress core...${NC}"
 docker exec "$WP_CONTAINER" wp core install \
-  --url=http://localhost:8080 \
+  --url="$TEST_URL" \
   --title="TestTag Screenshot Tests" \
   --admin_user=admin \
   --admin_password=password \
@@ -75,8 +78,8 @@ echo -e "${GREEN}✓ Test user created${NC}"
 
 # Update WordPress options
 echo -e "${YELLOW}Updating WordPress configuration...${NC}"
-docker exec "$WP_CONTAINER" wp option update home http://localhost:8080 --allow-root
-docker exec "$WP_CONTAINER" wp option update siteurl http://localhost:8080 --allow-root
+docker exec "$WP_CONTAINER" wp option update home "$TEST_URL" --allow-root
+docker exec "$WP_CONTAINER" wp option update siteurl "$TEST_URL" --allow-root
 
 echo -e "${GREEN}✓ WordPress configured${NC}"
 
@@ -99,8 +102,8 @@ echo -e "${GREEN}======================================"
 echo "Setup Complete!"
 echo "=====================================${NC}"
 echo ""
-echo "WordPress is ready at: http://localhost:8080"
-echo "Admin URL: http://localhost:8080/wp-admin"
+echo "WordPress is ready at: $TEST_URL"
+echo "Admin URL: $TEST_URL/wp-admin"
 echo "Admin User: admin"
 echo "Admin Password: password"
 echo ""
@@ -113,5 +116,5 @@ echo "     - Interactive: npm run test:screenshots:ui"
 echo "     - Headed: npm run test:screenshots:headed"
 echo "     - Headless: npm run test:screenshots"
 echo ""
-echo "To stop services: docker-compose down"
-echo "To reset data: docker-compose down -v"
+echo "To stop services: docker compose down"
+echo "To reset data: docker compose down -v"

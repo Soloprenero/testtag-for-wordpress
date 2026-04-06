@@ -12,11 +12,12 @@ import path from 'path';
  * - Stores screenshots in tests/screenshots/ for visual regression testing
  */
 
-const baseURL = process.env.TEST_URL || 'http://localhost:8080';
 const isTrue = (value: string | undefined): boolean => {
   const normalized = value?.trim().toLowerCase();
   return normalized === 'true' || normalized === '1' || normalized === 'yes';
 };
+const dockerPort = (process.env.WORDPRESS_PORT || '8080').trim() || '8080';
+const baseURL = (process.env.TEST_URL || `http://localhost:${dockerPort}`).trim();
 const isDockerMode = isTrue(process.env.USE_DOCKER);
 const skipWebServer = isTrue(process.env.SKIP_WEB_SERVER) || isDockerMode;
 const skipGlobalSetup = isTrue(process.env.SKIP_GLOBAL_SETUP);

@@ -6,6 +6,7 @@
   "scripts": {
     "build": "webpack --mode production",
     "dev":   "webpack --mode development --watch",
+    "lint":  "eslint block-editor/src",
     "test:playwright:ui": "playwright test --ui --pass-with-no-tests",
     "test:screenshots": "cross-env USE_DOCKER=true CI=true SKIP_WEB_SERVER=true playwright test --config=playwright.config.ts",
     "test:screenshots:ui": "playwright test --config=playwright.config.ts --ui",
@@ -22,7 +23,7 @@
   },
   "devDependencies": {
     "@wordpress/scripts": "^27.0.0",
-    "@playwright/test": "^1.48.0",
+    "@playwright/test": "^1.59.1",
     "@types/node": "^22.0.0",
     "typescript": "^5.0.0",
     "cross-env": "^7.0.3"
