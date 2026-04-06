@@ -15,10 +15,11 @@
 (function () {
     'use strict';
 
-    var config      = window.TESTTAG || {};
-    var ATTR        = config.attributeKey || 'data-testid';
-    var LAYER_ATTR  = 'data-testtag-layer';
-    var selectorMap = config.selectorMap || [];
+    var config       = window.TESTTAG || {};
+    var ATTR         = config.attributeKey || 'data-testid';
+    var LAYER_ATTR   = 'data-testtag-layer';
+    var selectorMap  = config.selectorMap || [];
+    var textFallback = config.textFallback !== false; // default true
 
     // ── Dedup (dynamic elements only, scoped to parent) ──────────
     // Counters reset per parent element so sibling containers each get
@@ -71,6 +72,29 @@
         return h ? h.textContent.trim() : '';
     }
 
+    /**
+     * Extracts a stable slug from an href's last path segment.
+     * Returns null for anchors, mailto, tel, and bare hosts.
+     */
+    function hrefPathFragment(href) {
+        if (!href || href === '/') return null;
+        if (href.charAt(0) === '#') return null;
+        if (href.indexOf('mailto:') === 0) return null;
+        if (href.indexOf('tel:') === 0) return null;
+        try {
+            var url = new URL(href, location.href);
+            var path = url.pathname.replace(/\/$/, '');
+            if (!path || path === '/') return null;
+            var parts = path.split('/');
+            var segment = parts[parts.length - 1];
+            segment = segment.replace(/\.[a-z0-9]+$/i, ''); // strip extension
+            var clean = slug(segment);
+            return (clean && clean.length > 1) ? clean : null;
+        } catch (e) {
+            return null;
+        }
+    }
+
     // ── Auto-generate a value for an element ─────────────────────
     function autoId(el) {
         var tagName = el.tagName.toLowerCase();
@@ -89,23 +113,45 @@
             return 'input-' + slug(hint || type);
         }
 
-        // Buttons
+        // Buttons — stable-first: aria-label → id → name → value → text (fallback)
         if (tagName === 'button') {
-            var text = el.textContent.trim() || el.getAttribute('aria-label') || el.value || '';
-            return 'button-' + slug(text);
+            var al = el.getAttribute('aria-label');
+            if (al) return 'button-' + slug(al);
+            if (el.id) {
+                var idSlug = slug(el.id);
+                if (idSlug && !/^\d+$/.test(idSlug) && idSlug.length > 1) return 'button-' + idSlug;
+            }
+            var name = el.getAttribute('name');
+            if (name) return 'button-' + slug(name);
+            var value = el.value;
+            if (value) return 'button-' + slug(value);
+            if (textFallback) {
+                var text = el.textContent.trim();
+                if (text) return 'button-' + slug(text);
+            }
+            return null;
         }
 
-        // Links
+        // Links — stable-first
         if (tagName === 'a') {
             var href     = el.getAttribute('href') || '';
             var linkText = el.textContent.trim();
+
             if (el.closest('nav, header')) {
+                var al = el.getAttribute('aria-label');
+                if (al) return 'nav-' + slug(al);
                 if (href === '/')               return 'nav-home';
                 if (href.startsWith('#'))       return 'nav-' + slug(href.slice(1));
-                return 'nav-' + slug(linkText || href);
+                var frag = hrefPathFragment(href);
+                if (frag) return 'nav-' + frag;
+                if (textFallback) return 'nav-' + slug(linkText || href);
+                return null;
             }
             if (/\.(pdf|docx?|xlsx?|pptx?|zip)$/i.test(href)) {
-                return 'download-' + slug(linkText || href.split('/').pop());
+                var al = el.getAttribute('aria-label');
+                if (al) return 'download-' + slug(al);
+                if (textFallback && linkText) return 'download-' + slug(linkText);
+                return 'download-' + slug(href.split('/').pop());
             }
 
             // Card-style anchor: wraps block-level content rather than acting as
@@ -121,29 +167,48 @@
                 return null;
             }
 
-            if (linkText)               return 'link-' + slug(linkText);
+            // Regular link — stable-first
+            var al = el.getAttribute('aria-label');
+            if (al) return 'link-' + slug(al);
+            if (el.id) {
+                var idSlug = slug(el.id);
+                if (idSlug && !/^\d+$/.test(idSlug) && idSlug.length > 1) return 'link-' + idSlug;
+            }
+            var frag = hrefPathFragment(href);
+            if (frag) return 'link-' + frag;
             if (href.startsWith('#'))   return 'link-' + slug(href.slice(1));
+            if (textFallback && linkText) return 'link-' + slug(linkText);
             return null;
         }
 
         // Landmark elements
         if (['section', 'article', 'aside', 'main', 'header', 'footer'].indexOf(tagName) !== -1) {
-            var id = el.id;
-            if (id) {
-                var clean = slug(id);
-                if (clean && !/^\d+$/.test(clean) && clean.length > 1) return tagName + '-' + clean;
-            }
-            var h = firstHeadingText(el);
-            if (h) return tagName + '-' + slug(h);
             var al = el.getAttribute('aria-label');
             if (al) return tagName + '-' + slug(al);
+            if (el.id) {
+                var clean = slug(el.id);
+                if (clean && !/^\d+$/.test(clean) && clean.length > 1) return tagName + '-' + clean;
+            }
+            if (textFallback) {
+                var h = firstHeadingText(el);
+                if (h) return tagName + '-' + slug(h);
+            }
             return null;
         }
 
-        // Headings
+        // Headings — stable-first: aria-label → id → text (fallback)
         if (/^h[1-6]$/.test(tagName)) {
-            var text = el.textContent.trim();
-            return text ? 'heading-' + slug(text) : null;
+            var al = el.getAttribute('aria-label');
+            if (al) return 'heading-' + slug(al);
+            if (el.id) {
+                var clean = slug(el.id);
+                if (clean && !/^\d+$/.test(clean) && clean.length > 1) return 'heading-' + clean;
+            }
+            if (textFallback) {
+                var text = el.textContent.trim();
+                if (text) return 'heading-' + slug(text);
+            }
+            return null;
         }
 
         // Paragraphs — prepend the nearest tagged ancestor's value, never embed prose
@@ -158,17 +223,20 @@
             return null;
         }
 
-        // Forms
+        // Forms — stable-first: aria-label → id → legend/heading (fallback)
         if (tagName === 'form') {
-            var legend = el.querySelector('legend') || el.querySelector('h1,h2,h3,h4,h5,h6');
-            if (legend) {
-                var t = legend.textContent.trim();
-                if (t) return 'form-' + slug(t);
-            }
-            var id = el.id;
-            if (id) {
-                var clean = slug(id);
+            var al = el.getAttribute('aria-label');
+            if (al) return 'form-' + slug(al);
+            if (el.id) {
+                var clean = slug(el.id);
                 if (clean && !/^\d+$/.test(clean) && clean.length > 1) return 'form-' + clean;
+            }
+            if (textFallback) {
+                var legend = el.querySelector('legend') || el.querySelector('h1,h2,h3,h4,h5,h6');
+                if (legend) {
+                    var t = legend.textContent.trim();
+                    if (t) return 'form-' + slug(t);
+                }
             }
             return 'form';
         }
@@ -181,7 +249,8 @@
 
         // Custom select options (li inside a select-like list)
         if (tagName === 'li') {
-            var optValue = el.getAttribute('rel') || el.textContent.trim();
+            var relVal = el.getAttribute('rel');
+            var optValue = relVal || (textFallback ? el.textContent.trim() : '');
             if (!optValue) return null;
             var optSlug = slug(optValue);
             if (!optSlug) return null;
@@ -200,52 +269,63 @@
             return selectName ? 'option-' + slug(selectName) + '-' + optSlug : 'option-' + optSlug;
         }
 
-        // Divs / spans — Elementor, Gutenberg, id/role fallbacks
+        // Divs / spans — stable-first: aria-label → id → Elementor/Gutenberg attrs → role
         if (tagName === 'div' || tagName === 'span') {
             // Prefix auto-generated values with role (if present) or HTML tag.
             var prefix = el.getAttribute('role') || tagName;
 
-            var eType = el.getAttribute('data-element_type');
-            if (eType === 'section' || eType === 'container') {
-                var h = firstHeadingText(el);
-                if (h) return 'section-' + slug(h);
-                var al = el.getAttribute('aria-label');
-                if (al) return 'section-' + slug(al);
-                return null;
-            }
+            // 1. aria-label (most reliable stable source)
+            var al = el.getAttribute('aria-label');
+            if (al) return prefix + '-' + slug(al);
 
-            var eWidget = el.getAttribute('data-widget_type');
-            if (eWidget) {
-                var h = firstHeadingText(el);
-                if (h) return prefix + '-' + slug(h);
-                var al = el.getAttribute('aria-label');
-                if (al) return prefix + '-' + slug(al);
-                var wType = eWidget.replace(/\.default$/, '').replace(/^wp-widget-/, '');
-                var cleaned = slug(wType);
-                return cleaned ? prefix + '-' + cleaned : null;
-            }
-
-            // Gutenberg blocks
-            var classes = el.className ? el.className.split(/\s+/) : [];
-            for (var i = 0; i < classes.length; i++) {
-                if (classes[i].indexOf('wp-block-') === 0) {
-                    var h = firstHeadingText(el);
-                    if (h) return prefix + '-' + slug(h);
-                    var blockSlug = slug(classes[i].slice('wp-block-'.length));
-                    return blockSlug ? prefix + '-' + blockSlug : null;
-                }
-            }
-
-            var id = el.id;
-            if (id) {
-                var clean = slug(id);
+            // 2. Stable id (non-numeric)
+            if (el.id) {
+                var clean = slug(el.id);
                 if (clean && !/^\d+$/.test(clean) && clean.length > 1) return prefix + '-' + clean;
             }
 
+            // 3. Elementor section/container
+            var eType = el.getAttribute('data-element_type');
+            if (eType === 'section' || eType === 'container') {
+                if (textFallback) {
+                    var h = firstHeadingText(el);
+                    if (h) return 'section-' + slug(h);
+                }
+                return null;
+            }
+
+            // 4. Elementor widget
+            var eWidget = el.getAttribute('data-widget_type');
+            if (eWidget) {
+                var wType = eWidget.replace(/\.default$/, '').replace(/^wp-widget-/, '');
+                var cleaned = slug(wType);
+                if (cleaned) return prefix + '-' + cleaned;
+                if (textFallback) {
+                    var h = firstHeadingText(el);
+                    if (h) return prefix + '-' + slug(h);
+                }
+                return null;
+            }
+
+            // 5. Gutenberg blocks — wp-block-* class slug
+            var classes = el.className ? el.className.split(/\s+/) : [];
+            for (var i = 0; i < classes.length; i++) {
+                if (classes[i].indexOf('wp-block-') === 0) {
+                    var blockSlug = slug(classes[i].slice('wp-block-'.length));
+                    if (blockSlug) return prefix + '-' + blockSlug;
+                    if (textFallback) {
+                        var h = firstHeadingText(el);
+                        if (h) return prefix + '-' + slug(h);
+                    }
+                    return null;
+                }
+            }
+
+            // 6. role with text fallback label
             var role = el.getAttribute('role');
-            if (role) {
-                var label = el.id || slug(el.textContent.trim().slice(0, 30));
-                return role + '-' + slug(label);
+            if (role && textFallback) {
+                var label = slug(el.textContent.trim().slice(0, 30));
+                if (label) return role + '-' + label;
             }
         }
 

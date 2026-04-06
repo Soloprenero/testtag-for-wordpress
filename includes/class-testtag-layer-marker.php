@@ -22,6 +22,7 @@ class TestTag_Layer_Marker {
         wp_localize_script( 'testtag-layer-marker', 'TESTTAG', [
             'attributeKey' => TestTag_Settings::get_attribute_key(),
             'selectorMap'  => TestTag_Settings::get_selector_map(),
+            'textFallback' => TestTag_Settings::get_text_fallback(),
             'debug'        => defined( 'WP_DEBUG' ) && WP_DEBUG,
         ] );
 
