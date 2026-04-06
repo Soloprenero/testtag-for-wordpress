@@ -222,9 +222,9 @@ test.describe('TestTag Plugin - Tagging Layers', () => {
         await expect(subtitle).toBeVisible();
       });
 
-      await test.step('Assert the subtitle text contains "TestTag Layer Fixture"', async () => {
+      await test.step('Assert the subtitle text contains "Inline Layer Sample"', async () => {
         const subtitle = page.locator('[data-testid="fixture-subtitle"]').first();
-        await expect(subtitle).toContainText('TestTag Layer Fixture');
+        await expect(subtitle).toContainText('Inline Layer Sample');
       });
     });
 
