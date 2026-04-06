@@ -35,25 +35,18 @@ jobs:
       - name: Create plugin zip
         run: |
           mkdir -p dist
-          zip -r dist/testtag-for-wordpress.zip . \
-            -x ".git/*" \
-            -x ".gitignore" \
-            -x ".github/*" \
-            -x "node_modules/*" \
-            -x "package-lock.json" \
-            -x "package.json" \
-            -x "release-manifest.json" \
-            -x ".history/*" \
-            -x "dist/*" \
-            -x "*.zip"
+          node -e "
+            const fs = require('fs');
+            const m = JSON.parse(fs.readFileSync('release-manifest.json', 'utf8'));
+            process.stdout.write((m.requiredFiles || []).join('\n'));
+          " | xargs -d '\n' zip dist/testtag-for-wordpress.zip
 
       - name: Validate packaged zip contents
         run: |
           set -euo pipefail
 
           zip_file_list="dist/zip-files.txt"
-          expected_file_list="dist/expected-files.txt"
-          required_file_list="dist/required-files.txt"
+          manifest_file_list="dist/manifest-files.txt"
 
           unzip -Z1 dist/testtag-for-wordpress.zip \
             | sed 's#^\./##' \
@@ -61,36 +54,25 @@ jobs:
             | grep -v '/$' \
             | LC_ALL=C sort -u > "$zip_file_list"
 
-          git ls-files \
-            | grep -Ev '^\.github/|^\.history/|^dist/|^node_modules/' \
-            | grep -Ev '^\.gitignore$|^package-lock\.json$|^package\.json$|^release-manifest\.json$' \
-            | grep -Ev '\.zip$' \
-            | LC_ALL=C sort -u > "$expected_file_list"
-
           node -e "const fs=require('fs');const m=JSON.parse(fs.readFileSync('release-manifest.json','utf8'));for(const f of (m.requiredFiles||[])) console.log(f);" \
-            | LC_ALL=C sort -u > "$required_file_list"
+            | LC_ALL=C sort -u > "$manifest_file_list"
 
-          while IFS= read -r file; do
-            if ! grep -Fxq "$file" "$zip_file_list"; then
-              echo "Release zip is missing required file: $file"
-              exit 1
-            fi
-          done < "$required_file_list"
-
-          missing_from_zip=$(comm -23 "$expected_file_list" "$zip_file_list" || true)
-          unexpected_in_zip=$(comm -13 "$expected_file_list" "$zip_file_list" || true)
+          missing_from_zip=$(comm -23 "$manifest_file_list" "$zip_file_list" || true)
+          unexpected_in_zip=$(comm -13 "$manifest_file_list" "$zip_file_list" || true)
 
           if [ -n "$missing_from_zip" ]; then
-            echo "Release zip is missing expected tracked files:"
+            echo "Release zip is missing manifest files:"
             echo "$missing_from_zip"
             exit 1
           fi
 
           if [ -n "$unexpected_in_zip" ]; then
-            echo "Release zip contains unexpected files:"
+            echo "Release zip contains files not listed in manifest:"
             echo "$unexpected_in_zip"
             exit 1
           fi
+
+          echo "Zip contents match manifest exactly."
 
       - name: Upload package artifact
         uses: actions/upload-artifact@v7

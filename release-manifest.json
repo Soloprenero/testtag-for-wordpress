@@ -7,9 +7,6 @@
     "CONTRIBUTORS.md",
     "includes/class-testtag-html-processor.php",
     "includes/class-testtag-settings.php",
-    "includes/class-testtag-block-editor.php",
-    "js/dynamic-injector.js",
-    "block-editor/build/index.js",
-    "block-editor/build/index.asset.php"
+    "js/dynamic-injector.js"
   ]
 }

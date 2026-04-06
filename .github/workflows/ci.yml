@@ -38,9 +38,11 @@ jobs:
       - name: Validate Playwright UI boot
         run: |
           set +e
-          timeout 45s xvfb-run --auto-servernum npm run test:playwright:ui
+          timeout -s TERM -k 5s 45s xvfb-run --auto-servernum npm run test:playwright:ui
           code=$?
           set -e
+          # Exit code 124 means `timeout` terminated the process after 45s —
+          # this is the expected outcome: Playwright UI booted successfully.
           if [ "$code" -ne 0 ] && [ "$code" -ne 124 ]; then
             exit "$code"
           fi
