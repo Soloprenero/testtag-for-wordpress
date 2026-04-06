@@ -163,9 +163,19 @@ class TestTag_Settings {
             exit;
         }
 
+        $tmp_name = wp_unslash( $_FILES['testtag_import_file']['tmp_name'] );
+        if ( ! is_string( $tmp_name ) || ! is_uploaded_file( $tmp_name ) ) {
+            wp_redirect( add_query_arg( 'testtag_import', 'no_file', $redirect ) );
+            exit;
+        }
+
         // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents
-        $content = file_get_contents( sanitize_text_field( wp_unslash( $_FILES['testtag_import_file']['tmp_name'] ) ) );
-        $data    = json_decode( $content, true );
+        $content = file_get_contents( $tmp_name );
+        if ( $content === false ) {
+            wp_redirect( add_query_arg( 'testtag_import', 'invalid', $redirect ) );
+            exit;
+        }
+        $data = json_decode( $content, true );
 
         if (
             ! is_array( $data ) ||

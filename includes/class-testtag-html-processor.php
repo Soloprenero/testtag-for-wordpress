@@ -516,7 +516,7 @@ class TestTag_HTML_Processor {
         $concat = [];
         foreach ( $parts as $part ) {
             if ( $part === '' ) continue;
-            $concat[] = ( $part === '"' ) ? "('\"')" : ( '"' . $part . '"' );
+            $concat[] = ( $part === '"' ) ? "'\"'" : ( '"' . $part . '"' );
         }
         return 'concat(' . implode( ',', $concat ) . ')';
     }

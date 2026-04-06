@@ -59,7 +59,7 @@
         tip.innerHTML = [
             row('Tag', '<code style="font:bold 13px/1 ui-monospace,monospace;color:#cba6f7">' + esc(value) + '</code>'),
             row('Attr', '<code style="font:12px/1 ui-monospace,monospace;color:#89dceb">' + esc(ATTR) + '</code>'),
-            row('Layer', '<span style="color:' + meta.color + '">' + meta.label + '</span>'),
+            row('Layer', '<span style="color:' + esc(meta.color) + '">' + esc(meta.label) + '</span>'),
             row('El', '<code style="font:11px/1 ui-monospace,monospace;color:#89dceb">' + esc(elDesc(el)) + '</code>'),
         ].join('');
 
@@ -90,7 +90,7 @@
     }
 
     function esc(s) {
-        return (s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+        return (s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
     }
 
     function elDesc(el) {
