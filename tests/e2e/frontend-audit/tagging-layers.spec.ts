@@ -19,6 +19,63 @@ const screenshotDir = './tests/screenshots';
  *                 (e.g. data-testid on the fixture subtitle)
  */
 test.describe('TestTag Plugin - Tagging Layers', () => {
+  test.describe('Fixture page structure', () => {
+    test('Fixture page shows an always-visible legend and labeled layer sections', async ({ page }) => {
+      const frontendPage = new FrontendPage(page);
+
+      await test.step('Navigate to fixture page', async () => {
+        await frontendPage.open(TEST_URLS.LAYER_FIXTURE_PAGE);
+      });
+
+      await test.step('Assert the in-page fixture legend is visible', async () => {
+        const legend = page.locator('#fixture-layer-legend');
+        await expect(legend).toBeVisible();
+        await expect(legend).toContainText('Fixture Legend (Always Visible)');
+      });
+
+      await test.step('Assert all four layer labels are listed in the legend', async () => {
+        const legend = page.locator('#fixture-layer-legend');
+        await expect(legend).toContainText('Inline');
+        await expect(legend).toContainText('Selector map');
+        await expect(legend).toContainText('Auto');
+        await expect(legend).toContainText('Dynamic');
+      });
+
+      await test.step('Assert each layer sample section is present and labeled', async () => {
+        await expect(page.locator('#fixture-inline-sample h2')).toContainText('Inline Layer Sample');
+        await expect(page.locator('#fixture-selector-sample h2')).toContainText('Selector-map Layer Sample');
+        await expect(page.locator('#fixture-auto-sample h2')).toContainText('Auto Layer Sample');
+        await expect(page.locator('#fixture-dynamic-sample h2')).toContainText('Dynamic Layer Sample');
+      });
+    });
+
+    test('Fixture page includes common site elements for broad tagging coverage', async ({ page }) => {
+      const frontendPage = new FrontendPage(page);
+
+      await test.step('Navigate to fixture page', async () => {
+        await frontendPage.open(TEST_URLS.LAYER_FIXTURE_PAGE);
+      });
+
+      await test.step('Assert representative structural elements are visible', async () => {
+        await expect(page.locator('#fixture-site-header')).toBeVisible();
+        await expect(page.locator('#fixture-primary-nav')).toBeVisible();
+        await expect(page.locator('#fixture-main')).toBeVisible();
+        await expect(page.locator('#fixture-sidebar')).toBeVisible();
+        await expect(page.locator('#fixture-footer')).toBeVisible();
+      });
+
+      await test.step('Assert representative interactive and content elements are visible', async () => {
+        await expect(page.locator('form.search-form').first()).toBeVisible();
+        await expect(page.locator('#fixture-auto-sample button').first()).toBeVisible();
+        await expect(page.locator('#fixture-auto-sample input').first()).toBeVisible();
+        await expect(page.locator('#fixture-auto-sample select').first()).toBeVisible();
+        await expect(page.locator('#fixture-auto-sample textarea').first()).toBeVisible();
+        await expect(page.locator('#fixture-content-extras table').first()).toBeVisible();
+        await expect(page.locator('#fixture-content-extras ul').first()).toBeVisible();
+      });
+    });
+  });
+
   test.describe('Selector-map layer', () => {
     test('Fixture search form is tagged by the selector-map layer', async ({ page }) => {
       const frontendPage = new FrontendPage(page);
