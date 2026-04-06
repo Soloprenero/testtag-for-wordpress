@@ -4,6 +4,9 @@
 
 set -e
 
+WORDPRESS_PORT="${WORDPRESS_PORT:-8080}"
+TEST_URL="${TEST_URL:-http://localhost:${WORDPRESS_PORT}}"
+
 echo "🔧 Initializing WordPress for Screenshot Testing..."
 
 # Wait for WordPress files to be set up
@@ -17,7 +20,7 @@ if wp core is-installed --allow-root 2>/dev/null; then
 else
   echo "📦 Installing WordPress core..."
   wp core install \
-    --url=http://localhost:8080 \
+    --url="${TEST_URL}" \
     --title="TestTag For WordPress" \
     --admin_user=admin \
     --admin_password=password \
@@ -40,8 +43,8 @@ fi
 
 # Update site options
 echo "⚙️  Configuring WordPress..."
-wp option update home http://localhost:8080 --allow-root
-wp option update siteurl http://localhost:8080 --allow-root
+wp option update home "${TEST_URL}" --allow-root
+wp option update siteurl "${TEST_URL}" --allow-root
 
 # Check if TestTag plugin is active
 if wp plugin is-active testtag-for-wordpress --allow-root 2>/dev/null; then
@@ -64,8 +67,8 @@ bash /var/www/html/wp-content/plugins/testtag-for-wordpress/ci/ensure-fixture-pa
 echo "✅ WordPress initialization complete!"
 echo ""
 echo "📋 WordPress Details:"
-echo "  URL: http://localhost:8080"
-echo "  Admin URL: http://localhost:8080/wp-admin"
+echo "  URL: ${TEST_URL}"
+echo "  Admin URL: ${TEST_URL}/wp-admin"
 echo "  Admin User: admin"
 echo "  Admin Password: password"
 echo ""

@@ -7,6 +7,9 @@ echo.
 echo TestTag Screenshot Testing - Setup
 echo ======================================
 
+if "%WORDPRESS_PORT%"=="" set "WORDPRESS_PORT=8080"
+if "%TEST_URL%"=="" set "TEST_URL=http://localhost:%WORDPRESS_PORT%"
+
 REM Check if Docker is running
 docker version >nul 2>&1
 if errorlevel 1 (
@@ -26,7 +29,7 @@ timeout /t 40 /nobreak
 
 REM Wait for WordPress to be responsive
 :wait_wordpress
-curl -s http://localhost:8080/ -o nul 2>&1
+curl -s %TEST_URL%/ -o nul 2>&1
 if errorlevel 1 (
     echo [*] WordPress not responding, waiting...
     timeout /t 5 /nobreak
@@ -40,8 +43,8 @@ echo ======================================
 echo Setup Complete!
 echo ======================================
 echo.
-echo WordPress is ready at: http://localhost:8080
-echo Admin URL: http://localhost:8080/wp-admin
+echo WordPress is ready at: %TEST_URL%
+echo Admin URL: %TEST_URL%/wp-admin
 echo Admin User: admin
 echo Admin Password: password
 echo.

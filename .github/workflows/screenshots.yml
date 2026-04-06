@@ -11,47 +11,14 @@ on:
     - cron: '0 2 * * *'
 
 env:
-  TEST_URL: http://localhost:8080
-  WP_VERSION: latest
-  PHP_VERSION: '8.2'
+  WORDPRESS_PORT: '18080'
+  TEST_URL: http://localhost:18080
   NODE_VERSION: '24'
 
 jobs:
   screenshots:
     runs-on: ubuntu-latest
     timeout-minutes: 30
-
-    services:
-      wordpress:
-        image: wordpress:latest
-        env:
-          WORDPRESS_DB_HOST: mysql
-          WORDPRESS_DB_USER: wordpress
-          WORDPRESS_DB_PASSWORD: wordpress
-          WORDPRESS_DB_NAME: wordpress
-          WORDPRESS_TABLE_PREFIX: wp_
-        options: >-
-          --health-cmd="curl -f http://localhost/ || exit 1"
-          --health-interval=10s
-          --health-timeout=5s
-          --health-retries=5
-        ports:
-          - 8080:80
-
-      mysql:
-        image: mysql:8.0
-        env:
-          MYSQL_DATABASE: wordpress
-          MYSQL_ROOT_PASSWORD: wordpress
-          MYSQL_USER: wordpress
-          MYSQL_PASSWORD: wordpress
-        options: >-
-          --health-cmd="mysqladmin ping -h 127.0.0.1"
-          --health-interval=10s
-          --health-timeout=5s
-          --health-retries=3
-        ports:
-          - 3306:3306
 
     steps:
       - name: Checkout code
@@ -63,127 +30,14 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
           cache: npm
 
-      - name: Setup PHP
-        uses: shivammathur/setup-php@v2
-        with:
-          php-version: ${{ env.PHP_VERSION }}
-          tools: wp-cli
-
       - name: Install dependencies
         run: npm ci --no-audit --no-fund
-
-      - name: Build plugin assets
-        run: npm run build
-
-      - name: Wait for WordPress to be ready
-        run: |
-          for i in {1..60}; do
-            if curl -f http://localhost:8080/ > /dev/null 2>&1; then
-              echo "WordPress is ready!"
-              break
-            fi
-            echo "Waiting for WordPress... ($i/60)"
-            sleep 2
-          done
-
-      - name: Configure WordPress
-        run: |
-          # Wait a bit more to ensure services are ready
-          sleep 5
-          
-          # Copy plugin to WordPress plugins directory
-          mkdir -p /tmp/wordpress-docker
-          docker ps -aq | xargs -I {} docker inspect -f '{{ .Mounts }}' {} | head -1
-          
-          # Use wp-cli in docker
-          docker exec -ti $(docker ps -q -f "ancestor=wordpress:latest") sh -c "
-
-            # Install WP-CLI
-            curl -O https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar 2>/dev/null
-            chmod +x wp-cli.phar
-            wp() { php wp-cli.phar \"\$@\"; }
-            export -f wp
-
-            # Install WordPress
-            wp core install --url=http://localhost:8080 --title='TestTag Tests' --admin_user=admin --admin_password=password --admin_email=admin@example.com --allow-root 2>/dev/null || true
-            
-            # Create test user
-            wp user create testuser test@example.com --user_pass=testpass123 --role=editor --allow-root 2>/dev/null || true
-            
-            # Update WordPress URL if needed
-            wp option update home http://localhost:8080 --allow-root 2>/dev/null || true
-            wp option update siteurl http://localhost:8080 --allow-root 2>/dev/null || true
-
-            # Activate required plugins
-            wp plugin activate testtag-for-wordpress --allow-root 2>/dev/null || true
-          " || true
-
-      - name: Create WordPress container setup script
-        run: |
-          mkdir -p ci/docker
-          cat > ci/docker/setup.sh << 'EOF'
-          #!/bin/bash
-          set -e
-
-          # Get WordPress container
-          WP_CONTAINER=$(docker ps -q -f "ancestor=wordpress:latest" | head -1)
-
-          if [ -z "$WP_CONTAINER" ]; then
-            echo "WordPress container not found!"
-            exit 1
-          fi
-
-          echo "Installing WordPress core..."
-          docker exec "$WP_CONTAINER" wp core install \
-            --url=http://localhost:8080 \
-            --title="TestTag Screenshot Tests" \
-            --admin_user=admin \
-            --admin_password=password \
-            --admin_email=admin@example.local \
-            --allow-root || echo "WordPress already installed"
-
-          echo "Creating test user..."
-          docker exec "$WP_CONTAINER" wp user create \
-            testuser \
-            test@example.local \
-            --user_pass=testpass123 \
-            --role=editor \
-            --allow-root || echo "Test user already exists"
-
-          echo "Updating WordPress options..."
-          docker exec "$WP_CONTAINER" wp option update home http://localhost:8080 --allow-root
-          docker exec "$WP_CONTAINER" wp option update siteurl http://localhost:8080 --allow-root
-
-          echo "Setting up TestTag plugin..."
-          # Copy plugin files if needed
-          docker exec "$WP_CONTAINER" bash -c 'cd /var/www/html && find . -name "testtag-for-wordpress.php" | head -1'
-
-          # Try to activate
-          docker exec "$WP_CONTAINER" wp plugin activate testtag-for-wordpress --allow-root || true
-
-          # Configure TestTag
-          docker exec "$WP_CONTAINER" wp option update testtag_attribute_key data-testid --allow-root || true
-          docker exec "$WP_CONTAINER" wp option update testtag_environment_guard 0 --allow-root || true
-
-          echo "Setup complete!"
-          EOF
-          chmod +x ci/docker/setup.sh
-
-      - name: Setup WordPress in Docker
-        run: |
-          bash ci/docker/setup.sh || echo "Setup script completed with warnings"
-
-      - name: Verify WordPress and plugin
-        run: |
-          curl -s http://localhost:8080/ | head -c 200
-          echo ""
-          echo "Checking for TestTag plugin..."
 
       - name: Install Playwright browsers
         run: npx playwright install chromium --with-deps
 
       - name: Run screenshot tests
-        run: npm run test:screenshots -- --reporter=html
+        run: npm run test:screenshots
         env:
           CI: true
           USE_DOCKER: true
@@ -219,11 +73,56 @@ jobs:
         with:
           script: |
             const fs = require('fs');
-            const testResults = JSON.parse(fs.readFileSync('test-results.json', 'utf8'));
-            
-            const passed = testResults.stats.expected || 0;
-            const failed = testResults.stats.unexpected || 0;
-            const skipped = testResults.stats.skipped || 0;
+            const path = require('path');
+
+            function collectJsonFiles(dir, out = []) {
+              if (!fs.existsSync(dir)) {
+                return out;
+              }
+              for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+                const fullPath = path.join(dir, entry.name);
+                if (entry.isDirectory()) {
+                  collectJsonFiles(fullPath, out);
+                } else if (entry.isFile() && entry.name.endsWith('.json')) {
+                  out.push(fullPath);
+                }
+              }
+              return out;
+            }
+
+            let testResults = null;
+            let resultSource = 'none';
+
+            const candidates = [];
+            if (fs.existsSync('test-results.json')) {
+              candidates.push('test-results.json');
+            }
+            candidates.push(...collectJsonFiles('test-results'));
+            candidates.push(...collectJsonFiles('playwright-report'));
+
+            const uniqueCandidates = [...new Set(candidates)]
+              .filter(file => fs.existsSync(file))
+              .sort((a, b) => fs.statSync(b).mtimeMs - fs.statSync(a).mtimeMs);
+
+            for (const file of uniqueCandidates) {
+              try {
+                const parsed = JSON.parse(fs.readFileSync(file, 'utf8'));
+                if (parsed && typeof parsed === 'object' && parsed.stats && typeof parsed.stats === 'object') {
+                  testResults = parsed;
+                  resultSource = file;
+                  break;
+                }
+              } catch {
+                // Ignore non-Playwright or malformed JSON files.
+              }
+            }
+
+            const passed = testResults?.stats?.expected ?? 0;
+            const failed = testResults?.stats?.unexpected ?? 0;
+            const skipped = testResults?.stats?.skipped ?? 0;
+            const sourceNote = resultSource === 'none'
+              ? 'No JSON result file was found; counts may be incomplete.'
+              : `Results source: ${resultSource}`;
             
             const body = `## 📸 Screenshot Test Results
             
@@ -232,6 +131,8 @@ jobs:
             | ✅ Passed | ${passed} |
             | ❌ Failed | ${failed} |
             | ⏭️ Skipped | ${skipped} |
+
+            _${sourceNote}_
             
             📊 Screenshots available in artifacts: [Playwright Report](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})
             

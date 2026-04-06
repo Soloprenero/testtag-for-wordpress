@@ -38,8 +38,8 @@ quick-test.bat
 
 After running setup, use these to access WordPress:
 
-- **URL:** http://localhost:8080
-- **Admin URL:** http://localhost:8080/wp-admin
+- **URL:** `TEST_URL` if set, otherwise `http://localhost:${WORDPRESS_PORT:-8080}`
+- **Admin URL:** `TEST_URL/wp-admin`
 - **Admin User:** admin
 - **Admin Password:** password
 - **Test User:** testuser / testpass123
@@ -48,7 +48,8 @@ After running setup, use these to access WordPress:
 
 - `USE_DOCKER=true` - Tells tests that Docker is being used (auto-set)
 - `CI=true` - Sets CI mode for test configuration (auto-set)
-- `TEST_URL` - Override the test URL (default: http://localhost:8080)
+- `WORDPRESS_PORT` - Override the published Docker host port (default: `8080`)
+- `TEST_URL` - Override the public WordPress URL used by Playwright and setup scripts (default: `http://localhost:${WORDPRESS_PORT}`)
 
 ## Troubleshooting
 
@@ -59,12 +60,12 @@ After running setup, use these to access WordPress:
 
 **Tests timing out?**
 - Wait longer for WordPress to fully initialize (first start takes 1-2 minutes)
-- Check if WordPress is responding: `curl http://localhost:8080`
+- Check if WordPress is responding: `curl $TEST_URL`
 - Increase timeouts in playwright.config.ts if needed
 
-**Port 8080 already in use?**
-- Edit docker-compose.yml and change port mapping (e.g., `8081:80`)
-- Update TEST_URL environment variable accordingly
+**Port already in use?**
+- Set `WORDPRESS_PORT` before running Docker Compose (example: `WORDPRESS_PORT=8081`)
+- If you also need a custom public URL, set `TEST_URL` to match it
 
 ## Development
 
