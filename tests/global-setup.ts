@@ -26,6 +26,29 @@ const FIXTURE_PAGE_CONTENT =
   '<!-- wp:html --><form class="search-form" role="search"><label for="fix-s">Search</label><input id="fix-s" type="search" name="s" /></form><!-- /wp:html -->' +
   '<!-- wp:paragraph --><p>This page contains representative elements for each TestTag layer.</p><!-- /wp:paragraph -->';
 
+/**
+ * Parity fixture page — exercises stable-first tag generation scenarios shared
+ * by both the PHP processor and the JS dynamic injector. Each element is chosen
+ * to isolate one priority level in the stable-first stack:
+ *
+ *   aria-label  → button, heading, link
+ *   id          → button, heading, link
+ *   name        → button
+ *   href path   → link (no stable attr)
+ */
+const PARITY_FIXTURE_PAGE_CONTENT =
+  '<!-- wp:html -->' +
+  '<div id="parity-fixtures">' +
+    '<button aria-label="Subscribe Newsletter" type="button">Subscribe</button>' +
+    '<button id="parity-checkout-btn" type="button">Pay Now</button>' +
+    '<button name="parity-cta" type="button">Get Started</button>' +
+    '<h2 aria-label="Parity Heading Label">Welcome</h2>' +
+    '<h3 id="parity-features-heading">Our Features</h3>' +
+    '<a href="/parity-target-page" aria-label="Parity Link Label">Click here</a>' +
+    '<a href="/parity-docs">Documentation</a>' +
+  '</div>' +
+  '<!-- /wp:html -->';
+
 async function waitForWordPressReady(timeoutMs: number = 120000): Promise<void> {
   console.log('Waiting for WordPress to become ready...');
   const deadline = Date.now() + timeoutMs;
@@ -162,6 +185,14 @@ async function setupViaApi(): Promise<void> {
       status: 'publish',
     });
     console.log('Test fixture page ensured.');
+
+    await api.ensurePage({
+      slug: TEST_CONTENT.PARITY_FIXTURE_PAGE_SLUG,
+      title: TEST_CONTENT.PARITY_FIXTURE_PAGE_TITLE,
+      content: PARITY_FIXTURE_PAGE_CONTENT,
+      status: 'publish',
+    });
+    console.log('Parity fixture page ensured.');
     
     await assertFixturePermalinkExistsWithRetry(api);
 

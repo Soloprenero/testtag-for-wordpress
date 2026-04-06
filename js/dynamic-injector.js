@@ -19,7 +19,7 @@
     var ATTR         = config.attributeKey || 'data-testid';
     var LAYER_ATTR   = 'data-testtag-layer';
     var selectorMap  = config.selectorMap || [];
-    var textFallback = config.textFallback !== false; // default true
+    var textFallback = config.textFallback !== false; // true unless explicitly set to false
 
     // ── Dedup (dynamic elements only, scoped to parent) ──────────
     // Counters reset per parent element so sibling containers each get

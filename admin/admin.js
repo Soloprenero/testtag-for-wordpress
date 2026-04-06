@@ -127,7 +127,7 @@
         }
         // :not() with complex arguments (more than a simple tag/class/id)
         var notMatch = selector.match(/:not\s*\(([^)]*)\)/i);
-        if (notMatch && /[>~+\s]/.test(notMatch[1])) {
+        if (notMatch && /[>~+]/.test(notMatch[1])) {
             return ':not() only supports simple selectors (tag, .class, #id, [attr]).';
         }
         // Adjacent sibling (+) and general sibling (~) combinators
@@ -189,12 +189,16 @@
     // Attach to all existing rows on page load.
     tbody.querySelectorAll('input[name$="[selector]"]').forEach(attachSelectorValidation);
 
-    // Attach to rows added dynamically (add row / preset apply).
-    var origAppendChild = tbody.appendChild.bind(tbody);
-    tbody.appendChild = function (node) {
-        var result = origAppendChild(node);
-        var sel = node.querySelector && node.querySelector('input[name$="[selector]"]');
-        if (sel) attachSelectorValidation(sel);
-        return result;
-    };
+    // Attach validation to selector inputs in rows added dynamically (add row / preset apply).
+    // Use a MutationObserver instead of overriding appendChild for reliability.
+    var rowObserver = new MutationObserver(function (mutations) {
+        mutations.forEach(function (m) {
+            m.addedNodes.forEach(function (node) {
+                if (node.nodeType !== 1) return;
+                var sel = node.querySelector && node.querySelector('input[name$="[selector]"]');
+                if (sel) attachSelectorValidation(sel);
+            });
+        });
+    });
+    rowObserver.observe(tbody, { childList: true });
 })();
