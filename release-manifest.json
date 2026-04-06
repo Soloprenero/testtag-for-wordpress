@@ -5,7 +5,7 @@
     "README.md",
     "CHANGELOG.md",
     "CONTRIBUTORS.md",
-    "includes/class-testtag-html-processor.php",
+    "includes/class-testtag-presets.php",
     "includes/class-testtag-settings.php",
     "js/dynamic-injector.js"
   ]
