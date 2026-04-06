@@ -295,10 +295,12 @@ class TestTag_Settings {
                     for <strong>Playwright</strong>, <strong>Cypress</strong>, <strong>Selenium</strong>,
                     or any automation framework that queries the DOM.
                 </p>
-                <p><strong>Two layers, applied in order:</strong></p>
+                <p><strong>Four layers, applied in order:</strong></p>
                 <ol>
-                    <li><strong>CSS selector map</strong> — explicit mappings below (applied first client-side)</li>
+                    <li><strong>Inline attributes</strong> — existing handwritten <code>data-*</code> values in markup</li>
+                    <li><strong>CSS selector map</strong> — explicit mappings below</li>
                     <li><strong>Auto-generation</strong> — inferred from element semantics (fills in everything else)</li>
+                    <li><strong>Dynamic injector</strong> — applies selector map + auto-generation to AJAX/post-load DOM</li>
                 </ol>
                 <p>An existing attribute is <strong>never overwritten</strong> — higher priority layers always win.</p>
             </div>
