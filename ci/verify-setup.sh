@@ -12,6 +12,9 @@ echo -e "${BLUE}║   TestTag Screenshot Testing - Setup Verification         �
 echo -e "${BLUE}╚════════════════════════════════════════════════════════════╝${NC}"
 echo ""
 
+WORDPRESS_PORT="${WORDPRESS_PORT:-8080}"
+TEST_URL="${TEST_URL:-http://localhost:${WORDPRESS_PORT}}"
+
 ERRORS=0
 WARNINGS=0
 
@@ -64,11 +67,11 @@ echo ""
 echo -e "${YELLOW}[4/10]${NC} Checking required files..."
 
 FILES=(
-  "playwright.config.js"
+  "playwright.config.ts"
   "docker-compose.yml"
-  "tests/e2e/screenshots.spec.js"
-  "tests/helpers/wordpress.js"
-  "tests/global-setup.js"
+  "tests/e2e/admin/admin-interface.spec.ts"
+  "tests/helpers/wordpress.ts"
+  "tests/global-setup.ts"
   ".github/workflows/screenshots.yml"
   "SCREENSHOT_TESTING.md"
 )
@@ -128,16 +131,16 @@ fi
 echo ""
 echo -e "${YELLOW}[8/10]${NC} Testing WordPress connectivity..."
 if docker info &> /dev/null; then
-  WP_CONTAINER=$(docker-compose ps -q wordpress 2>/dev/null || echo "")
+  WP_CONTAINER=$(docker compose ps -q wordpress 2>/dev/null || echo "")
   if [ -n "$WP_CONTAINER" ]; then
-    if curl -s http://localhost:8080/ > /dev/null; then
-      echo -e "${GREEN}✓ WordPress is accessible at http://localhost:8080${NC}"
+    if curl -s "$TEST_URL/" > /dev/null; then
+      echo -e "${GREEN}✓ WordPress is accessible at ${TEST_URL}${NC}"
     else
       echo -e "${YELLOW}⚠ WordPress not responding (container may not be running)${NC}"
       ((WARNINGS++))
     fi
   else
-    echo -e "${YELLOW}⚠ WordPress container not running (start with: docker-compose up -d)${NC}"
+    echo -e "${YELLOW}⚠ WordPress container not running (start with: docker compose up -d)${NC}"
     ((WARNINGS++))
   fi
 else
@@ -177,7 +180,7 @@ if [ $ERRORS -eq 0 ] && [ $WARNINGS -eq 0 ]; then
   echo "Next steps:"
   echo "  1. npm ci                       (install dependencies)"
   echo "  2. npm run build                (build plugin assets)"
-  echo "  3. docker-compose up -d         (start WordPress)"
+  echo "  3. docker compose up -d         (start WordPress)"
   echo "  4. npx playwright install       (install browsers)"
   echo "  5. npm run test:screenshots     (run tests)"
   echo ""

@@ -7,14 +7,6 @@
     "CONTRIBUTORS.md",
     "includes/class-testtag-presets.php",
     "includes/class-testtag-settings.php",
-    "includes/class-testtag-html-processor.php",
-    "includes/class-testtag-layer-marker.php",
-    "includes/class-testtag-block-editor.php",
-    "includes/class-testtag-audit.php",
-    "js/layer-marker.js",
-    "js/dynamic-injector.js",
-    "js/audit-overlay.js",
-    "block-editor/build/index.js",
-    "block-editor/build/index.asset.php"
+    "js/dynamic-injector.js"
   ]
 }
