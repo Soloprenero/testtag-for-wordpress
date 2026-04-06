@@ -3,7 +3,7 @@
 # screenshot tests. Each element in the content is chosen to exercise a
 # specific TestTag layer when the page is rendered:
 #
-#   block-editor  — <h2 data-testid="..."> already present in saved HTML
+#   inline        — <h2 data-testid="..."> already present in saved HTML
 #   selector-map  — <form class="search-form"> matches the default selector map
 #   auto          — WordPress theme elements (nav, header) get auto-tagged
 #   dynamic       — <button> injected client-side by the test itself

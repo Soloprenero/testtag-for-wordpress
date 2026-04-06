@@ -17,11 +17,11 @@
     }
 
     function run() {
-        // Any server-tagged element that didn't get a layer attribute
-        // gets marked as 'server' so Audit Mode can show it.
+        // Any pre-authored tagged element that didn't get an explicit
+        // layer from selector-map/auto/dynamic is treated as inline.
         document.querySelectorAll('[' + ATTR + ']').forEach(function (el) {
             if (!el.hasAttribute('data-testtag-layer')) {
-                el.setAttribute('data-testtag-layer', 'server');
+                el.setAttribute('data-testtag-layer', 'inline');
             }
         });
         log('ready, attribute key: ' + ATTR);

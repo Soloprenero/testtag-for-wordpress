@@ -85,12 +85,16 @@ test.describe('TestTag Plugin - Audit Mode', () => {
         await frontendPage.enableAuditMode();
       });
 
-      await test.step('Assert "Custom attributes" label is present in the legend', async () => {
-        await expect(page.locator('#testtag-audit-legend')).toContainText('Custom attributes');
+      await test.step('Assert "Inline" label is present in the legend', async () => {
+        await expect(page.locator('#testtag-audit-legend')).toContainText('Inline');
       });
 
       await test.step('Assert "Selector map" label is present in the legend', async () => {
         await expect(page.locator('#testtag-audit-legend')).toContainText('Selector map');
+      });
+
+      await test.step('Assert "Auto layer" label is present in the legend', async () => {
+        await expect(page.locator('#testtag-audit-legend')).toContainText('Auto layer');
       });
 
       await test.step('Assert "Dynamic layer" label is present in the legend', async () => {

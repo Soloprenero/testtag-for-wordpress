@@ -15,7 +15,7 @@ const screenshotDir = './tests/screenshots';
  *                 the layer-marker script
  * - dynamic       Elements added to the DOM after page load, detected by
  *                 the MutationObserver in dynamic-injector.js
- * - custom        Attributes hand-authored directly on HTML elements
+ * - inline        Attributes hand-authored directly on HTML elements
  *                 (e.g. data-testid on the fixture subtitle)
  */
 test.describe('TestTag Plugin - Tagging Layers', () => {
@@ -152,7 +152,7 @@ test.describe('TestTag Plugin - Tagging Layers', () => {
     });
   });
 
-  test.describe('Custom attributes', () => {
+  test.describe('Inline attributes', () => {
     test('Fixture subtitle element carries hand-authored data-testid', async ({ page }) => {
       const frontendPage = new FrontendPage(page);
 

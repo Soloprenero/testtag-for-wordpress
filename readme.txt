@@ -15,11 +15,12 @@ Automatically add stable test attributes like data-testid to WordPress pages for
 
 TestTag for WordPress helps you create reliable selectors for automated UI testing by tagging elements with configurable data attributes.
 
-It uses three injection layers in priority order:
+It uses four injection layers in priority order:
 
-1. Block editor sidebar manual values (server-rendered)
+1. Inline attributes already present in markup (server-rendered)
 2. CSS selector map overrides
 3. Auto-generated tags from element semantics
+4. Dynamic injector for elements added after page load
 
 An existing attribute is never overwritten.
 
