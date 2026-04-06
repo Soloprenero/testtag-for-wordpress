@@ -172,7 +172,7 @@ class TestTag_HTML_Processor {
             while ( $part !== '' ) {
                 // #id
                 if ( preg_match( '/^#([\w-]+)/', $part, $m ) ) {
-                    $conds[] = '@id="' . addslashes( $m[1] ) . '"';
+                    $conds[] = '@id=' . self::xpath_quote( $m[1] );
                     $part = substr( $part, strlen( $m[0] ) );
                 }
                 // .class
@@ -182,17 +182,17 @@ class TestTag_HTML_Processor {
                 }
                 // [attr$=val] ends-with
                 elseif ( preg_match( '/^\[([^\]~\|^$*!]+)\$=["\']?([^"\'\\]]*)["\']?\]/', $part, $m ) ) {
-                    $conds[] = 'substring(@' . $m[1] . ',string-length(@' . $m[1] . ')-' . (strlen($m[2])-1) . ')="' . addslashes($m[2]) . '"';
+                    $conds[] = 'substring(@' . $m[1] . ',string-length(@' . $m[1] . ')-' . (strlen($m[2])-1) . ')=' . self::xpath_quote( $m[2] );
                     $part = substr( $part, strlen( $m[0] ) );
                 }
                 // [attr*=val] contains
                 elseif ( preg_match( '/^\[([^\]~\|^$*!]+)\*=["\']?([^"\'\\]]*)["\']?\]/', $part, $m ) ) {
-                    $conds[] = 'contains(@' . $m[1] . ',"' . addslashes($m[2]) . '")';
+                    $conds[] = 'contains(@' . $m[1] . ',' . self::xpath_quote( $m[2] ) . ')';
                     $part = substr( $part, strlen( $m[0] ) );
                 }
                 // [attr=val]
                 elseif ( preg_match( '/^\[([^\]~\|^$*!=]+)=["\']?([^"\'\\]]*)["\']?\]/', $part, $m ) ) {
-                    $conds[] = '@' . $m[1] . '="' . addslashes( $m[2] ) . '"';
+                    $conds[] = '@' . $m[1] . '=' . self::xpath_quote( $m[2] );
                     $part = substr( $part, strlen( $m[0] ) );
                 }
                 // [attr] bare presence
@@ -496,10 +496,35 @@ class TestTag_HTML_Processor {
     // Helpers
     // ─────────────────────────────────────────────────────────────
 
+    /**
+     * Safely quote a string for use inside an XPath predicate.
+     *
+     * Backslash is NOT an escape character in XPath 1.0 — addslashes() cannot
+     * be used here.  This method wraps the value in double-quotes, or in single
+     * quotes if it contains a double-quote, or uses XPath concat() when the
+     * value contains both types of quotes.
+     */
+    private static function xpath_quote( string $val ): string {
+        if ( strpos( $val, '"' ) === false ) {
+            return '"' . $val . '"';
+        }
+        if ( strpos( $val, "'" ) === false ) {
+            return "'" . $val . "'";
+        }
+        // Both quote types present — build a concat() expression.
+        $parts = preg_split( '/(")/', $val, -1, PREG_SPLIT_DELIM_CAPTURE );
+        $concat = [];
+        foreach ( $parts as $part ) {
+            if ( $part === '' ) continue;
+            $concat[] = ( $part === '"' ) ? "('\"')" : ( '"' . $part . '"' );
+        }
+        return 'concat(' . implode( ',', $concat ) . ')';
+    }
+
     private static function get_label_text( DOMElement $el, DOMXPath $xpath ): string {
         $id = $el->getAttribute( 'id' );
         if ( $id ) {
-            $labels = $xpath->query( '//label[@for="' . addslashes( $id ) . '"]' );
+            $labels = $xpath->query( '//label[@for=' . self::xpath_quote( $id ) . ']' );
             if ( $labels && $labels->length > 0 ) {
                 return trim( $labels->item( 0 )->textContent );
             }
@@ -510,7 +535,7 @@ class TestTag_HTML_Processor {
         // aria-labelledby
         $alby = $el->getAttribute( 'aria-labelledby' );
         if ( $alby ) {
-            $ref = $xpath->query( '//*[@id="' . addslashes( $alby ) . '"]' );
+            $ref = $xpath->query( '//*[@id=' . self::xpath_quote( $alby ) . ']' );
             if ( $ref && $ref->length > 0 ) return trim( $ref->item( 0 )->textContent );
         }
         return '';
