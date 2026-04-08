@@ -6,16 +6,12 @@ import { TEST_URLS } from '../../constants';
 /**
  * PHP ↔ JS tag-generation parity tests (Issue #2)
  *
- * Each test case verifies that the server-side PHP processor and the
- * client-side dynamic injector produce the *same* data-testid value for
- * the same element HTML.
- *
- * Test structure for every case:
- *   1. Factory: TestTagFactory.computeTag() calls window.TESTTAG._autoId()
- *      directly — the exact same function used by the dynamic injector at
- *      runtime.  This produces the canonical expected tag value without
- *      hard-coding strings.  A regression guard asserts the computed value
- *      against a known-good string so algorithm regressions are caught.
+ * Each test case verifies that:
+ *   1. Factory: TestTagFactory.computeTag() calls the tag engine (js/tag-engine.js)
+ *      directly in Node.js — no browser, no page.evaluate().  This produces
+ *      the canonical expected tag value without hard-coding strings.
+ *      A regression guard asserts the computed value against a known-good
+ *      string so algorithm regressions are caught.
  *   2. PHP: navigate to the parity fixture page; the element was already
  *      tagged server-side — assert the expected tag is present.
  *   3. JS:  inject an equivalent element dynamically (so the server hasn't
@@ -23,9 +19,12 @@ import { TEST_URLS } from '../../constants';
  *      then assert the tag matches the factory value (tests the full
  *      MutationObserver → autoId path independently of the factory).
  *
+ * Three independent assertions per case:
+ *   factory says X  →  PHP fixture page has X  →  JS dynamic injection produces X
+ *
  * Priority order under test (aria-label → id → name → href path → text):
  *   see includes/class-testtag-html-processor.php  auto_id()
- *   and js/dynamic-injector.js                     autoId()
+ *   and js/tag-engine.js                           autoId()
  */
 
 const ATTR = 'data-testid';
@@ -76,13 +75,13 @@ async function injectAndGetTag(page: Page, outerHtml: string): Promise<string | 
 }
 
 test.describe('PHP ↔ JS tag-generation parity', () => {
-  let factory: TestTagFactory;
+  // Factory is browser-free — created once and reused across all tests.
+  const factory = new TestTagFactory();
 
   test.beforeEach(async ({ page }) => {
     const auth = new WordPressAuthPage(page);
     await auth.ensureTestTagPluginIsActive();
     await page.goto(TEST_URLS.PARITY_FIXTURE_PAGE, { waitUntil: 'networkidle', timeout: 60000 });
-    factory = new TestTagFactory(page);
   });
 
   // ── Buttons ────────────────────────────────────────────────────

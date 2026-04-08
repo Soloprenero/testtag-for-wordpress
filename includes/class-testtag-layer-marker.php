@@ -27,9 +27,17 @@ class TestTag_Layer_Marker {
         ] );
 
         wp_enqueue_script(
+            'testtag-tag-engine',
+            TESTTAG_PLUGIN_URL . 'js/tag-engine.js',
+            [ 'testtag-layer-marker' ],
+            TESTTAG_VERSION,
+            true
+        );
+
+        wp_enqueue_script(
             'testtag-dynamic-injector',
             TESTTAG_PLUGIN_URL . 'js/dynamic-injector.js',
-            [ 'testtag-layer-marker' ],
+            [ 'testtag-tag-engine' ],
             TESTTAG_VERSION,
             true
         );

@@ -1,38 +1,23 @@
-import type { Page } from '@playwright/test';
-
-/**
- * Extends the global window type to include the TESTTAG plugin object and
- * the internal functions exposed for test tooling.
- */
-declare global {
-  interface Window {
-    TESTTAG?: {
-      attributeKey?: string;
-      selectorMap?: Array<{ selector: string; testid: string }>;
-      textFallback?: boolean;
-      debug?: boolean;
-      /** Exposed by dynamic-injector.js for TestTagFactory. */
-      _autoId?: (el: HTMLElement) => string | null;
-      /** Exposed by dynamic-injector.js for TestTagFactory. */
-      _slug?: (str: string) => string;
-    };
-  }
-}
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const tagEngine = require('../../js/tag-engine.js') as {
+  computeTag: (html: string, attrKey?: string) => string | null;
+};
 
 /**
  * TestTagFactory
  *
- * A test-data factory that computes expected test-tag values by hooking
- * directly into the same autoId() function used by the plugin's JS dynamic
- * injector (js/dynamic-injector.js).
+ * A pure Node.js test-data factory that computes expected test-tag values
+ * by calling the same tag-generation logic used by the plugin's dynamic
+ * injector (js/dynamic-injector.js via js/tag-engine.js).
  *
- * The factory calls window.TESTTAG._autoId() — a reference to the real
- * runtime function — so any change to the plugin's tag-generation logic is
- * automatically reflected in the expected values produced by tests.
+ * No browser, no Playwright page, no page.evaluate() required.  The
+ * factory imports js/tag-engine.js directly through Node.js require(), so
+ * any change to the plugin's tag-generation algorithm is automatically
+ * reflected in the expected values produced by tests.
  *
  * Usage:
  *
- *   const factory = new TestTagFactory(page);
+ *   const factory = new TestTagFactory();
  *
  *   // Compute the expected tag for any HTML string:
  *   const tag = await factory.computeTag(
@@ -40,66 +25,53 @@ declare global {
  *   );
  *   // → 'button-subscribe-newsletter'
  *
- *   // Or use the static helper when you already have a Page reference:
- *   const tag = await TestTagFactory.computeTagOn(page, '<h2 id="features">Features</h2>');
+ *   // Or use the static helper:
+ *   const tag = await TestTagFactory.computeTagFor(
+ *     '<h2 id="features">Features</h2>'
+ *   );
  *   // → 'heading-features'
  *
- * Requirements:
- *   - The TestTag plugin must be active on the page.
- *   - The page must have loaded dynamic-injector.js (any frontend or admin
- *     page served by WordPress with the plugin enabled).
- *
  * How it hooks into the plugin:
- *   dynamic-injector.js exposes `window.TESTTAG._autoId` and
- *   `window.TESTTAG._slug` at the end of its IIFE so this factory can call
- *   the exact same functions without duplicating the logic.
+ *   js/tag-engine.js exports the same slug(), autoId(), and computeTag()
+ *   functions that run in the browser via dynamic-injector.js.  The
+ *   factory calls computeTag() directly, which uses parseHtml() to build
+ *   a VirtualElement from the HTML string — no DOM needed.
  */
 export class TestTagFactory {
-  private readonly page: Page;
-
-  constructor(page: Page) {
-    this.page = page;
-  }
-
   /**
    * Compute the auto-generated test tag for an HTML element string.
    *
-   * Calls the plugin's autoId() function in the browser context, so the
-   * result is always consistent with what the dynamic injector would produce.
-   *
-   * @param html - Outer HTML of the element to evaluate.
+   * @param html    Outer HTML of the element to evaluate.
    *   Examples:
    *     '<button aria-label="Sign Up">Sign Up</button>'
    *     '<a href="/docs/getting-started">Docs</a>'
    *     '<h2 id="hero-heading">Welcome</h2>'
+   * @param attrKey Attribute key used by the plugin, defaults to 'data-testid'.
    * @returns The generated tag value, or null when the plugin would not tag
-   *   the element (e.g. a hidden input, a link with no stable attributes and
-   *   text-fallback disabled).
+   *   the element.
    */
-  async computeTag(html: string): Promise<string | null> {
-    return this.page.evaluate((htmlStr: string) => {
-      const autoId = window.TESTTAG?._autoId;
-      if (typeof autoId !== 'function') {
-        throw new Error(
-          'TESTTAG._autoId is not available. ' +
-          'Ensure the TestTag plugin is active and dynamic-injector.js is loaded on this page.'
-        );
-      }
-
-      const wrapper = document.createElement('div');
-      wrapper.innerHTML = htmlStr;
-      const el = wrapper.firstElementChild as HTMLElement | null;
-      return el ? autoId(el) : null;
-    }, html);
+  async computeTag(html: string, attrKey?: string): Promise<string | null> {
+    return tagEngine.computeTag(html, attrKey);
   }
 
   /**
-   * Static convenience wrapper — same as `new TestTagFactory(page).computeTag(html)`.
+   * Static convenience wrapper.
    *
-   * @param page - A Playwright Page that has the TestTag plugin loaded.
-   * @param html - Outer HTML of the element to evaluate.
+   * @param html    Outer HTML of the element to evaluate.
+   * @param attrKey Attribute key, defaults to 'data-testid'.
    */
-  static async computeTagOn(page: Page, html: string): Promise<string | null> {
-    return new TestTagFactory(page).computeTag(html);
+  static async computeTagFor(html: string, attrKey?: string): Promise<string | null> {
+    return new TestTagFactory().computeTag(html, attrKey);
+  }
+
+  /**
+   * Backwards-compatible static helper — previously accepted a Playwright
+   * Page as the first argument.  That argument is now ignored; the factory
+   * is entirely browser-free.
+   *
+   * @deprecated Use computeTagFor() instead.
+   */
+  static async computeTagOn(_page: unknown, html: string, attrKey?: string): Promise<string | null> {
+    return new TestTagFactory().computeTag(html, attrKey);
   }
 }
