@@ -65,6 +65,33 @@ class TestTag_HTML_Processor {
     public static function process_html( string $html ): string {
         if ( empty( trim( $html ) ) ) return $html;
 
+        // ── Preserve <script type="text/html"> templates ─────────────
+        // PHP's DOMDocument (libxml) mangles <script type="text/html">
+        // content: the HTML parser partially parses the template markup,
+        // strips closing tags, and — crucially — lets inner elements
+        // escape the script block into the page body when saveHTML()
+        // re-serialises the document.  On WordPress admin pages this
+        // causes Backbone/Underscore template elements (media library,
+        // auth-check, etc.) to be rendered as real HTML, producing a
+        // blank white popup visible on Settings → General and elsewhere.
+        // Fix: stash every <script type="text/html"> block before passing
+        // the HTML to DOMDocument and restore the originals afterwards.
+        //
+        // A per-call random nonce makes placeholders collision-resistant:
+        // it is astronomically unlikely that real HTML already contains
+        // the pattern  <!-- TESTTAG_TPL_{nonce}_{n} -->.
+        $stashed_templates = [];
+        $nonce             = bin2hex( random_bytes( 8 ) );
+        $html              = preg_replace_callback(
+            '/<script\b[^>]*\btype=["\']text\/html["\'][^>]*>.*?<\/script>/si',
+            static function ( array $m ) use ( &$stashed_templates, $nonce ): string {
+                $key                       = '<!-- TESTTAG_TPL_' . $nonce . '_' . count( $stashed_templates ) . ' -->';
+                $stashed_templates[ $key ] = $m[0];
+                return $key;
+            },
+            $html
+        ) ?? $html;
+
         // Suppress libxml warnings on real-world HTML.
         $prev = libxml_use_internal_errors( true );
 
@@ -93,6 +120,15 @@ class TestTag_HTML_Processor {
         // Serialise back to HTML, strip the xml declaration wrapper.
         $out = $doc->saveHTML();
         $out = preg_replace( '/^<\?xml[^>]+>\n?/', '', $out );
+
+        // ── Restore stashed <script type="text/html"> templates ──────
+        if ( ! empty( $stashed_templates ) ) {
+            $out = str_replace(
+                array_keys( $stashed_templates ),
+                array_values( $stashed_templates ),
+                $out
+            );
+        }
 
         return $out ?: $html;
     }
