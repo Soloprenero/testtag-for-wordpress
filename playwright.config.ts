@@ -1,5 +1,6 @@
 import { defineConfig, devices } from '@playwright/test';
 import type { PlaywrightTestConfig } from '@playwright/test';
+import type { TestTagSettings } from './tests/fixtures';
 import path from 'path';
 
 /**
@@ -23,7 +24,7 @@ const skipWebServer = isTrue(process.env.SKIP_WEB_SERVER) || isDockerMode;
 const skipGlobalSetup = isTrue(process.env.SKIP_GLOBAL_SETUP);
 const authFile = path.join(__dirname, 'tests', '.auth', 'admin-auth.json');
 
-const config: PlaywrightTestConfig = {
+const config: PlaywrightTestConfig<object, { testTagSettings: TestTagSettings }> = {
   testDir: './tests/e2e',
   testMatch: '**/*.spec.ts',
   
@@ -49,19 +50,73 @@ const config: PlaywrightTestConfig = {
   },
 
   projects: [
+    // ── Settings profile setup projects ───────────────────────────────────────
+    // Each setup project configures WordPress with one settings profile before
+    // its dependent test project runs.  Profile projects MUST NOT run against
+    // the same WordPress instance simultaneously — run one profile at a time:
+    //
+    //   npx playwright test --project=default          # default profile only
+    //   npx playwright test --project=data-cy          # data-cy profile only
+    //   npx playwright test --project=settings-validation
+    //
+    // In CI, each profile can be a separate job with its own WordPress instance.
     {
-      name: 'chromium',
-      use: { ...devices['Desktop Chrome'] },
+      name: 'setup:default',
+      testMatch: '**/setup/default.setup.ts',
     },
-    // Uncomment for cross-browser testing:
-    // {
-    //   name: 'firefox',
-    //   use: { ...devices['Desktop Firefox'] },
-    // },
-    // {
-    //   name: 'webkit',
-    //   use: { ...devices['Desktop Safari'] },
-    // },
+    {
+      name: 'setup:data-cy',
+      testMatch: '**/setup/data-cy.setup.ts',
+    },
+
+    // ── Settings-agnostic suites — one project per profile ────────────────────
+    // The same tests run against every profile; tests derive all expected values
+    // from the testTagSettings fixture rather than hardcoding attribute names or
+    // separator characters.
+    {
+      name: 'default',
+      dependencies: ['setup:default'],
+      use: {
+        ...devices['Desktop Chrome'],
+        testIdAttribute: 'data-testid',
+        testTagSettings: { attributeKey: 'data-testid', separator: '-', tokenOrder: '' },
+      },
+      testMatch: [
+        '**/frontend-audit/**/*.spec.ts',
+        '**/admin/**/*.spec.ts',
+        '**/parity/**/*.spec.ts',
+      ],
+    },
+    {
+      name: 'data-cy',
+      dependencies: ['setup:data-cy'],
+      use: {
+        ...devices['Desktop Chrome'],
+        testIdAttribute: 'data-cy',
+        testTagSettings: { attributeKey: 'data-cy', separator: '-', tokenOrder: '' },
+      },
+      testMatch: [
+        '**/frontend-audit/**/*.spec.ts',
+        '**/admin/**/*.spec.ts',
+        '**/parity/**/*.spec.ts',
+      ],
+    },
+
+    // ── Settings-validation suites ────────────────────────────────────────────
+    // These tests explicitly verify settings behavior and manage their own
+    // settings state via beforeAll/afterAll.  They run serially to avoid
+    // interfering with each other and start from the default profile.
+    {
+      name: 'settings-validation',
+      dependencies: ['setup:default'],
+      use: {
+        ...devices['Desktop Chrome'],
+        testIdAttribute: 'data-testid',
+        testTagSettings: { attributeKey: 'data-testid', separator: '-', tokenOrder: '' },
+      },
+      testMatch: '**/configuration/**/*.spec.ts',
+      fullyParallel: false,
+    },
   ],
 
   // Tests use page objects to handle setup in Docker mode.

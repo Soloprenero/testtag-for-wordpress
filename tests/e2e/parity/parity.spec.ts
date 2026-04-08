@@ -1,4 +1,5 @@
-import { test, expect, type Page } from '@playwright/test';
+import { test, expect } from '../../fixtures';
+import type { Page } from '@playwright/test';
 import { WordPressAuthPage } from '../../pageObjects/WordPressAuthPage';
 import { TEST_URLS } from '../../constants';
 
@@ -27,7 +28,6 @@ import { TEST_URLS } from '../../constants';
  *   and js/dynamic-injector.js                     autoId()
  */
 
-const ATTR = 'data-testid';
 const LAYER = 'data-testtag-layer';
 
 /**
@@ -44,7 +44,7 @@ let sentinelCounter = 0;
  * runs but produces no tag for that element (e.g. no stable attribute and
  * text fallback disabled).
  */
-async function injectAndGetTag(page: Page, outerHtml: string): Promise<string | null> {
+async function injectAndGetTag(page: Page, outerHtml: string, attr: string): Promise<string | null> {
   const sentinelAttr = 'data-parity-sentinel';
   const sentinelVal  = `parity-${++sentinelCounter}`;
 
@@ -67,10 +67,10 @@ async function injectAndGetTag(page: Page, outerHtml: string): Promise<string | 
   const locator = page.locator(`[${sentinelAttr}="${sentinelVal}"][${LAYER}="dynamic"]`);
   try {
     await locator.waitFor({ state: 'attached', timeout: 5000 });
-    return locator.getAttribute(ATTR);
+    return locator.getAttribute(attr);
   } catch {
     // Injector ran but produced no tag — return whatever (null) is there.
-    return page.locator(`[${sentinelAttr}="${sentinelVal}"]`).getAttribute(ATTR);
+    return page.locator(`[${sentinelAttr}="${sentinelVal}"]`).getAttribute(attr);
   }
 }
 
@@ -83,99 +83,113 @@ test.describe('PHP ↔ JS tag-generation parity', () => {
 
   // ── Buttons ────────────────────────────────────────────────────
 
-  test('button: aria-label takes priority over text content', async ({ page }) => {
+  test('button: aria-label takes priority over text content', async ({ page, testTagSettings }) => {
+    const attr = testTagSettings.attributeKey;
     // PHP — read whatever the server produced under the current settings
     const phpTag = await page
       .locator('#parity-fixtures > button[aria-label="Subscribe Newsletter"]')
-      .getAttribute(ATTR);
+      .getAttribute(attr);
     expect(phpTag).not.toBeNull();
 
     // JS — dynamically injected; must match PHP exactly
     const jsTag = await injectAndGetTag(
       page,
-      '<button aria-label="Subscribe Newsletter" type="button">Subscribe</button>'
+      '<button aria-label="Subscribe Newsletter" type="button">Subscribe</button>',
+      attr,
     );
     expect(jsTag).toBe(phpTag);
   });
 
-  test('button: id used when no aria-label present', async ({ page }) => {
+  test('button: id used when no aria-label present', async ({ page, testTagSettings }) => {
+    const attr = testTagSettings.attributeKey;
     const phpTag = await page
       .locator('#parity-fixtures > button#parity-checkout-btn')
-      .getAttribute(ATTR);
+      .getAttribute(attr);
     expect(phpTag).not.toBeNull();
 
     const jsTag = await injectAndGetTag(
       page,
-      '<button id="parity-checkout-btn" type="button">Pay Now</button>'
+      '<button id="parity-checkout-btn" type="button">Pay Now</button>',
+      attr,
     );
     expect(jsTag).toBe(phpTag);
   });
 
-  test('button: name attribute used when no aria-label or id', async ({ page }) => {
+  test('button: name attribute used when no aria-label or id', async ({ page, testTagSettings }) => {
+    const attr = testTagSettings.attributeKey;
     const phpTag = await page
       .locator('#parity-fixtures > button[name="parity-cta"]')
-      .getAttribute(ATTR);
+      .getAttribute(attr);
     expect(phpTag).not.toBeNull();
 
     const jsTag = await injectAndGetTag(
       page,
-      '<button name="parity-cta" type="button">Get Started</button>'
+      '<button name="parity-cta" type="button">Get Started</button>',
+      attr,
     );
     expect(jsTag).toBe(phpTag);
   });
 
   // ── Headings ───────────────────────────────────────────────────
 
-  test('heading: aria-label takes priority over text content', async ({ page }) => {
+  test('heading: aria-label takes priority over text content', async ({ page, testTagSettings }) => {
+    const attr = testTagSettings.attributeKey;
     const phpTag = await page
       .locator('#parity-fixtures > h2[aria-label="Parity Heading Label"]')
-      .getAttribute(ATTR);
+      .getAttribute(attr);
     expect(phpTag).not.toBeNull();
 
     const jsTag = await injectAndGetTag(
       page,
-      '<h2 aria-label="Parity Heading Label">Welcome</h2>'
+      '<h2 aria-label="Parity Heading Label">Welcome</h2>',
+      attr,
     );
     expect(jsTag).toBe(phpTag);
   });
 
-  test('heading: id used when no aria-label present', async ({ page }) => {
+  test('heading: id used when no aria-label present', async ({ page, testTagSettings }) => {
+    const attr = testTagSettings.attributeKey;
     const phpTag = await page
       .locator('#parity-fixtures > h3#parity-features-heading')
-      .getAttribute(ATTR);
+      .getAttribute(attr);
     expect(phpTag).not.toBeNull();
 
     const jsTag = await injectAndGetTag(
       page,
-      '<h3 id="parity-features-heading">Our Features</h3>'
+      '<h3 id="parity-features-heading">Our Features</h3>',
+      attr,
     );
     expect(jsTag).toBe(phpTag);
   });
 
   // ── Links ──────────────────────────────────────────────────────
 
-  test('link: aria-label takes priority over href and text', async ({ page }) => {
+  test('link: aria-label takes priority over href and text', async ({ page, testTagSettings }) => {
+    const attr = testTagSettings.attributeKey;
     const phpTag = await page
       .locator('#parity-fixtures > a[aria-label="Parity Link Label"]')
-      .getAttribute(ATTR);
+      .getAttribute(attr);
     expect(phpTag).not.toBeNull();
 
     const jsTag = await injectAndGetTag(
       page,
-      '<a href="/parity-target-page" aria-label="Parity Link Label">Click here</a>'
+      '<a href="/parity-target-page" aria-label="Parity Link Label">Click here</a>',
+      attr,
     );
     expect(jsTag).toBe(phpTag);
   });
 
-  test('link: href path fragment used when no stable attributes present', async ({ page }) => {
+  test('link: href path fragment used when no stable attributes present', async ({ page, testTagSettings }) => {
+    const attr = testTagSettings.attributeKey;
     const phpTag = await page
       .locator('#parity-fixtures > a[href="/parity-docs"]')
-      .getAttribute(ATTR);
+      .getAttribute(attr);
     expect(phpTag).not.toBeNull();
 
     const jsTag = await injectAndGetTag(
       page,
-      '<a href="/parity-docs">Documentation</a>'
+      '<a href="/parity-docs">Documentation</a>',
+      attr,
     );
     expect(jsTag).toBe(phpTag);
   });

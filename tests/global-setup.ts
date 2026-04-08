@@ -283,15 +283,9 @@ async function setupViaApi(): Promise<void> {
     await api.ensurePrettyPermalinks(PRETTY_PERMALINK_STRUCTURE);
     console.log(`Permalink structure set to ${PRETTY_PERMALINK_STRUCTURE}`);
     
-    // Update TestTag attribute key to data-testid for consistent fixture expectations
-    console.log('Configuring TestTag settings...');
-    try {
-      await api.updateOption('testtag_attribute_key', 'data-testid');
-      console.log('TestTag attribute key set to data-testid');
-    } catch (error) {
-      // Settings validation might fail if plugin structure is different, log but continue
-      console.log(`Note: ${error instanceof Error ? error.message : String(error)}`);
-    }
+    // Configure TestTag settings — each test project's setup file applies
+    // the appropriate settings profile for that project before tests run.
+    console.log('TestTag settings will be applied per-profile by project setup files.');
     
     // Ensure test fixture page
     console.log('Ensuring test fixture page...');
