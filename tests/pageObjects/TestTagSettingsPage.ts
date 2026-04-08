@@ -88,7 +88,9 @@ export class TestTagSettingsPage extends AppPage {
   /** Restore default string-format settings and save. */
   async restoreDefaultStringFormat(): Promise<void> {
     await this.open();
-    await this.setStringFormat({ separator: '-', tokenOrder: 'type,identifier', formatSeps: '-' });
+    // Empty tokenOrder and formatSeps signals PHP to restore "default mode" where
+    // the global separator governs all token gaps (not an explicit custom format).
+    await this.setStringFormat({ separator: '-', tokenOrder: '', formatSeps: '' });
     await this.saveSettings();
   }
 }

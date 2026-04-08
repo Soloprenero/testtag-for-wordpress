@@ -49,6 +49,16 @@ class TestTag_Settings {
     }
 
     /**
+     * Whether the user has explicitly saved a custom token format.
+     * Returns false when the option was never saved (false) or was reset to '' (empty).
+     * The global separator governs all token gaps in the default state.
+     */
+    public static function is_format_customized(): bool {
+        $raw = get_option( self::OPTION_TOKEN_ORDER );
+        return $raw !== false && $raw !== '';
+    }
+
+    /**
      * The separator character used between parts of an auto-generated tag value.
      * Defaults to '-'. Allowed values: '-' or '_'.
      */
@@ -64,11 +74,15 @@ class TestTag_Settings {
     public static function get_token_order(): array {
         $raw = get_option( self::OPTION_TOKEN_ORDER );
         if ( false === $raw ) {
-            // Migrate from old options (backward compat)
+            // Never saved — migrate from old type-prefix/type-position options.
             $prefix   = get_option( self::OPTION_TYPE_PREFIX, '1' ) === '1';
             $position = get_option( self::OPTION_TYPE_POSITION, 'prefix' );
             if ( ! $prefix ) return [ 'identifier' ];
             return $position === 'suffix' ? [ 'identifier', 'type' ] : [ 'type', 'identifier' ];
+        }
+        if ( '' === $raw ) {
+            // Explicitly reset to default — no migration, just the canonical default.
+            return [ 'type', 'identifier' ];
         }
         $valid  = [ 'type', 'role', 'identifier', 'aria-label', 'aria-labelledby', 'placeholder', 'id', 'name' ];
         $tokens = array_values( array_filter(
@@ -80,9 +94,12 @@ class TestTag_Settings {
 
     /**
      * Per-gap separator list. One entry per gap between adjacent active tokens.
-     * Defaults to ['-'].
+     * When the format is not customized, all gaps follow the global separator.
      */
     public static function get_format_seps(): array {
+        if ( ! self::is_format_customized() ) {
+            return [ self::get_separator() ];
+        }
         $raw  = get_option( self::OPTION_FORMAT_SEPS, '-' );
         $seps = array_map(
             fn( $s ) => in_array( trim( $s ), [ '-', '_' ], true ) ? trim( $s ) : '-',
@@ -203,12 +220,13 @@ class TestTag_Settings {
         register_setting( 'testtag_group', self::OPTION_TEXT_FALLBACK );
         register_setting( 'testtag_group', self::OPTION_TOKEN_ORDER, [
             'sanitize_callback' => function ( $val ) {
+                if ( trim( $val ) === '' ) return ''; // '' = "not customized / reset to default"
                 $valid  = [ 'type', 'role', 'identifier', 'aria-label', 'aria-labelledby', 'placeholder', 'id', 'name' ];
                 $tokens = array_values( array_filter(
                     array_map( 'trim', explode( ',', $val ) ),
-                    fn( $t ) => in_array( $t, $valid, true )
+                    fn( $t ) => in_array( $t, $valid, true ) || preg_match( '/^lit:[a-zA-Z0-9]+$/', $t )
                 ) );
-                return implode( ',', $tokens ) ?: 'type,identifier';
+                return implode( ',', $tokens ) ?: '';
             },
         ] );
         register_setting( 'testtag_group', self::OPTION_FORMAT_SEPS, [
@@ -383,9 +401,10 @@ class TestTag_Settings {
         $force        = get_option( self::OPTION_FORCE_ENABLE, '0' );
         $attrKey      = self::get_attribute_key();
         $textFallback = get_option( self::OPTION_TEXT_FALLBACK, '1' );
-        $separator    = self::get_separator();
-        $tokenOrder = implode( ',', self::get_token_order() );
-        $formatSeps = implode( ',', self::get_format_seps() );
+        $separator         = self::get_separator();
+        $tokenOrder        = implode( ',', self::get_token_order() );
+        $formatSeps        = implode( ',', self::get_format_seps() );
+        $formatCustomized  = self::is_format_customized() ? '1' : '0';
 
         $base_url = admin_url( 'tools.php?page=testtag' );
         ?>
@@ -446,7 +465,8 @@ class TestTag_Settings {
                     </p>
                     <div class="testtag-format-builder" id="testtag-format-builder"
                          data-token-order="<?php echo esc_attr( $tokenOrder ); ?>"
-                         data-format-seps="<?php echo esc_attr( $formatSeps ); ?>">
+                         data-format-seps="<?php echo esc_attr( $formatSeps ); ?>"
+                         data-format-customized="<?php echo esc_attr( $formatCustomized ); ?>">
                         <div class="testtag-attrkey-layout">
 
                             <!-- Left column: formula bar + separator + HTML preview -->
@@ -502,8 +522,8 @@ class TestTag_Settings {
                             </div><!-- /.testtag-attrkey-col-palette -->
 
                         </div><!-- /.testtag-attrkey-layout -->
-                        <input type="hidden" name="<?php echo esc_attr( self::OPTION_TOKEN_ORDER ); ?>" id="testtag-token-order-val" value="<?php echo esc_attr( $tokenOrder ); ?>" />
-                        <input type="hidden" name="<?php echo esc_attr( self::OPTION_FORMAT_SEPS ); ?>" id="testtag-format-seps-val" value="<?php echo esc_attr( $formatSeps ); ?>" />
+                        <input type="hidden" name="<?php echo esc_attr( self::OPTION_TOKEN_ORDER ); ?>" id="testtag-token-order-val" value="<?php echo esc_attr( $formatCustomized === '1' ? $tokenOrder : '' ); ?>" />
+                        <input type="hidden" name="<?php echo esc_attr( self::OPTION_FORMAT_SEPS ); ?>" id="testtag-format-seps-val" value="<?php echo esc_attr( $formatCustomized === '1' ? $formatSeps : '' ); ?>" />
                     </div><!-- /#testtag-format-builder -->
                 </div>
 

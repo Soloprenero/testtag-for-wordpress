@@ -91,18 +91,24 @@
 
         function isLitToken(t) { return /^lit:[a-zA-Z0-9]+$/.test(t); }
 
+        // Track whether the user has explicitly customized the token format.
+        // In default mode the global separator governs all token gaps.
+        var isCustomFormat = builder.dataset.formatCustomized === '1';
+
         var activeOrder = (builder.dataset.tokenOrder || 'type,identifier').split(',').filter(function(t) { return TOKEN_DEFS[t] || isLitToken(t); });
         if (!activeOrder.length) activeOrder = ['type', 'identifier'];
-        var activeSeps  = (builder.dataset.formatSeps  || '-').split(',').map(function(s) { return s === '_' ? '_' : '-'; });
+        var activeSeps  = (builder.dataset.formatSeps  || getGlobalSep()).split(',').map(function(s) { return s === '_' ? '_' : '-'; });
 
         // Normalise sep array length to N-1 for N tokens
         function normSeps() {
             var need = Math.max(0, activeOrder.length - 1);
-            var def  = activeSeps[0] || '-';
+            var def  = activeSeps[0] || getGlobalSep();
             while (activeSeps.length < need)  activeSeps.push(def);
             activeSeps = activeSeps.slice(0, need);
         }
         normSeps();
+
+        function markCustom() { isCustomFormat = true; }
 
         var dragging = null, draggingFrom = null;
 
@@ -262,8 +268,10 @@
         }
 
         function updateHiddenInputs() {
-            if (tokenOrderVal) tokenOrderVal.value = activeOrder.join(',');
-            if (formatSepsVal) formatSepsVal.value = activeSeps.join(',');
+            // In default (non-customized) mode write empty string so PHP keeps
+            // the global separator in control of all token gaps.
+            if (tokenOrderVal) tokenOrderVal.value = isCustomFormat ? activeOrder.join(',') : '';
+            if (formatSepsVal) formatSepsVal.value = isCustomFormat ? activeSeps.join(',') : '';
         }
 
         function updatePreview() {
@@ -275,8 +283,9 @@
             var result = '';
             if (parts.length) {
                 result = parts[0];
+                var gapSep = !isCustomFormat ? getGlobalSep() : null;
                 for (var i = 1; i < parts.length; i++) {
-                    result += (activeSeps[i - 1] || '-') + parts[i];
+                    result += (gapSep !== null ? gapSep : (activeSeps[i - 1] || '-')) + parts[i];
                 }
             }
             if (previewValueEl) previewValueEl.textContent = result;
@@ -290,6 +299,7 @@
             btn.textContent = activeSeps[idx] || '-';
             btn.title = 'Click to toggle separator';
             btn.addEventListener('click', function() {
+                markCustom();
                 activeSeps[idx] = activeSeps[idx] === '_' ? '-' : '_';
                 btn.textContent = activeSeps[idx];
                 updateHiddenInputs();
@@ -333,6 +343,7 @@
                 rm.textContent = '×';
                 rm.addEventListener('click', function(e) {
                     e.stopPropagation();
+                    markCustom();
                     removeFromActive(tokenName);
                     renderAll();
                     updateHiddenInputs();
@@ -411,6 +422,7 @@
                 if (!val) return;
                 var tokenName = 'lit:' + val;
                 if (activeOrder.indexOf(tokenName) !== -1) return;
+                markCustom();
                 insertIntoActive(tokenName, activeOrder.length);
                 renderAll();
                 updateHiddenInputs();
@@ -471,6 +483,7 @@
             if (!dragging) return;
             var idx = parseInt(activeZone.dataset.dropIdx || '0', 10);
             delete activeZone.dataset.dropIdx;
+            markCustom();
             insertIntoActive(dragging, idx);
             renderAll();
             updateHiddenInputs();
@@ -494,6 +507,7 @@
                 e.preventDefault();
                 paletteZone.classList.remove('is-drag-over');
                 if (!dragging || draggingFrom !== 'active') return;
+                markCustom();
                 removeFromActive(dragging);
                 renderAll();
                 updateHiddenInputs();
@@ -541,9 +555,16 @@
             });
         }
 
-        // Separator dropdown — re-slugify preview when global separator changes
+        // Separator dropdown — re-slugify preview when global separator changes.
+        // In default (non-customized) mode also sync the active gap separators so
+        // the chip buttons and hidden input stay consistent with the global choice.
         if (sepSelect) {
             sepSelect.addEventListener('change', function() {
+                if (!isCustomFormat) {
+                    var g = getGlobalSep();
+                    for (var i = 0; i < activeSeps.length; i++) activeSeps[i] = g;
+                    renderAll();
+                }
                 updatePreview();
             });
         }
@@ -552,10 +573,11 @@
         var formatResetBtn = document.getElementById('testtag-format-reset');
         if (formatResetBtn) {
             formatResetBtn.addEventListener('click', function() {
+                isCustomFormat = false;
                 activeOrder.length = 0;
                 activeOrder.push('type', 'identifier');
                 activeSeps.length = 0;
-                activeSeps.push('-');
+                activeSeps.push(getGlobalSep());
                 normSeps();
                 renderAll();
                 updateHiddenInputs();

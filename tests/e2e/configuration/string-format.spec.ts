@@ -44,20 +44,22 @@ test.describe('String format configuration', () => {
     await auth.ensureTestTagPluginIsActive();
   });
 
-  test.afterEach(async ({ page }) => {
-    const settings = new TestTagSettingsPage(page);
-    await settings.restoreDefaultStringFormat();
-  });
-
   // ── Separator ──────────────────────────────────────────────────────────
 
   test.describe('Separator', () => {
-    test('underscore separator applies to word boundaries in JS-generated tags', async ({ page }) => {
+    test.beforeEach(async ({ page }) => {
       const settings = new TestTagSettingsPage(page);
       await settings.open();
       await settings.setStringFormat({ separator: '_' });
       await settings.saveSettings();
+    });
 
+    test.afterEach(async ({ page }) => {
+      const settings = new TestTagSettingsPage(page);
+      await settings.restoreDefaultStringFormat();
+    });
+
+    test('underscore separator applies to word boundaries in JS-generated tags', async ({ page }) => {
       await page.goto(TEST_URLS.PARITY_FIXTURE_PAGE, { waitUntil: 'networkidle', timeout: 60000 });
 
       const jsTag = await injectAndGetTag(
@@ -68,18 +70,11 @@ test.describe('String format configuration', () => {
     });
 
     test('PHP↔JS parity: underscore separator', async ({ page }) => {
-      const settings = new TestTagSettingsPage(page);
-      await settings.open();
-      await settings.setStringFormat({ separator: '_' });
-      await settings.saveSettings();
-
-      // PHP path — page is freshly rendered with the new separator setting
       await page.goto(TEST_URLS.PARITY_FIXTURE_PAGE, { waitUntil: 'networkidle', timeout: 60000 });
       await expect(
         page.locator(`[${ATTR}="button_subscribe_newsletter"]`).first()
       ).toBeAttached();
 
-      // JS path — dynamic injector must produce the same value
       const jsTag = await injectAndGetTag(
         page,
         '<button aria-label="Subscribe Newsletter" type="button">Subscribe</button>'
@@ -88,11 +83,6 @@ test.describe('String format configuration', () => {
     });
 
     test('PHP↔JS parity: underscore separator — heading with multi-word id', async ({ page }) => {
-      const settings = new TestTagSettingsPage(page);
-      await settings.open();
-      await settings.setStringFormat({ separator: '_' });
-      await settings.saveSettings();
-
       await page.goto(TEST_URLS.PARITY_FIXTURE_PAGE, { waitUntil: 'networkidle', timeout: 60000 });
       await expect(
         page.locator(`[${ATTR}="heading_parity_features_heading"]`).first()
@@ -109,6 +99,11 @@ test.describe('String format configuration', () => {
   // ── Token order ────────────────────────────────────────────────────────
 
   test.describe('Token order', () => {
+    test.afterEach(async ({ page }) => {
+      const settings = new TestTagSettingsPage(page);
+      await settings.restoreDefaultStringFormat();
+    });
+
     test('identifier-only token order removes type prefix in JS-generated tags', async ({ page }) => {
       const settings = new TestTagSettingsPage(page);
       await settings.open();
@@ -179,13 +174,19 @@ test.describe('String format configuration', () => {
   // ── Per-gap separator ──────────────────────────────────────────────────
 
   test.describe('Per-gap separator', () => {
-    test('underscore per-gap separator between type and identifier — JS', async ({ page }) => {
+    test.beforeEach(async ({ page }) => {
       const settings = new TestTagSettingsPage(page);
       await settings.open();
-      // type_identifier (global slug sep stays hyphen)
       await settings.setStringFormat({ tokenOrder: 'type,identifier', formatSeps: '_' });
       await settings.saveSettings();
+    });
 
+    test.afterEach(async ({ page }) => {
+      const settings = new TestTagSettingsPage(page);
+      await settings.restoreDefaultStringFormat();
+    });
+
+    test('underscore per-gap separator between type and identifier — JS', async ({ page }) => {
       await page.goto(TEST_URLS.PARITY_FIXTURE_PAGE, { waitUntil: 'networkidle', timeout: 60000 });
 
       const jsTag = await injectAndGetTag(
@@ -197,11 +198,6 @@ test.describe('String format configuration', () => {
     });
 
     test('PHP↔JS parity: underscore per-gap separator', async ({ page }) => {
-      const settings = new TestTagSettingsPage(page);
-      await settings.open();
-      await settings.setStringFormat({ tokenOrder: 'type,identifier', formatSeps: '_' });
-      await settings.saveSettings();
-
       await page.goto(TEST_URLS.PARITY_FIXTURE_PAGE, { waitUntil: 'networkidle', timeout: 60000 });
       await expect(
         page.locator(`[${ATTR}="button_parity-checkout-btn"]`).first()
