@@ -396,4 +396,13 @@
 
     observer.observe(document.body, { childList: true, subtree: true });
 
+    // ── Test-tooling hook ─────────────────────────────────────────
+    // Expose the core tag-generation functions via window.TESTTAG so that
+    // TestTagFactory (tests/helpers/TestTagFactory.ts) can call the exact
+    // same autoId() logic used at runtime rather than re-implementing it.
+    if (window.TESTTAG) {
+        window.TESTTAG._autoId = autoId;
+        window.TESTTAG._slug   = slug;
+    }
+
 })();
