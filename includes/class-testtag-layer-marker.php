@@ -23,6 +23,9 @@ class TestTag_Layer_Marker {
             'attributeKey' => TestTag_Settings::get_attribute_key(),
             'selectorMap'  => TestTag_Settings::get_selector_map(),
             'textFallback' => TestTag_Settings::get_text_fallback(),
+            'separator'    => TestTag_Settings::get_separator(),
+            'tokenOrder'   => implode( ',', TestTag_Settings::get_token_order() ),
+            'formatSeps'   => implode( ',', TestTag_Settings::get_format_seps() ),
             'debug'        => defined( 'WP_DEBUG' ) && WP_DEBUG,
         ] );
 
