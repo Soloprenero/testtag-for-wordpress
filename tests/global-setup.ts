@@ -1,7 +1,7 @@
 import { request } from '@playwright/test';
 import { execSync } from 'child_process';
-import { TEST_CONTENT, TESTTAG_PLUGIN, TEST_URLS, TEST_USERS } from './constants';
-import { WordPressRestClient } from './helpers/wp-api';
+import { TEST_CONTENT, TESTTAG_PLUGIN, TEST_URLS, TEST_USERS } from '@tests/constants';
+import { WordPressRestClient } from '@helpers/wp-api';
 
 /**
  * Global setup for Playwright tests

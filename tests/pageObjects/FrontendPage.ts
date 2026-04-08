@@ -1,7 +1,7 @@
 import type { Locator, Page } from '@playwright/test';
 import { expect } from '@playwright/test';
-import { AppPage } from './AppPage';
-import { TEST_URLS } from '../constants';
+import { AppPage } from '@pageObjects/AppPage';
+import { TEST_URLS } from '@tests/constants';
 
 export class FrontendPage extends AppPage {
   protected pageUrl = TEST_URLS.FRONTEND_HOME;

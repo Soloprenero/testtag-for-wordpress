@@ -1,7 +1,7 @@
 import { test } from '@playwright/test';
-import { WordPressAuthPage } from '../../pageObjects/WordPressAuthPage';
-import { TestTagSettingsPage } from '../../pageObjects/TestTagSettingsPage';
-import { PluginsAdminPage } from '../../pageObjects/PluginsAdminPage';
+import { WordPressAuthPage } from '@pageObjects/WordPressAuthPage';
+import { TestTagSettingsPage } from '@pageObjects/TestTagSettingsPage';
+import { PluginsAdminPage } from '@pageObjects/PluginsAdminPage';
 
 const screenshotDir = './tests/screenshots';
 

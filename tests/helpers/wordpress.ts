@@ -1,5 +1,5 @@
 import type { Page } from '@playwright/test';
-import { TESTTAG_PLUGIN, TEST_URLS, TEST_USERS } from '../constants';
+import { TESTTAG_PLUGIN, TEST_URLS, TEST_USERS } from '@tests/constants';
 
 /**
  * WordPress helper utilities for Playwright tests

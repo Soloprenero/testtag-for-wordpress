@@ -1,6 +1,6 @@
 import { test, expect, type Page } from '@playwright/test';
-import { WordPressAuthPage } from '../../pageObjects/WordPressAuthPage';
-import { TEST_URLS } from '../../constants';
+import { WordPressAuthPage } from '@pageObjects/WordPressAuthPage';
+import { TEST_URLS } from '@tests/constants';
 
 /**
  * PHP ↔ JS tag-generation parity tests (Issue #2)

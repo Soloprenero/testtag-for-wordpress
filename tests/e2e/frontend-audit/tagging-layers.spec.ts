@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
-import { FrontendPage } from '../../pageObjects/FrontendPage';
-import { TEST_URLS } from '../../constants';
+import { FrontendPage } from '@pageObjects/FrontendPage';
+import { TEST_URLS } from '@tests/constants';
 
 const screenshotDir = './tests/screenshots';
 
