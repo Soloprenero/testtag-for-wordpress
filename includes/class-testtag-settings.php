@@ -3,11 +3,17 @@ defined( 'ABSPATH' ) || exit;
 
 class TestTag_Settings {
 
-    const OPTION_SELECTOR_MAP  = 'testtag_selector_map';
-    const OPTION_FORCE_ENABLE  = 'testtag_force_enable';
-    const OPTION_ATTRIBUTE_KEY = 'testtag_attribute_key';
-    const OPTION_TEXT_FALLBACK = 'testtag_text_fallback';
-    const DEFAULT_ATTRIBUTE    = 'data-testid';
+    const OPTION_SELECTOR_MAP   = 'testtag_selector_map';
+    const OPTION_FORCE_ENABLE   = 'testtag_force_enable';
+    const OPTION_ATTRIBUTE_KEY  = 'testtag_attribute_key';
+    const OPTION_TEXT_FALLBACK  = 'testtag_text_fallback';
+    const OPTION_SEPARATOR      = 'testtag_separator';
+    const OPTION_TOKEN_ORDER    = 'testtag_token_order';
+    const OPTION_FORMAT_SEPS    = 'testtag_format_seps';
+    // Keep for migration/backward-compat but no longer register them:
+    const OPTION_TYPE_PREFIX    = 'testtag_type_prefix';
+    const OPTION_TYPE_POSITION  = 'testtag_type_position';
+    const DEFAULT_ATTRIBUTE     = 'data-testid';
 
     public static function init(): void {
         add_action( 'admin_menu',            [ __CLASS__, 'add_settings_page' ] );
@@ -40,6 +46,78 @@ class TestTag_Settings {
      */
     public static function get_text_fallback(): bool {
         return get_option( self::OPTION_TEXT_FALLBACK, '1' ) === '1';
+    }
+
+    /**
+     * The separator character used between parts of an auto-generated tag value.
+     * Defaults to '-'. Allowed values: '-' or '_'.
+     */
+    public static function get_separator(): string {
+        $sep = get_option( self::OPTION_SEPARATOR, '-' );
+        return in_array( $sep, [ '-', '_' ], true ) ? $sep : '-';
+    }
+
+    /**
+     * Ordered list of active token keys for the tag format.
+     * Defaults to ['type', 'identifier'] (existing behaviour).
+     */
+    public static function get_token_order(): array {
+        $raw = get_option( self::OPTION_TOKEN_ORDER );
+        if ( false === $raw ) {
+            // Migrate from old options (backward compat)
+            $prefix   = get_option( self::OPTION_TYPE_PREFIX, '1' ) === '1';
+            $position = get_option( self::OPTION_TYPE_POSITION, 'prefix' );
+            if ( ! $prefix ) return [ 'identifier' ];
+            return $position === 'suffix' ? [ 'identifier', 'type' ] : [ 'type', 'identifier' ];
+        }
+        $valid  = [ 'type', 'role', 'identifier', 'aria-label', 'aria-labelledby', 'placeholder', 'id', 'name' ];
+        $tokens = array_values( array_filter(
+            array_map( 'trim', explode( ',', $raw ) ),
+            fn( $t ) => in_array( $t, $valid, true ) || preg_match( '/^lit:[a-zA-Z0-9]+$/', $t )
+        ) );
+        return $tokens ?: [ 'type', 'identifier' ];
+    }
+
+    /**
+     * Per-gap separator list. One entry per gap between adjacent active tokens.
+     * Defaults to ['-'].
+     */
+    public static function get_format_seps(): array {
+        $raw  = get_option( self::OPTION_FORMAT_SEPS, '-' );
+        $seps = array_map(
+            fn( $s ) => in_array( trim( $s ), [ '-', '_' ], true ) ? trim( $s ) : '-',
+            explode( ',', $raw )
+        );
+        return $seps ?: [ '-' ];
+    }
+
+    /**
+     * Whether the element type is included as a prefix/suffix in auto-generated tags.
+     * Defaults to true (e.g. 'button-submit', 'heading-about').
+     */
+    public static function get_type_prefix(): bool {
+        $type_class = [ 'type', 'role' ];
+        foreach ( self::get_token_order() as $t ) {
+            if ( in_array( $t, $type_class, true ) ) return true;
+        }
+        return false;
+    }
+
+    /**
+     * Position of the element type relative to the identifier.
+     * 'prefix' (default): type first — e.g. 'button-submit'.
+     * 'suffix': identifier first — e.g. 'submit-button'.
+     */
+    public static function get_type_position(): string {
+        $order      = self::get_token_order();
+        $type_class = [ 'type', 'role' ];
+        $id_class   = [ 'identifier', 'aria-label', 'aria-labelledby', 'placeholder', 'id', 'name' ];
+        $ti = PHP_INT_MAX; $ii = PHP_INT_MAX;
+        foreach ( $order as $i => $t ) {
+            if ( in_array( $t, $type_class, true ) && $i < $ti ) $ti = $i;
+            if ( in_array( $t, $id_class,   true ) && $i < $ii ) $ii = $i;
+        }
+        return $ti < $ii ? 'prefix' : 'suffix';
     }
 
     // ─────────────────────────────────────────────────────────────
@@ -123,10 +201,35 @@ class TestTag_Settings {
     public static function register_settings(): void {
         register_setting( 'testtag_group', self::OPTION_FORCE_ENABLE );
         register_setting( 'testtag_group', self::OPTION_TEXT_FALLBACK );
+        register_setting( 'testtag_group', self::OPTION_TOKEN_ORDER, [
+            'sanitize_callback' => function ( $val ) {
+                $valid  = [ 'type', 'role', 'identifier', 'aria-label', 'aria-labelledby', 'placeholder', 'id', 'name' ];
+                $tokens = array_values( array_filter(
+                    array_map( 'trim', explode( ',', $val ) ),
+                    fn( $t ) => in_array( $t, $valid, true )
+                ) );
+                return implode( ',', $tokens ) ?: 'type,identifier';
+            },
+        ] );
+        register_setting( 'testtag_group', self::OPTION_FORMAT_SEPS, [
+            'sanitize_callback' => function ( $val ) {
+                $seps = array_map(
+                    fn( $s ) => in_array( trim( $s ), [ '-', '_' ], true ) ? trim( $s ) : '-',
+                    explode( ',', $val )
+                );
+                return implode( ',', $seps ) ?: '-';
+            },
+        ] );
         register_setting( 'testtag_group', self::OPTION_ATTRIBUTE_KEY, [
             'sanitize_callback' => function ( $val ) {
                 $val = sanitize_text_field( $val );
                 return preg_match( '/^data-[a-z][a-z0-9\-]*$/', $val ) ? $val : self::DEFAULT_ATTRIBUTE;
+            },
+        ] );
+        register_setting( 'testtag_group', self::OPTION_SEPARATOR, [
+            'sanitize_callback' => function ( $val ) {
+                $val = sanitize_text_field( $val );
+                return in_array( $val, [ '-', '_' ], true ) ? $val : '-';
             },
         ] );
         register_setting( 'testtag_group', self::OPTION_SELECTOR_MAP, [
@@ -147,10 +250,13 @@ class TestTag_Settings {
             'version'  => '1.0',
             'plugin'   => 'testtag-for-wordpress',
             'settings' => [
-                self::OPTION_ATTRIBUTE_KEY => self::get_attribute_key(),
-                self::OPTION_FORCE_ENABLE  => get_option( self::OPTION_FORCE_ENABLE, '0' ),
-                self::OPTION_TEXT_FALLBACK => get_option( self::OPTION_TEXT_FALLBACK, '1' ),
-                self::OPTION_SELECTOR_MAP  => self::get_selector_map(),
+                self::OPTION_ATTRIBUTE_KEY  => self::get_attribute_key(),
+                self::OPTION_FORCE_ENABLE   => get_option( self::OPTION_FORCE_ENABLE, '0' ),
+                self::OPTION_TEXT_FALLBACK  => get_option( self::OPTION_TEXT_FALLBACK, '1' ),
+                self::OPTION_SEPARATOR      => self::get_separator(),
+                self::OPTION_TOKEN_ORDER    => implode( ',', self::get_token_order() ),
+                self::OPTION_FORMAT_SEPS    => implode( ',', self::get_format_seps() ),
+                self::OPTION_SELECTOR_MAP   => self::get_selector_map(),
             ],
         ];
 
@@ -217,6 +323,28 @@ class TestTag_Settings {
             update_option( self::OPTION_TEXT_FALLBACK, $s[ self::OPTION_TEXT_FALLBACK ] === '0' ? '0' : '1' );
         }
 
+        if ( isset( $s[ self::OPTION_SEPARATOR ] ) ) {
+            $sep = sanitize_text_field( $s[ self::OPTION_SEPARATOR ] );
+            update_option( self::OPTION_SEPARATOR, in_array( $sep, [ '-', '_' ], true ) ? $sep : '-' );
+        }
+
+        if ( isset( $s[ self::OPTION_TOKEN_ORDER ] ) ) {
+            $valid  = [ 'type', 'role', 'identifier', 'aria-label', 'aria-labelledby', 'placeholder', 'id', 'name' ];
+            $tokens = array_values( array_filter(
+                array_map( 'trim', explode( ',', sanitize_text_field( $s[ self::OPTION_TOKEN_ORDER ] ) ) ),
+                fn( $t ) => in_array( $t, $valid, true ) || preg_match( '/^lit:[a-zA-Z0-9]+$/', $t )
+            ) );
+            update_option( self::OPTION_TOKEN_ORDER, implode( ',', $tokens ) ?: 'type,identifier' );
+        }
+
+        if ( isset( $s[ self::OPTION_FORMAT_SEPS ] ) ) {
+            $seps = array_map(
+                fn( $s2 ) => in_array( trim( $s2 ), [ '-', '_' ], true ) ? trim( $s2 ) : '-',
+                explode( ',', sanitize_text_field( $s[ self::OPTION_FORMAT_SEPS ] ) )
+            );
+            update_option( self::OPTION_FORMAT_SEPS, implode( ',', $seps ) ?: '-' );
+        }
+
         if ( isset( $s[ self::OPTION_SELECTOR_MAP ] ) ) {
             update_option( self::OPTION_SELECTOR_MAP, self::sanitize_selector_map( $s[ self::OPTION_SELECTOR_MAP ] ) );
         }
@@ -255,6 +383,9 @@ class TestTag_Settings {
         $force        = get_option( self::OPTION_FORCE_ENABLE, '0' );
         $attrKey      = self::get_attribute_key();
         $textFallback = get_option( self::OPTION_TEXT_FALLBACK, '1' );
+        $separator    = self::get_separator();
+        $tokenOrder = implode( ',', self::get_token_order() );
+        $formatSeps = implode( ',', self::get_format_seps() );
 
         $base_url = admin_url( 'tools.php?page=testtag' );
         ?>
@@ -309,28 +440,71 @@ class TestTag_Settings {
                 <?php settings_fields( 'testtag_group' ); ?>
 
                 <div class="testtag-card">
-                    <h2>Attribute Key</h2>
+                    <h2>Test Tag Format</h2>
                     <p class="description">
                         The HTML attribute to inject. Match this to your test framework's selector convention.
                     </p>
-                    <table class="form-table">
-                        <tr>
-                            <th scope="row"><label for="testtag-attr-key">Attribute name</label></th>
-                            <td>
-                                <input type="text" id="testtag-attr-key"
-                                    name="<?php echo self::OPTION_ATTRIBUTE_KEY; ?>"
-                                    value="<?php echo esc_attr( $attrKey ); ?>"
-                                    class="regular-text"
-                                    placeholder="data-testid" />
-                                <p class="description">
-                                    Must start with <code>data-</code>. Common values:
-                                    <code>data-testid</code> (Playwright),
-                                    <code>data-cy</code> (Cypress),
-                                    <code>data-test</code> (generic).
+                    <div class="testtag-format-builder" id="testtag-format-builder"
+                         data-token-order="<?php echo esc_attr( $tokenOrder ); ?>"
+                         data-format-seps="<?php echo esc_attr( $formatSeps ); ?>">
+                        <div class="testtag-attrkey-layout">
+
+                            <!-- Left column: formula bar + separator + HTML preview -->
+                            <div class="testtag-attrkey-col-main">
+
+                                <!-- Formula bar: [attr name]="[active zone]" on one line -->
+                                <div class="testtag-formula-bar">
+                                    <input type="text" id="testtag-attr-key"
+                                        name="<?php echo self::OPTION_ATTRIBUTE_KEY; ?>"
+                                        value="<?php echo esc_attr( $attrKey ); ?>"
+                                        class="testtag-formula-attr-input"
+                                        placeholder="data-testid"
+                                        aria-label="Attribute name" />
+                                    <span class="testtag-formula-eq">="</span>
+                                    <div class="testtag-format-zone testtag-format-active" id="testtag-format-active"></div>
+                                    <span class="testtag-formula-close">"</span>
+                                    <button type="button" id="testtag-format-reset" class="button button-small testtag-format-reset-btn" title="Reset tag format to default" aria-label="Reset tag format to default">↺ Reset</button>
+                                </div>
+                                <p class="description testtag-formula-help">
+                                    Attribute name must start with <code>data-</code>.
+                                    Drag tokens to compose the value. Click&nbsp;× or drag to Palette to remove.
+                                    Click a separator to toggle <code>-</code>&nbsp;/&nbsp;<code>_</code>.
                                 </p>
-                            </td>
-                        </tr>
-                    </table>
+
+                                <div class="testtag-attrkey-field testtag-separator-field">
+                                    <label for="testtag-separator">Default separator</label>
+                                    <select id="testtag-separator" name="<?php echo self::OPTION_SEPARATOR; ?>">
+                                        <option value="-" <?php selected( $separator, '-' ); ?>>Hyphen — <code>search-field</code></option>
+                                        <option value="_" <?php selected( $separator, '_' ); ?>>Underscore — <code>search_field</code></option>
+                                    </select>
+                                    <p class="description">
+                                        Replaces spaces in auto-generated values (e.g. aria-label <em>Search Field</em> → <code>search-field</code>). Also used in dedup suffixes.
+                                    </p>
+                                </div>
+
+                                <div class="testtag-format-preview">
+                                    <span class="testtag-format-preview-label">Preview HTML <span class="testtag-format-preview-hint">(edit or paste your own element)</span></span>
+                                    <textarea id="testtag-format-preview-html" class="testtag-format-preview-html" rows="3" spellcheck="false" placeholder="Paste any element HTML here…"><input role="search" aria-label="Search Field" aria-labelledby="search-title" placeholder="Enter Query" id="query-input" name="query"></textarea>
+                                    <span class="testtag-format-preview-output">
+                                        <span class="testtag-format-preview-label">Result</span>
+                                        <span id="testtag-format-preview-attr"><?php echo esc_html( $attrKey ); ?></span>="<code id="testtag-format-preview-value"></code>"
+                                    </span>
+                                </div>
+
+                            </div><!-- /.testtag-attrkey-col-main -->
+
+                            <!-- Right column: token palette -->
+                            <div class="testtag-attrkey-col-palette">
+                                <div class="testtag-format-zone-label">Palette</div>
+                                <div class="testtag-format-zone testtag-format-palette" id="testtag-format-palette">
+                                    <div class="testtag-palette-chips" id="testtag-palette-all"></div>
+                                </div>
+                            </div><!-- /.testtag-attrkey-col-palette -->
+
+                        </div><!-- /.testtag-attrkey-layout -->
+                        <input type="hidden" name="<?php echo esc_attr( self::OPTION_TOKEN_ORDER ); ?>" id="testtag-token-order-val" value="<?php echo esc_attr( $tokenOrder ); ?>" />
+                        <input type="hidden" name="<?php echo esc_attr( self::OPTION_FORMAT_SEPS ); ?>" id="testtag-format-seps-val" value="<?php echo esc_attr( $formatSeps ); ?>" />
+                    </div><!-- /#testtag-format-builder -->
                 </div>
 
                 <div class="testtag-card">
@@ -548,6 +722,17 @@ class TestTag_Settings {
 
     private static function get_changelog(): array {
         return [
+            [
+                'version' => '1.5.0',
+                'date'    => '2026-04-06',
+                'changes' => [
+                    'New: String format configuration — choose <strong>separator</strong> (<code>-</code> or <code>_</code>), whether to <strong>include the element type</strong>, and whether it appears <strong>before or after the identifier</strong>.',
+                    'Settings are in the <em>Test Tag Format</em> card alongside the existing attribute key field.',
+                    'Separator applies to both the type/identifier join and word boundaries within slugs (e.g. <code>button_send_message</code> with <code>_</code>).',
+                    'Dedup counter suffixes now also use the configured separator.',
+                    'String format settings are included in Export / Import.',
+                ],
+            ],
             [
                 'version' => '1.4.1',
                 'date'    => '2026-04-04',
