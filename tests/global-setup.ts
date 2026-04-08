@@ -283,11 +283,19 @@ async function setupViaApi(): Promise<void> {
     await api.ensurePrettyPermalinks(PRETTY_PERMALINK_STRUCTURE);
     console.log(`Permalink structure set to ${PRETTY_PERMALINK_STRUCTURE}`);
     
-    // Update TestTag attribute key to data-testid for consistent fixture expectations
+    // Reset TestTag settings to defaults for consistent fixture expectations
     console.log('Configuring TestTag settings...');
     try {
       await api.updateOption('testtag_attribute_key', 'data-testid');
       console.log('TestTag attribute key set to data-testid');
+      // Reset string format settings so tests start from a known clean state.
+      // Tests that need non-default values set them in beforeEach and restore
+      // them in afterEach, but a failed cleanup from a previous run could leave
+      // stale values; resetting here ensures a reliable baseline.
+      await api.updateOption('testtag_separator', '-');
+      await api.updateOption('testtag_token_order', '');
+      await api.updateOption('testtag_format_seps', '-');
+      console.log('TestTag string format settings reset to defaults');
     } catch (error) {
       // Settings validation might fail if plugin structure is different, log but continue
       console.log(`Note: ${error instanceof Error ? error.message : String(error)}`);
