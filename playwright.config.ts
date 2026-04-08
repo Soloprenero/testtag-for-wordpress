@@ -24,8 +24,8 @@ const skipGlobalSetup = isTrue(process.env.SKIP_GLOBAL_SETUP);
 const authFile = path.join(__dirname, 'tests', '.auth', 'admin-auth.json');
 
 const config: PlaywrightTestConfig = {
-  testDir: './tests/e2e',
-  testMatch: '**/*.spec.ts',
+  testDir: './tests',
+  testMatch: '{e2e,regression}/**/*.spec.ts',
   
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
