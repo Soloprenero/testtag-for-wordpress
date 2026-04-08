@@ -50,7 +50,7 @@ export class TestTagFactory {
    * @returns The generated tag value, or null when the plugin would not tag
    *   the element.
    */
-  async computeTag(html: string, attrKey?: string): Promise<string | null> {
+  computeTag(html: string, attrKey?: string): string | null {
     return tagEngine.computeTag(html, attrKey);
   }
 
@@ -60,7 +60,7 @@ export class TestTagFactory {
    * @param html    Outer HTML of the element to evaluate.
    * @param attrKey Attribute key, defaults to 'data-testid'.
    */
-  static async computeTagFor(html: string, attrKey?: string): Promise<string | null> {
+  static computeTagFor(html: string, attrKey?: string): string | null {
     return new TestTagFactory().computeTag(html, attrKey);
   }
 
@@ -71,7 +71,7 @@ export class TestTagFactory {
    *
    * @deprecated Use computeTagFor() instead.
    */
-  static async computeTagOn(_page: unknown, html: string, attrKey?: string): Promise<string | null> {
+  static computeTagOn(_page: unknown, html: string, attrKey?: string): string | null {
     return new TestTagFactory().computeTag(html, attrKey);
   }
 }
