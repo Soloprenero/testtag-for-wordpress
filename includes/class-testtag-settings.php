@@ -18,6 +18,7 @@ class TestTag_Settings {
     public static function init(): void {
         add_action( 'admin_menu',            [ __CLASS__, 'add_settings_page' ] );
         add_action( 'admin_init',            [ __CLASS__, 'register_settings' ] );
+        add_action( 'rest_api_init',         [ __CLASS__, 'register_settings' ] );
         add_action( 'admin_enqueue_scripts', [ __CLASS__, 'enqueue_admin_assets' ] );
         add_action( 'admin_post_testtag_export', [ __CLASS__, 'handle_export' ] );
         add_action( 'admin_post_testtag_import', [ __CLASS__, 'handle_import' ] );
@@ -219,6 +220,8 @@ class TestTag_Settings {
         register_setting( 'testtag_group', self::OPTION_FORCE_ENABLE );
         register_setting( 'testtag_group', self::OPTION_TEXT_FALLBACK );
         register_setting( 'testtag_group', self::OPTION_TOKEN_ORDER, [
+            'type'              => 'string',
+            'show_in_rest'      => true,
             'sanitize_callback' => function ( $val ) {
                 if ( trim( $val ) === '' ) return ''; // '' = "not customized / reset to default"
                 $valid  = [ 'type', 'role', 'identifier', 'aria-label', 'aria-labelledby', 'placeholder', 'id', 'name' ];
@@ -230,6 +233,8 @@ class TestTag_Settings {
             },
         ] );
         register_setting( 'testtag_group', self::OPTION_FORMAT_SEPS, [
+            'type'              => 'string',
+            'show_in_rest'      => true,
             'sanitize_callback' => function ( $val ) {
                 $seps = array_map(
                     fn( $s ) => in_array( trim( $s ), [ '-', '_' ], true ) ? trim( $s ) : '-',
@@ -239,12 +244,16 @@ class TestTag_Settings {
             },
         ] );
         register_setting( 'testtag_group', self::OPTION_ATTRIBUTE_KEY, [
+            'type'              => 'string',
+            'show_in_rest'      => true,
             'sanitize_callback' => function ( $val ) {
                 $val = sanitize_text_field( $val );
                 return preg_match( '/^data-[a-z][a-z0-9\-]*$/', $val ) ? $val : self::DEFAULT_ATTRIBUTE;
             },
         ] );
         register_setting( 'testtag_group', self::OPTION_SEPARATOR, [
+            'type'              => 'string',
+            'show_in_rest'      => true,
             'sanitize_callback' => function ( $val ) {
                 $val = sanitize_text_field( $val );
                 return in_array( $val, [ '-', '_' ], true ) ? $val : '-';

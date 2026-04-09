@@ -125,6 +125,7 @@ class TestTag_HTML_Processor {
             if ( ! $nodes ) continue;
 
             foreach ( $nodes as $node ) {
+                if ( ! ( $node instanceof DOMElement ) ) continue;
                 if ( $node->hasAttribute( $attr ) ) continue;
                 $node->setAttribute( $attr, $testid );
                 $node->setAttribute( self::$layer_key, 'selector-map' );
