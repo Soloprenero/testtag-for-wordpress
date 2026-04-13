@@ -307,6 +307,47 @@ export class WordPressRestClient extends WordPressApiBase {
     );
   }
 
+  /**
+   * Write one or more TestTag string-format options via the REST settings endpoint.
+   * The PHP options must be registered with show_in_rest: true for this to work.
+   */
+  async setTestTagFormatSettings(options: {
+    separator?: string;
+    tokenOrder?: string;
+    formatSeps?: string;
+  }): Promise<void> {
+    const data: Record<string, string> = {};
+    if (options.separator  !== undefined) data['testtag_separator']    = options.separator;
+    if (options.tokenOrder !== undefined) data['testtag_token_order']  = options.tokenOrder;
+    if (options.formatSeps !== undefined) data['testtag_format_seps']  = options.formatSeps;
+
+    if (Object.keys(data).length === 0) return;
+
+    const api = this.getApi();
+    const { candidateRoots, nonce } = await this.getRestBootstrap();
+    const errors: string[] = [];
+
+    for (const root of candidateRoots) {
+      const endpoint = new URL(this.buildRestEndpoint(root, 'wp/v2/settings'));
+      const response = await api.post(endpoint.toString(), {
+        headers: { 'X-WP-Nonce': nonce, 'Content-Type': 'application/json' },
+        data,
+        failOnStatusCode: false,
+      });
+      if (response.ok()) return;
+      errors.push(`${root} -> ${response.status()}`);
+    }
+
+    throw new Error(
+      `Failed to update TestTag format settings. Tried roots: ${candidateRoots.join(', ')}. Errors: ${errors.join('; ')}`
+    );
+  }
+
+  /** Restore all TestTag string-format options to their out-of-the-box defaults. */
+  async resetTestTagFormatSettings(): Promise<void> {
+    await this.setTestTagFormatSettings({ separator: '-', tokenOrder: '', formatSeps: '-' });
+  }
+
   async getOption(optionName: string): Promise<unknown> {
     const api = this.getApi();
     const { candidateRoots, nonce } = await this.getRestBootstrap();

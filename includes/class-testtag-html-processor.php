@@ -16,9 +16,12 @@ defined( 'ABSPATH' ) || exit;
  */
 class TestTag_HTML_Processor {
 
-    private static string $attr      = 'data-testid';
-    private static string $layer_key = 'data-testtag-layer';
-    private static bool $buffer_started = false;
+    private static string $attr          = 'data-testid';
+    private static string $layer_key     = 'data-testtag-layer';
+    private static bool   $buffer_started = false;
+    private static string $separator     = '-';
+    private static array  $token_order = [ 'type', 'identifier' ];
+    private static array  $format_seps = [ '-' ];
 
     public static function init(): void {
         add_action( 'template_redirect', [ __CLASS__, 'start_buffer' ] );
@@ -35,7 +38,10 @@ class TestTag_HTML_Processor {
 
         if ( is_admin() && ! self::is_admin_html_request() ) return;
 
-        self::$attr = TestTag_Settings::get_attribute_key();
+        self::$attr          = TestTag_Settings::get_attribute_key();
+        self::$separator     = TestTag_Settings::get_separator();
+        self::$token_order = TestTag_Settings::get_token_order();
+        self::$format_seps = TestTag_Settings::get_format_seps();
         self::$buffer_started = true;
         ob_start( [ __CLASS__, 'process_html' ] );
     }
@@ -155,6 +161,7 @@ class TestTag_HTML_Processor {
             if ( ! $nodes ) continue;
 
             foreach ( $nodes as $node ) {
+                if ( ! ( $node instanceof DOMElement ) ) continue;
                 if ( $node->hasAttribute( $attr ) ) continue;
                 $node->setAttribute( $attr, $testid );
                 $node->setAttribute( self::$layer_key, 'selector-map' );
@@ -292,6 +299,7 @@ class TestTag_HTML_Processor {
 
     private static function auto_id( DOMElement $el, DOMXPath $xpath, bool $text_fallback = true ): ?string {
         $tag = strtolower( $el->tagName );
+        $tv  = self::element_token_values( $el, $xpath );
 
         // ── Form controls ─────────────────────────────────────────
         if ( in_array( $tag, [ 'input', 'textarea', 'select' ], true ) ) {
@@ -303,31 +311,31 @@ class TestTag_HTML_Processor {
                 ?: '';
 
             if ( $type === 'hidden' )  return null; // never tag hidden inputs
-            if ( $type === 'search' )  return 'input-search';
-            if ( in_array( $type, [ 'submit', 'button' ], true ) ) return 'button-' . self::slug( $el->getAttribute( 'value' ) ?: $hint ?: 'submit' );
-            if ( $type === 'checkbox' ) return 'checkbox-' . self::slug( $hint );
-            if ( $type === 'radio' )   return 'radio-'    . self::slug( $hint );
-            if ( $tag === 'select' )   return 'select-'   . self::slug( $hint );
-            if ( $tag === 'textarea' ) return 'textarea-' . self::slug( $hint );
-            return 'input-' . self::slug( $hint ?: $type );
+            if ( $type === 'search' )  return self::format_id( 'input', 'search', $tv );
+            if ( in_array( $type, [ 'submit', 'button' ], true ) ) return self::format_id( 'button', self::slug( $el->getAttribute( 'value' ) ?: $hint ?: 'submit' ), $tv );
+            if ( $type === 'checkbox' ) return self::format_id( 'checkbox', self::slug( $hint ), $tv );
+            if ( $type === 'radio' )   return self::format_id( 'radio', self::slug( $hint ), $tv );
+            if ( $tag === 'select' )   return self::format_id( 'select', self::slug( $hint ), $tv );
+            if ( $tag === 'textarea' ) return self::format_id( 'textarea', self::slug( $hint ), $tv );
+            return self::format_id( 'input', self::slug( $hint ?: $type ), $tv );
         }
 
         // ── Buttons ───────────────────────────────────────────────
         if ( $tag === 'button' ) {
             $al = $el->getAttribute( 'aria-label' );
-            if ( $al ) return 'button-' . self::slug( $al );
+            if ( $al ) return self::format_id( 'button', self::slug( $al ), $tv );
             $id = $el->getAttribute( 'id' );
             if ( $id ) {
                 $clean = self::clean( self::slug( $id ) );
-                if ( $clean && ! ctype_digit( $clean ) && strlen( $clean ) > 1 ) return 'button-' . $clean;
+                if ( $clean && ! ctype_digit( $clean ) && strlen( $clean ) > 1 ) return self::format_id( 'button', $clean, $tv );
             }
             $name = $el->getAttribute( 'name' );
-            if ( $name ) return 'button-' . self::slug( $name );
+            if ( $name ) return self::format_id( 'button', self::slug( $name ), $tv );
             $value = $el->getAttribute( 'value' );
-            if ( $value ) return 'button-' . self::slug( $value );
+            if ( $value ) return self::format_id( 'button', self::slug( $value ), $tv );
             if ( $text_fallback ) {
                 $text = trim( $el->textContent );
-                if ( $text ) return 'button-' . self::slug( $text );
+                if ( $text ) return self::format_id( 'button', self::slug( $text ), $tv );
             }
             return null;
         }
@@ -340,20 +348,20 @@ class TestTag_HTML_Processor {
             if ( self::ancestor_matches( $el, [ 'nav', 'header' ] ) ||
                  self::has_class_fragment( $el, 'elementor-nav' ) ) {
                 $al = $el->getAttribute( 'aria-label' );
-                if ( $al ) return 'nav-' . self::slug( $al );
-                if ( $href === '/' ) return 'nav-home';
-                if ( str_starts_with( $href, '#' ) ) return 'nav-' . self::slug( substr( $href, 1 ) );
+                if ( $al ) return self::format_id( 'nav', self::slug( $al ), $tv );
+                if ( $href === '/' ) return self::format_id( 'nav', 'home', $tv );
+                if ( str_starts_with( $href, '#' ) ) return self::format_id( 'nav', self::slug( substr( $href, 1 ) ), $tv );
                 $frag = self::href_path_fragment( $href );
-                if ( $frag ) return 'nav-' . $frag;
-                if ( $text_fallback ) return 'nav-' . self::slug( $linkText ?: $href );
+                if ( $frag ) return self::format_id( 'nav', $frag, $tv );
+                if ( $text_fallback ) return self::format_id( 'nav', self::slug( $linkText ?: $href ), $tv );
                 return null;
             }
 
             if ( preg_match( '/\.(pdf|docx?|xlsx?|pptx?|zip)$/i', $href ) ) {
                 $al = $el->getAttribute( 'aria-label' );
-                if ( $al ) return 'download-' . self::slug( $al );
-                if ( $text_fallback && $linkText ) return 'download-' . self::slug( $linkText );
-                return 'download-' . self::slug( basename( $href ) );
+                if ( $al ) return self::format_id( 'download', self::slug( $al ), $tv );
+                if ( $text_fallback && $linkText ) return self::format_id( 'download', self::slug( $linkText ), $tv );
+                return self::format_id( 'download', self::slug( basename( $href ) ), $tv );
             }
 
             // Card-style anchor: an <a> wrapping block-level content (image, heading,
@@ -364,7 +372,7 @@ class TestTag_HTML_Processor {
                     $parent = $el->parentNode;
                     while ( $parent instanceof DOMElement ) {
                         if ( $parent->hasAttribute( self::$attr ) ) {
-                            return 'link-' . $parent->getAttribute( self::$attr );
+                            return self::format_id( 'link', $parent->getAttribute( self::$attr ), $tv );
                         }
                         $parent = $parent->parentNode;
                     }
@@ -374,31 +382,31 @@ class TestTag_HTML_Processor {
 
             // Regular link — stable-first
             $al = $el->getAttribute( 'aria-label' );
-            if ( $al ) return 'link-' . self::slug( $al );
+            if ( $al ) return self::format_id( 'link', self::slug( $al ), $tv );
             $id = $el->getAttribute( 'id' );
             if ( $id ) {
                 $clean = self::clean( self::slug( $id ) );
-                if ( $clean && ! ctype_digit( $clean ) && strlen( $clean ) > 1 ) return 'link-' . $clean;
+                if ( $clean && ! ctype_digit( $clean ) && strlen( $clean ) > 1 ) return self::format_id( 'link', $clean, $tv );
             }
             $frag = self::href_path_fragment( $href );
-            if ( $frag ) return 'link-' . $frag;
-            if ( str_starts_with( $href, '#' ) ) return 'link-' . self::slug( substr( $href, 1 ) );
-            if ( $text_fallback && $linkText ) return 'link-' . self::slug( $linkText );
+            if ( $frag ) return self::format_id( 'link', $frag, $tv );
+            if ( str_starts_with( $href, '#' ) ) return self::format_id( 'link', self::slug( substr( $href, 1 ) ), $tv );
+            if ( $text_fallback && $linkText ) return self::format_id( 'link', self::slug( $linkText ), $tv );
             return null;
         }
 
         // ── Landmark elements ─────────────────────────────────────
         if ( in_array( $tag, [ 'section', 'article', 'aside', 'main', 'header', 'footer' ], true ) ) {
             $al = $el->getAttribute( 'aria-label' );
-            if ( $al ) return $tag . '-' . self::slug( $al );
+            if ( $al ) return self::format_id( $tag, self::slug( $al ), $tv );
             $id = $el->getAttribute( 'id' );
             if ( $id ) {
                 $clean = self::clean( self::slug( $id ) );
-                if ( $clean && ! ctype_digit( $clean ) && strlen( $clean ) > 1 ) return $tag . '-' . $clean;
+                if ( $clean && ! ctype_digit( $clean ) && strlen( $clean ) > 1 ) return self::format_id( $tag, $clean, $tv );
             }
             if ( $text_fallback ) {
                 $h = self::first_heading_text( $el );
-                if ( $h ) return $tag . '-' . self::slug( $h );
+                if ( $h ) return self::format_id( $tag, self::slug( $h ), $tv );
             }
             return null;
         }
@@ -406,15 +414,15 @@ class TestTag_HTML_Processor {
         // ── Headings ──────────────────────────────────────────────
         if ( preg_match( '/^h[1-6]$/', $tag ) ) {
             $al = $el->getAttribute( 'aria-label' );
-            if ( $al ) return 'heading-' . self::slug( $al );
+            if ( $al ) return self::format_id( 'heading', self::slug( $al ), $tv );
             $id = $el->getAttribute( 'id' );
             if ( $id ) {
                 $clean = self::clean( self::slug( $id ) );
-                if ( $clean && ! ctype_digit( $clean ) && strlen( $clean ) > 1 ) return 'heading-' . $clean;
+                if ( $clean && ! ctype_digit( $clean ) && strlen( $clean ) > 1 ) return self::format_id( 'heading', $clean, $tv );
             }
             if ( $text_fallback ) {
                 $text = trim( $el->textContent );
-                if ( $text ) return 'heading-' . self::slug( $text );
+                if ( $text ) return self::format_id( 'heading', self::slug( $text ), $tv );
             }
             return null;
         }
@@ -426,7 +434,7 @@ class TestTag_HTML_Processor {
             $parent = $el->parentNode;
             while ( $parent instanceof DOMElement ) {
                 if ( $parent->hasAttribute( self::$attr ) ) {
-                    return 'text-' . $parent->getAttribute( self::$attr );
+                    return self::format_id( 'text', $parent->getAttribute( self::$attr ), $tv );
                 }
                 $parent = $parent->parentNode;
             }
@@ -436,18 +444,18 @@ class TestTag_HTML_Processor {
         // ── Forms ─────────────────────────────────────────────────
         if ( $tag === 'form' ) {
             $al = $el->getAttribute( 'aria-label' );
-            if ( $al ) return 'form-' . self::slug( $al );
+            if ( $al ) return self::format_id( 'form', self::slug( $al ), $tv );
             $id = $el->getAttribute( 'id' );
             if ( $id ) {
                 $clean = self::clean( self::slug( $id ) );
-                if ( $clean && ! ctype_digit( $clean ) && strlen( $clean ) > 1 ) return 'form-' . $clean;
+                if ( $clean && ! ctype_digit( $clean ) && strlen( $clean ) > 1 ) return self::format_id( 'form', $clean, $tv );
             }
             if ( $text_fallback ) {
                 $fl = $el->getElementsByTagName( 'legend' )->item( 0 )
                    ?? self::first_heading_element( $el );
                 if ( $fl ) {
                     $t = trim( $fl->textContent );
-                    if ( $t ) return 'form-' . self::slug( $t );
+                    if ( $t ) return self::format_id( 'form', self::slug( $t ), $tv );
                 }
             }
             return 'form';
@@ -456,7 +464,7 @@ class TestTag_HTML_Processor {
         // ── Images ────────────────────────────────────────────────
         if ( $tag === 'img' ) {
             $alt = $el->getAttribute( 'alt' );
-            return $alt ? 'img-' . self::slug( $alt ) : null;
+            return $alt ? self::format_id( 'img', self::slug( $alt ), $tv ) : null;
         }
 
         // ── Custom select options ─────────────────────────────────
@@ -486,8 +494,8 @@ class TestTag_HTML_Processor {
             }
 
             return $selectName
-                ? 'option-' . self::slug( $selectName ) . '-' . $optSlug
-                : 'option-' . $optSlug;
+                ? self::format_id( 'option', self::slug( $selectName ) . self::$separator . $optSlug, $tv )
+                : self::format_id( 'option', $optSlug, $tv );
         }
 
         // ── Divs / spans ──────────────────────────────────────────
@@ -498,13 +506,13 @@ class TestTag_HTML_Processor {
 
             // 1. aria-label (most reliable stable source)
             $al = $el->getAttribute( 'aria-label' );
-            if ( $al ) return $prefix . '-' . self::slug( $al );
+            if ( $al ) return self::format_id( $prefix, self::slug( $al ), $tv );
 
             // 2. Stable id (non-numeric, cleaned)
             $id = $el->getAttribute( 'id' );
             if ( $id ) {
                 $clean = self::clean( self::slug( $id ) );
-                if ( $clean && ! ctype_digit( $clean ) && strlen( $clean ) > 1 ) return $prefix . '-' . $clean;
+                if ( $clean && ! ctype_digit( $clean ) && strlen( $clean ) > 1 ) return self::format_id( $prefix, $clean, $tv );
             }
 
             // 3. Elementor section/container — data-element_type
@@ -512,7 +520,7 @@ class TestTag_HTML_Processor {
             if ( $eType === 'section' || $eType === 'container' ) {
                 if ( $text_fallback ) {
                     $h = self::first_heading_text( $el );
-                    if ( $h ) return 'section-' . self::slug( $h );
+                    if ( $h ) return self::format_id( 'section', self::slug( $h ), $tv );
                 }
                 return null;
             }
@@ -523,10 +531,10 @@ class TestTag_HTML_Processor {
                 $wType   = preg_replace( '/\.default$/', '', $eWidget );
                 $wType   = preg_replace( '/^wp-widget-/', '', $wType );
                 $cleaned = self::clean( self::slug( $wType ) );
-                if ( $cleaned ) return $prefix . '-' . $cleaned;
+                if ( $cleaned ) return self::format_id( $prefix, $cleaned, $tv );
                 if ( $text_fallback ) {
                     $h = self::first_heading_text( $el );
-                    if ( $h ) return $prefix . '-' . self::slug( $h );
+                    if ( $h ) return self::format_id( $prefix, self::slug( $h ), $tv );
                 }
                 return null;
             }
@@ -537,10 +545,10 @@ class TestTag_HTML_Processor {
                 if ( str_starts_with( $cls, 'wp-block-' ) ) {
                     $blockName = substr( $cls, strlen( 'wp-block-' ) );
                     $cleaned   = self::clean( self::slug( $blockName ) );
-                    if ( $cleaned ) return $prefix . '-' . $cleaned;
+                    if ( $cleaned ) return self::format_id( $prefix, $cleaned, $tv );
                     if ( $text_fallback ) {
                         $h = self::first_heading_text( $el );
-                        if ( $h ) return $prefix . '-' . self::slug( $h );
+                        if ( $h ) return self::format_id( $prefix, self::slug( $h ), $tv );
                     }
                     return null;
                 }
@@ -550,7 +558,7 @@ class TestTag_HTML_Processor {
             $role = $el->getAttribute( 'role' );
             if ( $role && $text_fallback ) {
                 $label = self::slug( substr( trim( $el->textContent ), 0, 30 ) );
-                if ( $label ) return $role . '-' . $label;
+                if ( $label ) return self::format_id( $role, $label, $tv );
             }
         }
 
@@ -584,7 +592,7 @@ class TestTag_HTML_Processor {
                     $seen[ $value ] = 1;
                 } else {
                     $seen[ $value ]++;
-                    $node->setAttribute( $attr, $value . '-' . $seen[ $value ] );
+                    $node->setAttribute( $attr, $value . self::$separator . $seen[ $value ] );
                 }
             }
         }
@@ -695,14 +703,212 @@ class TestTag_HTML_Processor {
     }
 
     // ─────────────────────────────────────────────────────────────
-    // slug() and clean() — PHP ports of the JS equivalents
+    // slug(), format_id(), and clean() — PHP ports of the JS equivalents
     // ─────────────────────────────────────────────────────────────
 
+    /**
+     * Builds a formatted tag value by combining a semantic type string with
+     * an identifier, applying the user-configured separator and token order.
+     *
+     * `$token_values` may provide explicit per-token values keyed by token name
+     * (role, aria-label, aria-labelledby, placeholder, id, name). When a
+     * specific token is active in the configured order and has an explicit value,
+     * that value is used instead of the generic `$identifier` fallback.
+     *
+     * @param string $type         Semantic type, e.g. 'button', 'heading'.
+     * @param string $identifier   Slugified identifier derived from element attrs.
+     * @param array  $token_values Optional per-token values keyed by token name.
+     * @return string
+     */
+    private static function format_id( string $type, string $identifier, array $token_values = [] ): string {
+        $type_class  = [ 'type', 'role' ];
+        $ident_class = [ 'identifier', 'aria-label', 'aria-labelledby', 'placeholder', 'id', 'name' ];
+
+        // Build per-token value map seeded with explicit per-token values.
+        $values = array_fill_keys( array_merge( $type_class, $ident_class ), '' );
+        $values['type'] = $type;
+        foreach ( $token_values as $token => $value ) {
+            if ( array_key_exists( $token, $values ) && is_string( $value ) && $value !== '' ) {
+                $values[ $token ] = $value;
+            }
+        }
+
+        // Assign the fallback identifier to the first active ident-class token
+        // that does not already have an explicit value (skip literal tokens).
+        foreach ( self::$token_order as $token ) {
+            if ( strncmp( $token, 'lit:', 4 ) === 0 ) continue;
+            if ( in_array( $token, $ident_class, true ) && $values[ $token ] === '' ) {
+                $values[ $token ] = $identifier;
+                break;
+            }
+        }
+
+        // Build the output, tracking original token indices for per-gap separators.
+        $parts        = [];
+        $part_indices = [];
+        foreach ( self::$token_order as $i => $token ) {
+            if ( strncmp( $token, 'lit:', 4 ) === 0 ) {
+                $val = preg_replace( '/[^a-zA-Z0-9]/', '', substr( $token, 4 ) );
+            } else {
+                $val = $values[ $token ] ?? '';
+            }
+            if ( $val !== '' ) {
+                $parts[]        = $val;
+                $part_indices[] = $i;
+            }
+        }
+
+        if ( empty( $parts ) ) return $type;
+
+        $result = $parts[0];
+        for ( $k = 1, $n = count( $parts ); $k < $n; $k++ ) {
+            // Use the sep configured for the gap at position (part_indices[k] - 1).
+            $sep     = self::$format_seps[ $part_indices[ $k ] - 1 ] ?? self::$separator;
+            $result .= $sep . $parts[ $k ];
+        }
+        return $result;
+    }
+
+    /**
+     * Extracts and slugifies per-token attribute values from a DOM element.
+     * Used to populate concrete token slots (role, aria-label, id, etc.) in
+     * format_id() so each configured token resolves to the right attribute.
+     *
+     * For aria-labelledby, referenced element texts are resolved via XPath.
+     *
+     * @param DOMElement $el
+     * @param DOMXPath   $xpath
+     * @return array<string,string>
+     */
+    /**
+     * Returns the implicit ARIA role for an element when no explicit role attribute is set.
+     */
+    private static function inferred_aria_role( DOMElement $el ): string {
+        $tag  = strtolower( $el->tagName );
+        $type = strtolower( $el->getAttribute( 'type' ) );
+
+        static $map = [
+            'button'   => 'button',
+            'a'        => 'link',
+            'nav'      => 'navigation',
+            'main'     => 'main',
+            'header'   => 'banner',
+            'footer'   => 'contentinfo',
+            'aside'    => 'complementary',
+            'article'  => 'article',
+            'section'  => 'region',
+            'form'     => 'form',
+            'dialog'   => 'dialog',
+            'table'    => 'table',
+            'textarea' => 'textbox',
+            'ul'       => 'list',
+            'ol'       => 'list',
+            'li'       => 'listitem',
+            'img'      => 'img',
+            'figure'   => 'figure',
+            'details'  => 'group',
+            'summary'  => 'button',
+            'fieldset' => 'group',
+            'meter'    => 'meter',
+            'progress' => 'progressbar',
+            'output'   => 'status',
+            'hr'       => 'separator',
+            'h1'       => 'heading',
+            'h2'       => 'heading',
+            'h3'       => 'heading',
+            'h4'       => 'heading',
+            'h5'       => 'heading',
+            'h6'       => 'heading',
+        ];
+
+        if ( 'input' === $tag ) {
+            $input_roles = [
+                'button'   => 'button',
+                'submit'   => 'button',
+                'reset'    => 'button',
+                'image'    => 'button',
+                'checkbox' => 'checkbox',
+                'radio'    => 'radio',
+                'range'    => 'slider',
+                'number'   => 'spinbutton',
+                'search'   => 'searchbox',
+                'email'    => 'textbox',
+                'tel'      => 'textbox',
+                'text'     => 'textbox',
+                'url'      => 'textbox',
+                'password' => 'textbox',
+                ''         => 'textbox',
+            ];
+            return $input_roles[ $type ] ?? 'textbox';
+        }
+
+        if ( 'select' === $tag ) {
+            return ( $el->hasAttribute( 'multiple' ) || (int) $el->getAttribute( 'size' ) > 1 ) ? 'listbox' : 'combobox';
+        }
+
+        return $map[ $tag ] ?? '';
+    }
+
+    private static function element_token_values( DOMElement $el, DOMXPath $xpath ): array {
+        $values = [];
+
+        $role = $el->getAttribute( 'role' ) ?: self::inferred_aria_role( $el );
+        if ( $role ) {
+            $values['role'] = self::slug( $role );
+        }
+
+        $al = $el->getAttribute( 'aria-label' );
+        if ( $al ) {
+            $values['aria-label'] = self::slug( $al );
+        }
+
+        // Resolve aria-labelledby IDs to their referenced elements' text.
+        $alb_ids = trim( $el->getAttribute( 'aria-labelledby' ) );
+        if ( $alb_ids ) {
+            $texts = [];
+            foreach ( preg_split( '/\s+/', $alb_ids ) as $ref_id ) {
+                if ( ! $ref_id ) {
+                    continue;
+                }
+                $escaped = str_replace( '"', '&quot;', $ref_id );
+                $refs    = $xpath->query( '//*[@id="' . $escaped . '"]' );
+                if ( $refs && $refs->length > 0 ) {
+                    $text = trim( $refs->item( 0 )->textContent );
+                    if ( $text ) {
+                        $texts[] = $text;
+                    }
+                }
+            }
+            $resolved = $texts ? self::slug( implode( ' ', $texts ) ) : self::slug( $alb_ids );
+            if ( $resolved ) {
+                $values['aria-labelledby'] = $resolved;
+            }
+        }
+
+        $ph = $el->getAttribute( 'placeholder' );
+        if ( $ph ) {
+            $values['placeholder'] = self::slug( $ph );
+        }
+
+        $id = $el->getAttribute( 'id' );
+        if ( $id ) {
+            $values['id'] = self::slug( $id );
+        }
+
+        $name = $el->getAttribute( 'name' );
+        if ( $name ) {
+            $values['name'] = self::slug( $name );
+        }
+
+        return $values;
+    }
+
     private static function slug( string $str ): string {
+        $sep = self::$separator;
         $str = strtolower( $str );
         $str = preg_replace( '/<[^>]+>/', '', $str );          // strip HTML tags
-        $str = preg_replace( '/[^a-z0-9]+/', '-', $str );      // non-alphanumeric → hyphen
-        $str = trim( $str, '-' );
+        $str = preg_replace( '/[^a-z0-9]+/', $sep, $str );     // non-alphanumeric → separator
+        $str = trim( $str, $sep );
         return substr( $str, 0, 50 );
     }
 
@@ -721,18 +927,22 @@ class TestTag_HTML_Processor {
 
     private static function clean( string $s ): string {
         if ( ! $s ) return $s;
-        // Strip leading framework prefix (first match only)
+        $sep   = self::$separator;
+        $sep_q = preg_quote( $sep, '/' );
+        // Strip leading framework prefix (first match only).
+        // Prefixes are defined with hyphens; translate to the current separator.
         foreach ( self::$strip_prefixes as $prefix ) {
-            if ( str_starts_with( $s, $prefix ) ) {
-                $s = substr( $s, strlen( $prefix ) );
+            $prefix_sep = str_replace( '-', $sep, $prefix );
+            if ( str_starts_with( $s, $prefix_sep ) ) {
+                $s = substr( $s, strlen( $prefix_sep ) );
                 break;
             }
         }
-        // Strip standalone segment tokens
-        $segments_re = '/(?:^|-)(' . implode( '|', self::$strip_segments ) . ')(?=-|$)/';
+        // Strip standalone segment tokens separated by the current separator.
+        $segments_re = '/(?:^|' . $sep_q . ')(' . implode( '|', self::$strip_segments ) . ')(?=' . $sep_q . '|$)/';
         $s = preg_replace( $segments_re, '', $s );
-        // Collapse hyphens and trim
-        $s = preg_replace( '/-{2,}/', '-', $s );
-        return trim( $s, '-' );
+        // Collapse repeated separators and trim.
+        $s = preg_replace( '/' . $sep_q . '{2,}/', $sep, $s );
+        return trim( $s, $sep );
     }
 }

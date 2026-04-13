@@ -1,4 +1,5 @@
-import { test, expect, type Page } from '@playwright/test';
+import { test, expect } from '../../fixtures';
+import type { Page } from '@playwright/test';
 import { WordPressAuthPage } from '../../pageObjects/WordPressAuthPage';
 import { TEST_URLS } from '../../constants';
 
@@ -7,21 +8,26 @@ import { TEST_URLS } from '../../constants';
  *
  * Each test case verifies that the server-side PHP processor and the
  * client-side dynamic injector produce the *same* data-testid value for
- * the same element HTML.
+ * the same element HTML, regardless of what string-format settings are
+ * currently active.
  *
  * Test structure for every case:
- *   1. PHP: navigate to the parity fixture page; the element was already
- *      tagged server-side — assert the expected tag is present.
+ *   1. PHP: navigate to the parity fixture page and read the data-testid
+ *      value the server already assigned — this is the ground truth for
+ *      the current settings.
  *   2. JS:  inject an equivalent element dynamically (so the server hasn't
  *      seen it), wait for the dynamic-injector MutationObserver to tag it,
- *      then assert the tag matches the PHP value.
+ *      then assert the tag matches the PHP value exactly.
+ *
+ * Parity is about agreement between the two layers, not about a specific
+ * output format.  Tests are intentionally settings-agnostic so they remain
+ * valid when string-format tests run concurrently and alter WordPress options.
  *
  * Priority order under test (aria-label → id → name → href path → text):
  *   see includes/class-testtag-html-processor.php  auto_id()
  *   and js/dynamic-injector.js                     autoId()
  */
 
-const ATTR = 'data-testid';
 const LAYER = 'data-testtag-layer';
 
 /**
@@ -38,7 +44,7 @@ let sentinelCounter = 0;
  * runs but produces no tag for that element (e.g. no stable attribute and
  * text fallback disabled).
  */
-async function injectAndGetTag(page: Page, outerHtml: string): Promise<string | null> {
+async function injectAndGetTag(page: Page, outerHtml: string, attr: string): Promise<string | null> {
   const sentinelAttr = 'data-parity-sentinel';
   const sentinelVal  = `parity-${++sentinelCounter}`;
 
@@ -61,10 +67,10 @@ async function injectAndGetTag(page: Page, outerHtml: string): Promise<string | 
   const locator = page.locator(`[${sentinelAttr}="${sentinelVal}"][${LAYER}="dynamic"]`);
   try {
     await locator.waitFor({ state: 'attached', timeout: 5000 });
-    return locator.getAttribute(ATTR);
+    return locator.getAttribute(attr);
   } catch {
     // Injector ran but produced no tag — return whatever (null) is there.
-    return page.locator(`[${sentinelAttr}="${sentinelVal}"]`).getAttribute(ATTR);
+    return page.locator(`[${sentinelAttr}="${sentinelVal}"]`).getAttribute(attr);
   }
 }
 
@@ -77,119 +83,114 @@ test.describe('PHP ↔ JS tag-generation parity', () => {
 
   // ── Buttons ────────────────────────────────────────────────────
 
-  test('button: aria-label takes priority over text content', async ({ page }) => {
-    const expectedTag = 'button-subscribe-newsletter';
+  test('button: aria-label takes priority over text content', async ({ page, testTagSettings }) => {
+    const attr = testTagSettings.attributeKey;
+    // PHP — read whatever the server produced under the current settings
+    const phpTag = await page
+      .locator('#parity-fixtures > button[aria-label="Subscribe Newsletter"]')
+      .getAttribute(attr);
+    expect(phpTag).not.toBeNull();
 
-    // PHP — server rendered
-    await expect(
-      page.locator(`[${ATTR}="${expectedTag}"]`).first()
-    ).toBeAttached();
-
-    // JS — dynamically injected
+    // JS — dynamically injected; must match PHP exactly
     const jsTag = await injectAndGetTag(
       page,
-      '<button aria-label="Subscribe Newsletter" type="button">Subscribe</button>'
+      '<button aria-label="Subscribe Newsletter" type="button">Subscribe</button>',
+      attr,
     );
-    expect(jsTag).toBe(expectedTag);
+    expect(jsTag).toBe(phpTag);
   });
 
-  test('button: id used when no aria-label present', async ({ page }) => {
-    const expectedTag = 'button-parity-checkout-btn';
+  test('button: id used when no aria-label present', async ({ page, testTagSettings }) => {
+    const attr = testTagSettings.attributeKey;
+    const phpTag = await page
+      .locator('#parity-fixtures > button#parity-checkout-btn')
+      .getAttribute(attr);
+    expect(phpTag).not.toBeNull();
 
-    // PHP
-    await expect(
-      page.locator(`[${ATTR}="${expectedTag}"]`).first()
-    ).toBeAttached();
-
-    // JS
     const jsTag = await injectAndGetTag(
       page,
-      '<button id="parity-checkout-btn" type="button">Pay Now</button>'
+      '<button id="parity-checkout-btn" type="button">Pay Now</button>',
+      attr,
     );
-    expect(jsTag).toBe(expectedTag);
+    expect(jsTag).toBe(phpTag);
   });
 
-  test('button: name attribute used when no aria-label or id', async ({ page }) => {
-    const expectedTag = 'button-parity-cta';
+  test('button: name attribute used when no aria-label or id', async ({ page, testTagSettings }) => {
+    const attr = testTagSettings.attributeKey;
+    const phpTag = await page
+      .locator('#parity-fixtures > button[name="parity-cta"]')
+      .getAttribute(attr);
+    expect(phpTag).not.toBeNull();
 
-    // PHP
-    await expect(
-      page.locator(`[${ATTR}="${expectedTag}"]`).first()
-    ).toBeAttached();
-
-    // JS
     const jsTag = await injectAndGetTag(
       page,
-      '<button name="parity-cta" type="button">Get Started</button>'
+      '<button name="parity-cta" type="button">Get Started</button>',
+      attr,
     );
-    expect(jsTag).toBe(expectedTag);
+    expect(jsTag).toBe(phpTag);
   });
 
   // ── Headings ───────────────────────────────────────────────────
 
-  test('heading: aria-label takes priority over text content', async ({ page }) => {
-    const expectedTag = 'heading-parity-heading-label';
+  test('heading: aria-label takes priority over text content', async ({ page, testTagSettings }) => {
+    const attr = testTagSettings.attributeKey;
+    const phpTag = await page
+      .locator('#parity-fixtures > h2[aria-label="Parity Heading Label"]')
+      .getAttribute(attr);
+    expect(phpTag).not.toBeNull();
 
-    // PHP
-    await expect(
-      page.locator(`[${ATTR}="${expectedTag}"]`).first()
-    ).toBeAttached();
-
-    // JS
     const jsTag = await injectAndGetTag(
       page,
-      '<h2 aria-label="Parity Heading Label">Welcome</h2>'
+      '<h2 aria-label="Parity Heading Label">Welcome</h2>',
+      attr,
     );
-    expect(jsTag).toBe(expectedTag);
+    expect(jsTag).toBe(phpTag);
   });
 
-  test('heading: id used when no aria-label present', async ({ page }) => {
-    const expectedTag = 'heading-parity-features-heading';
+  test('heading: id used when no aria-label present', async ({ page, testTagSettings }) => {
+    const attr = testTagSettings.attributeKey;
+    const phpTag = await page
+      .locator('#parity-fixtures > h3#parity-features-heading')
+      .getAttribute(attr);
+    expect(phpTag).not.toBeNull();
 
-    // PHP
-    await expect(
-      page.locator(`[${ATTR}="${expectedTag}"]`).first()
-    ).toBeAttached();
-
-    // JS
     const jsTag = await injectAndGetTag(
       page,
-      '<h3 id="parity-features-heading">Our Features</h3>'
+      '<h3 id="parity-features-heading">Our Features</h3>',
+      attr,
     );
-    expect(jsTag).toBe(expectedTag);
+    expect(jsTag).toBe(phpTag);
   });
 
   // ── Links ──────────────────────────────────────────────────────
 
-  test('link: aria-label takes priority over href and text', async ({ page }) => {
-    const expectedTag = 'link-parity-link-label';
+  test('link: aria-label takes priority over href and text', async ({ page, testTagSettings }) => {
+    const attr = testTagSettings.attributeKey;
+    const phpTag = await page
+      .locator('#parity-fixtures > a[aria-label="Parity Link Label"]')
+      .getAttribute(attr);
+    expect(phpTag).not.toBeNull();
 
-    // PHP
-    await expect(
-      page.locator(`[${ATTR}="${expectedTag}"]`).first()
-    ).toBeAttached();
-
-    // JS
     const jsTag = await injectAndGetTag(
       page,
-      '<a href="/parity-target-page" aria-label="Parity Link Label">Click here</a>'
+      '<a href="/parity-target-page" aria-label="Parity Link Label">Click here</a>',
+      attr,
     );
-    expect(jsTag).toBe(expectedTag);
+    expect(jsTag).toBe(phpTag);
   });
 
-  test('link: href path fragment used when no stable attributes present', async ({ page }) => {
-    const expectedTag = 'link-parity-docs';
+  test('link: href path fragment used when no stable attributes present', async ({ page, testTagSettings }) => {
+    const attr = testTagSettings.attributeKey;
+    const phpTag = await page
+      .locator('#parity-fixtures > a[href="/parity-docs"]')
+      .getAttribute(attr);
+    expect(phpTag).not.toBeNull();
 
-    // PHP
-    await expect(
-      page.locator(`[${ATTR}="${expectedTag}"]`).first()
-    ).toBeAttached();
-
-    // JS
     const jsTag = await injectAndGetTag(
       page,
-      '<a href="/parity-docs">Documentation</a>'
+      '<a href="/parity-docs">Documentation</a>',
+      attr,
     );
-    expect(jsTag).toBe(expectedTag);
+    expect(jsTag).toBe(phpTag);
   });
 });

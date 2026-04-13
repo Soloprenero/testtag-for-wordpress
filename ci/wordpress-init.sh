@@ -7,7 +7,7 @@ set -e
 WORDPRESS_PORT="${WORDPRESS_PORT:-8080}"
 TEST_URL="${TEST_URL:-http://localhost:${WORDPRESS_PORT}}"
 
-echo "🔧 Initializing WordPress for Screenshot Testing..."
+echo "🔧 Initializing WordPress for TestTag For WordPress Testing..."
 
 # Wait for WordPress files to be set up
 sleep 30
