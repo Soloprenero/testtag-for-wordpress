@@ -1,7 +1,7 @@
-import { test, expect } from '../../fixtures';
+import { test, expect } from '@tests/fixtures';
 import type { Page } from '@playwright/test';
-import { WordPressAuthPage } from '../../pageObjects/WordPressAuthPage';
-import { TEST_URLS } from '../../constants';
+import { WordPressAuthPage } from '@pageObjects/WordPressAuthPage';
+import { TEST_URLS } from '@tests/constants';
 
 /**
  * PHP ↔ JS tag-generation parity tests (Issue #2)

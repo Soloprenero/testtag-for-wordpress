@@ -16,7 +16,13 @@
     "declaration": true,
     "declarationMap": true,
     "sourceMap": true,
-    "ignoreDeprecations": "6.0"
+    "ignoreDeprecations": "6.0",
+    "baseUrl": ".",
+    "paths": {
+      "@tests/*": ["tests/*"],
+      "@pageObjects/*": ["tests/pageObjects/*"],
+      "@helpers/*": ["tests/helpers/*"]
+    }
   },
   "include": ["tests/**/*", "playwright.config.ts"],
   "exclude": ["node_modules", "dist"]

@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { WordPressAuthPage } from '../pageObjects/WordPressAuthPage';
+import { WordPressAuthPage } from '@pageObjects/WordPressAuthPage';
 
 /**
  * Regression: blank white popup on admin pages

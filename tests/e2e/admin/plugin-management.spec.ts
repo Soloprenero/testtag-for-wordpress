@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
-import { WordPressAuthPage } from '../../pageObjects/WordPressAuthPage';
-import { PluginsAdminPage } from '../../pageObjects/PluginsAdminPage';
-import { TESTTAG_PLUGIN, TEST_URLS } from '../../constants';
+import { WordPressAuthPage } from '@pageObjects/WordPressAuthPage';
+import { PluginsAdminPage } from '@pageObjects/PluginsAdminPage';
+import { TESTTAG_PLUGIN, TEST_URLS } from '@tests/constants';
 
 /**
  * Plugin Management

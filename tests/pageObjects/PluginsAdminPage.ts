@@ -1,6 +1,6 @@
 import { expect, type Locator, type Page } from '@playwright/test';
-import { AppPage } from './AppPage';
-import { TEST_URLS } from '../constants';
+import { AppPage } from '@pageObjects/AppPage';
+import { TEST_URLS } from '@tests/constants';
 
 export class PluginsAdminPage extends AppPage {
   protected pageUrl = TEST_URLS.PLUGINS;

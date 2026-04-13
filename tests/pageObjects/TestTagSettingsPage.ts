@@ -1,6 +1,6 @@
 import type { Locator, Page } from '@playwright/test';
-import { AppPage } from './AppPage';
-import { TEST_URLS } from '../constants';
+import { AppPage } from '@pageObjects/AppPage';
+import { TEST_URLS } from '@tests/constants';
 
 export interface StringFormatOptions {
   /** Slug-word-boundary separator: '-' (default) or '_' */

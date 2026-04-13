@@ -1,6 +1,6 @@
 import { defineConfig, devices } from '@playwright/test';
 import type { PlaywrightTestConfig } from '@playwright/test';
-import type { TestTagSettings } from './tests/fixtures';
+import type { TestTagSettings } from '@tests/fixtures';
 import path from 'path';
 
 /**

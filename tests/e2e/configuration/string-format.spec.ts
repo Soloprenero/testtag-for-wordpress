@@ -1,7 +1,7 @@
 import { test, expect, type Page } from '@playwright/test';
-import { TestTagSettingsPage, type StringFormatOptions } from '../../pageObjects/TestTagSettingsPage';
-import { WordPressRestClient } from '../../helpers/wp-api';
-import { TEST_URLS, TEST_USERS, TESTTAG_PLUGIN } from '../../constants';
+import { TestTagSettingsPage, type StringFormatOptions } from '@pageObjects/TestTagSettingsPage';
+import { WordPressRestClient } from '@helpers/wp-api';
+import { TEST_URLS, TEST_USERS, TESTTAG_PLUGIN } from '@tests/constants';
 
 const ATTR  = 'data-testid';
 const LAYER = 'data-testtag-layer';

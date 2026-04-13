@@ -1,6 +1,6 @@
-import { test, expect } from '../../fixtures';
-import { FrontendPage } from '../../pageObjects/FrontendPage';
-import { TEST_URLS } from '../../constants';
+import { test, expect } from '@tests/fixtures';
+import { FrontendPage } from '@pageObjects/FrontendPage';
+import { TEST_URLS } from '@tests/constants';
 
 const screenshotDir = './tests/screenshots';
 

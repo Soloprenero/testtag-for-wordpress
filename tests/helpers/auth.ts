@@ -1,5 +1,5 @@
 import type { Page } from '@playwright/test';
-import { WordPressAuthApiHelper } from './wp-api';
+import { WordPressAuthApiHelper } from '@helpers/wp-api';
 
 /**
  * Authenticates as WordPress admin user and verifies admin session.

@@ -1,6 +1,6 @@
 import { test as setup } from '@playwright/test';
-import { WordPressRestClient } from '../../helpers/wp-api';
-import { TEST_USERS } from '../../constants';
+import { WordPressRestClient } from '@helpers/wp-api';
+import { TEST_USERS } from '@tests/constants';
 
 /**
  * Settings profile: default

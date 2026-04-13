@@ -1,8 +1,8 @@
 import { test, expect } from '@playwright/test';
-import { WordPressAuthPage } from '../../pageObjects/WordPressAuthPage';
-import { TestTagSettingsPage } from '../../pageObjects/TestTagSettingsPage';
-import { FrontendPage } from '../../pageObjects/FrontendPage';
-import { TEST_URLS } from '../../constants';
+import { WordPressAuthPage } from '@pageObjects/WordPressAuthPage';
+import { TestTagSettingsPage } from '@pageObjects/TestTagSettingsPage';
+import { FrontendPage } from '@pageObjects/FrontendPage';
+import { TEST_URLS } from '@tests/constants';
 
 const screenshotDir = './tests/screenshots';
 
