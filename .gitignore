@@ -1,4 +1,5 @@
 node_modules/
+wp-cli.phar
 *.zip
 .history/
 
