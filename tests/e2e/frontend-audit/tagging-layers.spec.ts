@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from '@tests/fixtures';
 import { FrontendPage } from '@pageObjects/FrontendPage';
 import { TEST_URLS } from '@tests/constants';
 
@@ -77,7 +77,7 @@ test.describe('TestTag Plugin - Tagging Layers', () => {
   });
 
   test.describe('Selector-map layer', () => {
-    test('Fixture search form is tagged by the selector-map layer', async ({ page }) => {
+    test('Fixture search form is tagged by the selector-map layer', async ({ page, testTagSettings }) => {
       const frontendPage = new FrontendPage(page);
 
       await test.step('Navigate to fixture page', async () => {
@@ -86,19 +86,20 @@ test.describe('TestTag Plugin - Tagging Layers', () => {
 
       await test.step('Assert the search form is tagged with testid "search-form"', async () => {
         // The default selector-map entry maps `.search-form, form[role="search"]`
-        // to testid "search-form". Use that testid rather than a theme-class selector.
-        const form = page.locator('[data-testid="search-form"]').first();
+        // to testid "search-form". Use getByTestId so the lookup respects the
+        // active testIdAttribute for the current settings profile.
+        const form = page.getByTestId('search-form').first();
         await expect(form).toBeVisible();
       });
 
       await test.step('Assert the search form has data-testtag-layer="selector-map"', async () => {
-        const form = page.locator('[data-testid="search-form"]').first();
+        const form = page.getByTestId('search-form').first();
         await expect(form).toHaveAttribute('data-testtag-layer', 'selector-map');
       });
 
       await test.step('Assert the test attribute value is "search-form"', async () => {
-        const form = page.locator('[data-testid="search-form"]').first();
-        await expect(form).toHaveAttribute('data-testid', 'search-form');
+        const form = page.getByTestId('search-form').first();
+        await expect(form).toHaveAttribute(testTagSettings.attributeKey, 'search-form');
       });
     });
 
@@ -135,7 +136,7 @@ test.describe('TestTag Plugin - Tagging Layers', () => {
       });
     });
 
-    test('Auto-tagged elements carry a test attribute', async ({ page }) => {
+    test('Auto-tagged elements carry a test attribute', async ({ page, testTagSettings }) => {
       const frontendPage = new FrontendPage(page);
 
       await test.step('Navigate to fixture page', async () => {
@@ -150,8 +151,9 @@ test.describe('TestTag Plugin - Tagging Layers', () => {
 
       await test.step('Assert the first auto-tagged element has a test attribute', async () => {
         const firstAuto = page.locator('[data-testtag-layer="auto"]').first();
-        const hasTestAttr = await firstAuto.evaluate(el =>
-          ['data-testid', 'data-cy', 'data-test'].some(a => el.hasAttribute(a))
+        const hasTestAttr = await firstAuto.evaluate(
+          (el, attrKey) => el.hasAttribute(attrKey),
+          testTagSettings.attributeKey,
         );
         expect(hasTestAttr).toBe(true);
       });
@@ -159,7 +161,7 @@ test.describe('TestTag Plugin - Tagging Layers', () => {
   });
 
   test.describe('Dynamic layer (MutationObserver)', () => {
-    test('Element injected after load receives data-testtag-layer="dynamic"', async ({ page }) => {
+    test('Element injected after load receives data-testtag-layer="dynamic"', async ({ page, testTagSettings }) => {
       const frontendPage = new FrontendPage(page);
 
       await test.step('Navigate to fixture page', async () => {
@@ -178,8 +180,9 @@ test.describe('TestTag Plugin - Tagging Layers', () => {
 
       await test.step('Assert the injected element carries a test attribute', async () => {
         const dynEl = page.locator('#testtag-dynamic-fixture[data-testtag-layer="dynamic"]');
-        const hasTestAttr = await dynEl.evaluate(el =>
-          ['data-testid', 'data-cy', 'data-test'].some(a => el.hasAttribute(a))
+        const hasTestAttr = await dynEl.evaluate(
+          (el, attrKey) => el.hasAttribute(attrKey),
+          testTagSettings.attributeKey,
         );
         expect(hasTestAttr).toBe(true);
       });
@@ -210,20 +213,23 @@ test.describe('TestTag Plugin - Tagging Layers', () => {
   });
 
   test.describe('Inline attributes', () => {
-    test('Fixture subtitle element carries hand-authored data-testid', async ({ page }) => {
+    test('Fixture subtitle element carries hand-authored test attribute', async ({ page }) => {
       const frontendPage = new FrontendPage(page);
 
       await test.step('Navigate to fixture page', async () => {
         await frontendPage.open(TEST_URLS.LAYER_FIXTURE_PAGE);
       });
 
-      await test.step('Assert the fixture subtitle is visible with data-testid="fixture-subtitle"', async () => {
-        const subtitle = page.locator('[data-testid="fixture-subtitle"]').first();
+      await test.step('Assert the fixture subtitle is visible via active test attribute', async () => {
+        // getByTestId respects the project's testIdAttribute so this works for
+        // any settings profile (the fixture HTML has all common attribute names
+        // authored directly).
+        const subtitle = page.getByTestId('fixture-subtitle').first();
         await expect(subtitle).toBeVisible();
       });
 
       await test.step('Assert the subtitle text contains "Inline Layer Sample"', async () => {
-        const subtitle = page.locator('[data-testid="fixture-subtitle"]').first();
+        const subtitle = page.getByTestId('fixture-subtitle').first();
         await expect(subtitle).toContainText('Inline Layer Sample');
       });
     });

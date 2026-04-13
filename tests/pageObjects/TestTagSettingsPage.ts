@@ -2,6 +2,15 @@ import type { Locator, Page } from '@playwright/test';
 import { AppPage } from '@pageObjects/AppPage';
 import { TEST_URLS } from '@tests/constants';
 
+export interface StringFormatOptions {
+  /** Slug-word-boundary separator: '-' (default) or '_' */
+  separator?: '-' | '_';
+  /** Comma-separated active token names, e.g. 'type,identifier' */
+  tokenOrder?: string;
+  /** Comma-separated per-gap separators, e.g. '-' or '_' */
+  formatSeps?: string;
+}
+
 export class TestTagSettingsPage extends AppPage {
   protected pageUrl = TEST_URLS.TESTTAG_SETTINGS;
 
@@ -23,7 +32,7 @@ export class TestTagSettingsPage extends AppPage {
   }
 
   async scrollToAttributeConfiguration(): Promise<void> {
-    const attributeKeyLabel = this.page.locator('text=Attribute Key').first();
+    const attributeKeyLabel = this.page.locator('text=Test Tag Format').first();
     await attributeKeyLabel.scrollIntoViewIfNeeded();
     await attributeKeyLabel.waitFor({ state: 'visible', timeout: 3000 });
   }
@@ -49,5 +58,39 @@ export class TestTagSettingsPage extends AppPage {
       await this.saveButton.click();
       await this.page.waitForLoadState('networkidle');
     }
+  }
+
+  /**
+   * Set string-format options on the settings page.
+   * Must be called while the settings page is open; call saveSettings() afterwards.
+   */
+  async setStringFormat(options: StringFormatOptions): Promise<void> {
+    if (options.separator !== undefined) {
+      const separatorSelect = this.page.locator('#testtag-separator');
+      if (await separatorSelect.isVisible({ timeout: 2000 }).catch(() => false)) {
+        await separatorSelect.selectOption(options.separator);
+      }
+    }
+    if (options.tokenOrder !== undefined) {
+      await this.page.evaluate((value: string) => {
+        const el = document.getElementById('testtag-token-order-val') as HTMLInputElement | null;
+        if (el) el.value = value;
+      }, options.tokenOrder);
+    }
+    if (options.formatSeps !== undefined) {
+      await this.page.evaluate((value: string) => {
+        const el = document.getElementById('testtag-format-seps-val') as HTMLInputElement | null;
+        if (el) el.value = value;
+      }, options.formatSeps);
+    }
+  }
+
+  /** Restore default string-format settings and save. */
+  async restoreDefaultStringFormat(): Promise<void> {
+    await this.open();
+    // Empty tokenOrder and formatSeps signals PHP to restore "default mode" where
+    // the global separator governs all token gaps (not an explicit custom format).
+    await this.setStringFormat({ separator: '-', tokenOrder: '', formatSeps: '' });
+    await this.saveSettings();
   }
 }

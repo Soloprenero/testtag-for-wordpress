@@ -17,6 +17,7 @@ const screenshotDir = './tests/screenshots';
  * - Save button produces visible feedback (success notice)
  */
 test.describe('TestTag Plugin - Settings Configuration', () => {
+  test.describe.configure({ mode: 'serial' });
   test.describe('Attribute key options', () => {
     test('data-testid attribute key can be selected and saved', async ({ page }) => {
       const auth = new WordPressAuthPage(page);
