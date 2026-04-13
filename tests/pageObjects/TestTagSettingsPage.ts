@@ -11,6 +11,15 @@ export interface StringFormatOptions {
   formatSeps?: string;
 }
 
+export interface StringFormatOptions {
+  /** Slug-word-boundary separator: '-' (default) or '_' */
+  separator?: '-' | '_';
+  /** Comma-separated active token names, e.g. 'type,identifier' */
+  tokenOrder?: string;
+  /** Comma-separated per-gap separators, e.g. '-' or '_' */
+  formatSeps?: string;
+}
+
 export class TestTagSettingsPage extends AppPage {
   protected pageUrl = TEST_URLS.TESTTAG_SETTINGS;
 
