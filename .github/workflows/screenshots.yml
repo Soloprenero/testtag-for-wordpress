@@ -36,8 +36,15 @@ jobs:
       - name: Install Playwright browsers
         run: npx playwright install chromium --with-deps
 
-      - name: Run screenshot tests
-        run: npm run test:screenshots
+      - name: Run end-to-end tests
+        run: npm run test:screenshots:default
+        env:
+          CI: true
+          USE_DOCKER: true
+          SKIP_WEB_SERVER: true
+      
+      - name: Run custom attribute tests
+        run: npm run test:screenshots:data-cy
         env:
           CI: true
           USE_DOCKER: true
