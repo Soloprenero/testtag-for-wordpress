@@ -23,6 +23,20 @@
     var separator    = (config.separator === '_') ? '_' : '-';
     var tokenOrder = (config.tokenOrder || 'type,identifier').split(',').filter(Boolean);
     var formatSeps = (config.formatSeps || separator).split(',');
+    var namingRules  = config.namingRules || { stripPrefixes: [], stripSegments: [] };
+
+    // ── Pre-compiled regexes for clean() ─────────────────────────
+    // Compiled once at init (separator and namingRules are fixed after boot)
+    // so the mutation-observer hot-path never constructs new RegExp objects.
+    var _cleanSepEsc     = separator.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, '\\$&');
+    var _cleanSegments   = (namingRules.stripSegments || []).map(function (seg) {
+        return seg.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, '\\$&');
+    });
+    var _cleanSegRe      = _cleanSegments.length
+        ? new RegExp('(?:^|' + _cleanSepEsc + ')(' + _cleanSegments.join('|') + ')(?=' + _cleanSepEsc + '|$)', 'g')
+        : null;
+    var _cleanMultiSepRe = new RegExp(_cleanSepEsc + '{2,}', 'g');
+    var _cleanTrimSepRe  = new RegExp('^' + _cleanSepEsc + '+|' + _cleanSepEsc + '+$', 'g');
 
     // ── Dedup (dynamic elements only, scoped to parent) ──────────
     // Counters reset per parent element so sibling containers each get
@@ -59,6 +73,36 @@
             .replace(/[^a-z0-9]+/g, separator)
             .replace(/^[^a-z0-9]+|[^a-z0-9]+$/g, '')
             .slice(0, 50);
+    }
+
+    // Mirrors PHP clean() — strips common framework prefixes and noise segments
+    // from a slugified string so ID-derived tags stay meaningful.
+    // Rules are read from window.TESTTAG.namingRules (sourced from naming-rules.json)
+    // so the list is maintained in one place shared by PHP and JS.
+    function clean(s) {
+        if (!s) return s;
+        var prefixes = namingRules.stripPrefixes || [];
+        // Strip leading framework prefix (first match only).
+        // Prefixes in the JSON are defined with hyphens; translate to the current separator.
+        for (var pi = 0; pi < prefixes.length; pi++) {
+            var pfx = prefixes[pi].replace(/-/g, separator);
+            if (s.indexOf(pfx) === 0) {
+                s = s.slice(pfx.length);
+                break;
+            }
+        }
+        // Strip standalone segment tokens separated by the current separator.
+        if (_cleanSegRe) {
+            s = s.replace(_cleanSegRe, '');
+        }
+        // Collapse repeated separators and trim.
+        s = s.replace(_cleanMultiSepRe, separator);
+        return s.replace(_cleanTrimSepRe, '');
+    }
+
+    // Convenience: slugify then clean an element ID, matching PHP clean(slug($id)).
+    function cleanId(id) {
+        return clean(slug(id));
     }
 
     /**
@@ -282,8 +326,8 @@
             var al = el.getAttribute('aria-label');
             if (al) return formatId('button', slug(al), details);
             if (el.id) {
-                var idSlug = slug(el.id);
-                if (idSlug && !/^\d+$/.test(idSlug) && idSlug.length > 1) return formatId('button', idSlug, details);
+                var cleanedId = cleanId(el.id);
+                if (cleanedId && !/^\d+$/.test(cleanedId) && cleanedId.length > 1) return formatId('button', cleanedId, details);
             }
             var name = el.getAttribute('name');
             if (name) return formatId('button', slug(name), details);
@@ -305,7 +349,10 @@
                 var al = el.getAttribute('aria-label');
                 if (al) return formatId('nav', slug(al), details);
                 if (href === '/')               return formatId('nav', 'home', details);
-                if (href.startsWith('#'))       return formatId('nav', slug(href.slice(1)), details);
+                if (href.startsWith('#')) {
+                    var frag = slug(href.slice(1));
+                    if (frag) return formatId('nav', frag, details);
+                }
                 var frag = hrefPathFragment(href);
                 if (frag) return formatId('nav', frag, details);
                 if (textFallback) return formatId('nav', slug(linkText || href), details);
@@ -335,12 +382,15 @@
             var al = el.getAttribute('aria-label');
             if (al) return formatId('link', slug(al), details);
             if (el.id) {
-                var idSlug = slug(el.id);
-                if (idSlug && !/^\d+$/.test(idSlug) && idSlug.length > 1) return formatId('link', idSlug, details);
+                var cleanedId = cleanId(el.id);
+                if (cleanedId && !/^\d+$/.test(cleanedId) && cleanedId.length > 1) return formatId('link', cleanedId, details);
             }
             var frag = hrefPathFragment(href);
             if (frag) return formatId('link', frag, details);
-            if (href.startsWith('#'))   return formatId('link', slug(href.slice(1)), details);
+            if (href.startsWith('#')) {
+                var frag = slug(href.slice(1));
+                if (frag) return formatId('link', frag, details);
+            }
             if (textFallback && linkText) return formatId('link', slug(linkText), details);
             return null;
         }
@@ -350,8 +400,8 @@
             var al = el.getAttribute('aria-label');
             if (al) return formatId(tagName, slug(al), details);
             if (el.id) {
-                var clean = slug(el.id);
-                if (clean && !/^\d+$/.test(clean) && clean.length > 1) return formatId(tagName, clean, details);
+                var cleanedId = cleanId(el.id);
+                if (cleanedId && !/^\d+$/.test(cleanedId) && cleanedId.length > 1) return formatId(tagName, cleanedId, details);
             }
             if (textFallback) {
                 var h = firstHeadingText(el);
@@ -365,8 +415,8 @@
             var al = el.getAttribute('aria-label');
             if (al) return formatId('heading', slug(al), details);
             if (el.id) {
-                var clean = slug(el.id);
-                if (clean && !/^\d+$/.test(clean) && clean.length > 1) return formatId('heading', clean, details);
+                var cleanedId = cleanId(el.id);
+                if (cleanedId && !/^\d+$/.test(cleanedId) && cleanedId.length > 1) return formatId('heading', cleanedId, details);
             }
             if (textFallback) {
                 var text = el.textContent.trim();
@@ -392,8 +442,8 @@
             var al = el.getAttribute('aria-label');
             if (al) return formatId('form', slug(al), details);
             if (el.id) {
-                var clean = slug(el.id);
-                if (clean && !/^\d+$/.test(clean) && clean.length > 1) return formatId('form', clean, details);
+                var cleanedId = cleanId(el.id);
+                if (cleanedId && !/^\d+$/.test(cleanedId) && cleanedId.length > 1) return formatId('form', cleanedId, details);
             }
             if (textFallback) {
                 var legend = el.querySelector('legend') || el.querySelector('h1,h2,h3,h4,h5,h6');
@@ -411,28 +461,227 @@
             return alt ? formatId('img', slug(alt), details) : null;
         }
 
-        // Custom select options (li inside a select-like list)
+        // Navigation
+        if (tagName === 'nav') {
+            var al = el.getAttribute('aria-label');
+            if (al) return formatId('nav', slug(al), details);
+            if (el.id) {
+                var cleanedId = cleanId(el.id);
+                if (cleanedId && !/^\d+$/.test(cleanedId) && cleanedId.length > 1) return formatId('nav', cleanedId, details);
+            }
+            if (textFallback) {
+                var h = firstHeadingText(el);
+                if (h) return formatId('nav', slug(h), details);
+            }
+            return null;
+        }
+
+        // Lists (ul / ol)
+        if (tagName === 'ul' || tagName === 'ol') {
+            var al = el.getAttribute('aria-label');
+            if (al) return formatId('list', slug(al), details);
+            if (el.id) {
+                var cleanedId = cleanId(el.id);
+                if (cleanedId && !/^\d+$/.test(cleanedId) && cleanedId.length > 1) return formatId('list', cleanedId, details);
+            }
+            if (textFallback) {
+                var h = firstHeadingText(el);
+                if (h) return formatId('list', slug(h), details);
+            }
+            return null;
+        }
+
+        // List items
         if (tagName === 'li') {
-            var relVal = el.getAttribute('rel');
-            var optValue = relVal || (textFallback ? el.textContent.trim() : '');
+            var relVal     = el.getAttribute('rel');
+            var parentEl   = el.parentElement;
+            var parentCls  = parentEl ? (parentEl.className || '') : '';
+            var isSelectList = parentEl && (parentCls.indexOf('select') !== -1 || parentCls.indexOf('options') !== -1);
+
+            if (isSelectList || relVal) {
+                // Custom select option
+                var optValue = relVal || (textFallback ? el.textContent.trim() : '');
+                if (!optValue) return null;
+                var optSlug = slug(optValue);
+                if (!optSlug) return null;
+                var selectName = null;
+                var walker = el.parentElement;
+                while (walker) {
+                    if (walker.hasAttribute('data-name')) {
+                        selectName = walker.getAttribute('data-name');
+                        break;
+                    }
+                    var sel = walker.querySelector(':scope > select[name]');
+                    if (sel) { selectName = sel.getAttribute('name'); break; }
+                    walker = walker.parentElement;
+                }
+                return selectName
+                    ? formatId('option', slug(selectName) + separator + optSlug, details)
+                    : formatId('option', optSlug, details);
+            }
+
+            // Standard list item
+            var al = el.getAttribute('aria-label');
+            if (al) return formatId('item', slug(al), details);
+            if (el.id) {
+                var cleanedId = cleanId(el.id);
+                if (cleanedId && !/^\d+$/.test(cleanedId) && cleanedId.length > 1) return formatId('item', cleanedId, details);
+            }
+            if (textFallback) {
+                var text = el.textContent.trim().slice(0, 40);
+                if (text) return formatId('item', slug(text), details);
+            }
+            return null;
+        }
+
+        // Native select options
+        if (tagName === 'option') {
+            var value    = el.getAttribute('value');
+            var optValue = (value !== null && value !== '') ? value : (textFallback ? el.textContent.trim() : '');
             if (!optValue) return null;
             var optSlug = slug(optValue);
             if (!optSlug) return null;
-            // Walk up to find a data-name wrapper or sibling <select>
-            var selectName = null;
-            var parent = el.parentElement;
-            while (parent) {
-                if (parent.hasAttribute('data-name')) {
-                    selectName = parent.getAttribute('data-name');
-                    break;
-                }
-                var sel = parent.querySelector(':scope > select[name]');
-                if (sel) { selectName = sel.getAttribute('name'); break; }
-                parent = parent.parentElement;
+            // Find the parent <select>
+            var selectEl = el.parentElement;
+            while (selectEl && selectEl.tagName.toLowerCase() !== 'select') {
+                selectEl = selectEl.parentElement;
             }
+            var selectName = selectEl ? (selectEl.getAttribute('name') || selectEl.id || '') : '';
             return selectName
                 ? formatId('option', slug(selectName) + separator + optSlug, details)
                 : formatId('option', optSlug, details);
+        }
+
+        // Tables
+        if (tagName === 'table') {
+            var al = el.getAttribute('aria-label');
+            if (al) return formatId('table', slug(al), details);
+            if (el.id) {
+                var cleanedId = cleanId(el.id);
+                if (cleanedId && !/^\d+$/.test(cleanedId) && cleanedId.length > 1) return formatId('table', cleanedId, details);
+            }
+            var caption = el.querySelector('caption');
+            if (caption) {
+                var text = caption.textContent.trim();
+                if (text) return formatId('table', slug(text), details);
+            }
+            if (textFallback) {
+                var h = firstHeadingText(el);
+                if (h) return formatId('table', slug(h), details);
+            }
+            return null;
+        }
+
+        // Table rows
+        if (tagName === 'tr') {
+            var al = el.getAttribute('aria-label');
+            if (al) return formatId('row', slug(al), details);
+            var n = 1;
+            var prev = el.previousElementSibling;
+            while (prev) {
+                if (prev.tagName.toLowerCase() === 'tr') n++;
+                prev = prev.previousElementSibling;
+            }
+            return formatId('row', String(n), details);
+        }
+
+        // Table header cells
+        if (tagName === 'th') {
+            var al = el.getAttribute('aria-label');
+            if (al) return formatId('col', slug(al), details);
+            if (el.id) {
+                var cleanedId = cleanId(el.id);
+                if (cleanedId && !/^\d+$/.test(cleanedId) && cleanedId.length > 1) return formatId('col', cleanedId, details);
+            }
+            if (textFallback) {
+                var text = el.textContent.trim();
+                if (text) return formatId('col', slug(text), details);
+            }
+            return null;
+        }
+
+        // Table data cells
+        if (tagName === 'td') {
+            var al = el.getAttribute('aria-label');
+            if (al) return formatId('cell', slug(al), details);
+            var headers = el.getAttribute('headers');
+            if (headers) return formatId('cell', slug(headers), details);
+            var col = 1;
+            var prev = el.previousElementSibling;
+            while (prev) {
+                var prevTag = prev.tagName.toLowerCase();
+                if (prevTag === 'td' || prevTag === 'th') col++;
+                prev = prev.previousElementSibling;
+            }
+            return formatId('cell', String(col), details);
+        }
+
+        // Fieldsets
+        if (tagName === 'fieldset') {
+            var al = el.getAttribute('aria-label');
+            if (al) return formatId('fieldset', slug(al), details);
+            if (el.id) {
+                var cleanedId = cleanId(el.id);
+                if (cleanedId && !/^\d+$/.test(cleanedId) && cleanedId.length > 1) return formatId('fieldset', cleanedId, details);
+            }
+            if (textFallback) {
+                var legend = el.querySelector('legend');
+                if (legend) {
+                    var text = legend.textContent.trim();
+                    if (text) return formatId('fieldset', slug(text), details);
+                }
+            }
+            return null;
+        }
+
+        // Details / Summary
+        if (tagName === 'details') {
+            var al = el.getAttribute('aria-label');
+            if (al) return formatId('details', slug(al), details);
+            if (el.id) {
+                var cleanedId = cleanId(el.id);
+                if (cleanedId && !/^\d+$/.test(cleanedId) && cleanedId.length > 1) return formatId('details', cleanedId, details);
+            }
+            if (textFallback) {
+                var summary = el.querySelector('summary');
+                if (summary) {
+                    var text = summary.textContent.trim();
+                    if (text) return formatId('details', slug(text), details);
+                }
+            }
+            return null;
+        }
+
+        if (tagName === 'summary') {
+            var al = el.getAttribute('aria-label');
+            if (al) return formatId('summary', slug(al), details);
+            if (el.id) {
+                var cleanedId = cleanId(el.id);
+                if (cleanedId && !/^\d+$/.test(cleanedId) && cleanedId.length > 1) return formatId('summary', cleanedId, details);
+            }
+            if (textFallback) {
+                var text = el.textContent.trim();
+                if (text) return formatId('summary', slug(text), details);
+            }
+            return null;
+        }
+
+        // Figures
+        if (tagName === 'figure') {
+            var al = el.getAttribute('aria-label');
+            if (al) return formatId('figure', slug(al), details);
+            if (el.id) {
+                var cleanedId = cleanId(el.id);
+                if (cleanedId && !/^\d+$/.test(cleanedId) && cleanedId.length > 1) return formatId('figure', cleanedId, details);
+            }
+            if (textFallback) {
+                var figcaption = el.querySelector('figcaption');
+                if (figcaption) {
+                    var text = figcaption.textContent.trim();
+                    if (text) return formatId('figure', slug(text), details);
+                }
+            }
+            return null;
         }
 
         // Divs / spans — stable-first: aria-label → id → Elementor/Gutenberg attrs → role
@@ -446,8 +695,8 @@
 
             // 2. Stable id (non-numeric)
             if (el.id) {
-                var clean = slug(el.id);
-                if (clean && !/^\d+$/.test(clean) && clean.length > 1) return formatId(prefix, clean, details);
+                var cleanedId = cleanId(el.id);
+                if (cleanedId && !/^\d+$/.test(cleanedId) && cleanedId.length > 1) return formatId(prefix, cleanedId, details);
             }
 
             // 3. Elementor section/container
@@ -464,7 +713,7 @@
             var eWidget = el.getAttribute('data-widget_type');
             if (eWidget) {
                 var wType = eWidget.replace(/\.default$/, '').replace(/^wp-widget-/, '');
-                var cleaned = slug(wType);
+                var cleaned = clean(slug(wType));
                 if (cleaned) return formatId(prefix, cleaned, details);
                 if (textFallback) {
                     var h = firstHeadingText(el);
@@ -477,7 +726,7 @@
             var classes = el.className ? el.className.split(/\s+/) : [];
             for (var i = 0; i < classes.length; i++) {
                 if (classes[i].indexOf('wp-block-') === 0) {
-                    var blockSlug = slug(classes[i].slice('wp-block-'.length));
+                    var blockSlug = clean(slug(classes[i].slice('wp-block-'.length)));
                     if (blockSlug) return formatId(prefix, blockSlug, details);
                     if (textFallback) {
                         var h = firstHeadingText(el);
@@ -501,16 +750,19 @@
     // ── Selector target list (mirrors PHP auto_generate targets) ──
     var AUTO_SELECTOR = [
         'a', 'button',
-        'input', 'textarea', 'select', 'form',
-        'section', 'article', 'aside', 'main', 'header', 'footer',
+        'input', 'textarea', 'select', 'option', 'form',
+        'section', 'article', 'aside', 'main', 'header', 'footer', 'nav',
         'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
         'p',
         'img',
+        'ul', 'ol', 'li',
+        'table', 'tr', 'th', 'td',
+        'fieldset',
+        'details', 'summary',
+        'figure',
         '[id]', '[role]',
         '[data-element_type]', '[data-widget_type]',
         '[class*="wp-block-"]',
-        'ul[class*="select"] li', 'ul[class*="options"] li',
-        'li[rel]',
     ].join(', ');
 
     // ── Process a newly added subtree ─────────────────────────────
