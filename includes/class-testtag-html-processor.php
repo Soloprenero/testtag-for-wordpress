@@ -1132,21 +1132,46 @@ class TestTag_HTML_Processor {
         return substr( $str, 0, 50 );
     }
 
-    private static array $strip_prefixes = [
-        'core-', 'woocommerce-', 'wc-', 'wpcf7-f', 'gform-', 'gfield-', 'wp-', 'wordpress-',
-    ];
+    private static array $strip_prefixes = [];
+    private static array $strip_segments = [];
+    private static bool  $naming_rules_loaded = false;
 
-    private static array $strip_segments = [
-        'elementor', 'woocommerce', 'wc', 'core',
-        'divi', 'avada', 'betheme', 'flatsome', 'astra', 'generatepress',
-        'oceanwp', 'hello', 'twentytwentyfour', 'twentytwentythree',
-        'twentytwentytwo', 'twentytwentyone', 'twentytwenty',
-        'widget', 'module', 'block', 'section', 'container', 'wrapper',
-        'inner', 'outer', 'holder',
-    ];
+    /**
+     * Loads strip_prefixes and strip_segments from the canonical naming-rules.json
+     * so the rule definitions are maintained in a single place shared with JS.
+     */
+    private static function load_naming_rules(): void {
+        if ( self::$naming_rules_loaded ) return; // already loaded
+        self::$naming_rules_loaded = true;
+        $file  = TESTTAG_PLUGIN_DIR . 'naming-rules.json';
+        if ( ! file_exists( $file ) ) return;
+        $json  = file_get_contents( $file ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents
+        $rules = [];
+        if ( $json ) {
+            $decoded = json_decode( $json, true );
+            if ( is_array( $decoded ) ) {
+                $rules = $decoded;
+            }
+        }
+        self::$strip_prefixes = $rules['stripPrefixes'] ?? [];
+        self::$strip_segments = $rules['stripSegments'] ?? [];
+    }
+
+    /**
+     * Returns the naming rules from the canonical naming-rules.json for use
+     * by the dynamic injector JS via window.TESTTAG.namingRules.
+     */
+    public static function get_naming_rules(): array {
+        self::load_naming_rules();
+        return [
+            'stripPrefixes' => self::$strip_prefixes,
+            'stripSegments' => self::$strip_segments,
+        ];
+    }
 
     private static function clean( string $s ): string {
         if ( ! $s ) return $s;
+        self::load_naming_rules();
         $sep   = self::$separator;
         $sep_q = preg_quote( $sep, '/' );
         // Strip leading framework prefix (first match only).

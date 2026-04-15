@@ -193,4 +193,44 @@ test.describe('PHP ↔ JS tag-generation parity', () => {
     );
     expect(jsTag).toBe(phpTag);
   });
+
+  // ── Naming-rules: prefix and segment stripping ─────────────────
+
+  test('naming-rules: woocommerce- prefix is stripped from button id', async ({ page, testTagSettings }) => {
+    const attr = testTagSettings.attributeKey;
+    // PHP server-side tag is the ground truth: the auto layer strips the prefix
+    // using naming-rules.json so the generated tag does NOT include "woocommerce".
+    const phpTag = await page
+      .locator('#parity-fixtures > button#woocommerce-add-to-cart')
+      .getAttribute(attr);
+    expect(phpTag).not.toBeNull();
+    expect(phpTag).not.toContain('woocommerce');
+
+    // JS dynamic injector must strip the same prefix from the ID.
+    const jsTag = await injectAndGetTag(
+      page,
+      '<button id="woocommerce-add-to-cart" type="button">Add to Cart</button>',
+      attr,
+    );
+    expect(jsTag).toBe(phpTag);
+  });
+
+  test('naming-rules: elementor segment is stripped from heading id', async ({ page, testTagSettings }) => {
+    const attr = testTagSettings.attributeKey;
+    // PHP server-side tag: the "elementor" mid-string segment is removed so the
+    // tag reflects only the meaningful parts of the ID.
+    const phpTag = await page
+      .locator('#parity-fixtures > h2#product-elementor-title')
+      .getAttribute(attr);
+    expect(phpTag).not.toBeNull();
+    expect(phpTag).not.toContain('elementor');
+
+    // JS dynamic injector must produce the identical tag.
+    const jsTag = await injectAndGetTag(
+      page,
+      '<h2 id="product-elementor-title">Product Details</h2>',
+      attr,
+    );
+    expect(jsTag).toBe(phpTag);
+  });
 });

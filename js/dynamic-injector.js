@@ -23,6 +23,20 @@
     var separator    = (config.separator === '_') ? '_' : '-';
     var tokenOrder = (config.tokenOrder || 'type,identifier').split(',').filter(Boolean);
     var formatSeps = (config.formatSeps || separator).split(',');
+    var namingRules  = config.namingRules || { stripPrefixes: [], stripSegments: [] };
+
+    // ── Pre-compiled regexes for clean() ─────────────────────────
+    // Compiled once at init (separator and namingRules are fixed after boot)
+    // so the mutation-observer hot-path never constructs new RegExp objects.
+    var _cleanSepEsc     = separator.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, '\\$&');
+    var _cleanSegments   = (namingRules.stripSegments || []).map(function (seg) {
+        return seg.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, '\\$&');
+    });
+    var _cleanSegRe      = _cleanSegments.length
+        ? new RegExp('(?:^|' + _cleanSepEsc + ')(' + _cleanSegments.join('|') + ')(?=' + _cleanSepEsc + '|$)', 'g')
+        : null;
+    var _cleanMultiSepRe = new RegExp(_cleanSepEsc + '{2,}', 'g');
+    var _cleanTrimSepRe  = new RegExp('^' + _cleanSepEsc + '+|' + _cleanSepEsc + '+$', 'g');
 
     // ── Dedup (dynamic elements only, scoped to parent) ──────────
     // Counters reset per parent element so sibling containers each get
@@ -63,39 +77,27 @@
 
     // Mirrors PHP clean() — strips common framework prefixes and noise segments
     // from a slugified string so ID-derived tags stay meaningful.
-    var CLEAN_PREFIXES = [
-        'core' + separator, 'woocommerce' + separator, 'wc' + separator,
-        'wpcf7' + separator + 'f', 'gform' + separator, 'gfield' + separator,
-        'wp' + separator, 'wordpress' + separator
-    ];
-    var CLEAN_SEGMENTS = [
-        'elementor', 'woocommerce', 'wc', 'core',
-        'divi', 'avada', 'betheme', 'flatsome', 'astra', 'generatepress',
-        'oceanwp', 'hello', 'twentytwentyfour', 'twentytwentythree',
-        'twentytwentytwo', 'twentytwentyone', 'twentytwenty',
-        'widget', 'module', 'block', 'section', 'container', 'wrapper',
-        'inner', 'outer', 'holder'
-    ];
-    var sepEsc = separator === '-' ? '\\-' : separator;
-    var segRe  = new RegExp(
-        '(?:^|' + sepEsc + ')(' + CLEAN_SEGMENTS.join('|') + ')(?=' + sepEsc + '|$)',
-        'g'
-    );
-    var multiSepRe = new RegExp(sepEsc + '{2,}', 'g');
-    var trimSepRe  = new RegExp('^' + sepEsc + '+|' + sepEsc + '+$', 'g');
-
+    // Rules are read from window.TESTTAG.namingRules (sourced from naming-rules.json)
+    // so the list is maintained in one place shared by PHP and JS.
     function clean(s) {
         if (!s) return s;
-        for (var i = 0; i < CLEAN_PREFIXES.length; i++) {
-            if (s.indexOf(CLEAN_PREFIXES[i]) === 0) {
-                s = s.slice(CLEAN_PREFIXES[i].length);
+        var prefixes = namingRules.stripPrefixes || [];
+        // Strip leading framework prefix (first match only).
+        // Prefixes in the JSON are defined with hyphens; translate to the current separator.
+        for (var pi = 0; pi < prefixes.length; pi++) {
+            var pfx = prefixes[pi].replace(/-/g, separator);
+            if (s.indexOf(pfx) === 0) {
+                s = s.slice(pfx.length);
                 break;
             }
         }
-        s = s.replace(segRe, '');
-        s = s.replace(multiSepRe, separator);
-        s = s.replace(trimSepRe, '');
-        return s;
+        // Strip standalone segment tokens separated by the current separator.
+        if (_cleanSegRe) {
+            s = s.replace(_cleanSegRe, '');
+        }
+        // Collapse repeated separators and trim.
+        s = s.replace(_cleanMultiSepRe, separator);
+        return s.replace(_cleanTrimSepRe, '');
     }
 
     // Convenience: slugify then clean an element ID, matching PHP clean(slug($id)).
@@ -711,7 +713,7 @@
             var eWidget = el.getAttribute('data-widget_type');
             if (eWidget) {
                 var wType = eWidget.replace(/\.default$/, '').replace(/^wp-widget-/, '');
-                var cleaned = slug(wType);
+                var cleaned = clean(slug(wType));
                 if (cleaned) return formatId(prefix, cleaned, details);
                 if (textFallback) {
                     var h = firstHeadingText(el);
@@ -724,7 +726,7 @@
             var classes = el.className ? el.className.split(/\s+/) : [];
             for (var i = 0; i < classes.length; i++) {
                 if (classes[i].indexOf('wp-block-') === 0) {
-                    var blockSlug = slug(classes[i].slice('wp-block-'.length));
+                    var blockSlug = clean(slug(classes[i].slice('wp-block-'.length)));
                     if (blockSlug) return formatId(prefix, blockSlug, details);
                     if (textFallback) {
                         var h = firstHeadingText(el);

@@ -26,6 +26,7 @@ class TestTag_Layer_Marker {
             'separator'    => TestTag_Settings::get_separator(),
             'tokenOrder'   => implode( ',', TestTag_Settings::get_token_order() ),
             'formatSeps'   => implode( ',', TestTag_Settings::get_format_seps() ),
+            'namingRules'  => TestTag_HTML_Processor::get_naming_rules(),
             'debug'        => defined( 'WP_DEBUG' ) && WP_DEBUG,
         ] );
 
