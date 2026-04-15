@@ -10,7 +10,7 @@
 - Playwright, Cypress, and Selenium communities for testability conventions that informed attribute defaults
 
 ## Contribution Guidelines
-- Open issues and pull requests on GitHub: https://github.com/garyyoungiii/testtag-for-wordpress
+- Open issues and pull requests on GitHub: https://github.com/Soloprenero/testtag-for-wordpress
 - For significant changes, include:
   - Reproduction steps
   - Expected and actual behavior
