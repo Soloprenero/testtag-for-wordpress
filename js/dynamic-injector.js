@@ -71,6 +71,7 @@
         if (!s) return s;
         var prefixes = namingRules.stripPrefixes || [];
         var segments = namingRules.stripSegments || [];
+        var sepEsc   = separator.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, '\\$&');
         // Strip leading framework prefix (first match only).
         // Prefixes in the JSON are defined with hyphens; translate to the current separator.
         for (var pi = 0; pi < prefixes.length; pi++) {
@@ -82,16 +83,13 @@
         }
         // Strip standalone segment tokens separated by the current separator.
         if (segments.length) {
-            var sepEsc = separator.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, '\\$&');
-            var segRe  = new RegExp('(?:^|' + sepEsc + ')(' + segments.join('|') + ')(?=' + sepEsc + '|$)', 'g');
+            var segRe = new RegExp('(?:^|' + sepEsc + ')(' + segments.join('|') + ')(?=' + sepEsc + '|$)', 'g');
             s = s.replace(segRe, '');
         }
         // Collapse repeated separators and trim.
-        var sepEsc2 = separator.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, '\\$&');
-        s = s.replace(new RegExp(sepEsc2 + '{2,}', 'g'), separator);
+        s = s.replace(new RegExp(sepEsc + '{2,}', 'g'), separator);
         // Trim leading/trailing separator.
-        var trimRe = new RegExp('^' + sepEsc2 + '+|' + sepEsc2 + '+$', 'g');
-        return s.replace(trimRe, '');
+        return s.replace(new RegExp('^' + sepEsc + '+|' + sepEsc + '+$', 'g'), '');
     }
 
     /** Slugifies an id attribute value then strips framework noise via clean(). */

@@ -922,6 +922,7 @@ class TestTag_HTML_Processor {
     private static function load_naming_rules(): void {
         if ( self::$strip_prefixes !== [] ) return; // already loaded
         $file  = TESTTAG_PLUGIN_DIR . 'naming-rules.json';
+        if ( ! file_exists( $file ) ) return;
         $json  = file_get_contents( $file ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents
         $rules = $json ? json_decode( $json, true ) : [];
         self::$strip_prefixes = $rules['stripPrefixes'] ?? [];
