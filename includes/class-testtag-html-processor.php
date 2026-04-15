@@ -23,6 +23,23 @@ class TestTag_HTML_Processor {
     private static array  $token_order = [ 'type', 'identifier' ];
     private static array  $format_seps = [ '-' ];
 
+    /**
+     * Within-request (and cross-request in PHP-FPM) memoization caches.
+     *
+     * slug_cache  — keyed by separator + "\0" + raw string.
+     * clean_cache — keyed by separator + "\0" + raw string.
+     * xpath_cache — keyed by raw CSS selector. Not invalidated by settings
+     *               changes (pure function), but reset when it reaches
+     *               MAX_CACHE_ENTRIES to cap memory usage.
+     *
+     * All caches are capped at MAX_CACHE_ENTRIES to prevent unbounded memory
+     * growth in long-running PHP-FPM workers.
+     */
+    private static array $slug_cache  = [];
+    private static array $clean_cache = [];
+    private static array $xpath_cache = [];
+    private const MAX_CACHE_ENTRIES   = 512;
+
     public static function init(): void {
         add_action( 'template_redirect', [ __CLASS__, 'start_buffer' ] );
         add_action( 'current_screen',    [ __CLASS__, 'maybe_start_admin_buffer' ] );
@@ -83,10 +100,18 @@ class TestTag_HTML_Processor {
 
         if ( is_admin() && ! self::is_admin_html_request() ) return;
 
+        $prev_separator      = self::$separator;
         self::$attr          = TestTag_Settings::get_attribute_key();
         self::$separator     = TestTag_Settings::get_separator();
         self::$token_order = TestTag_Settings::get_token_order();
         self::$format_seps = TestTag_Settings::get_format_seps();
+
+        // Flush separator-dependent caches when the configured separator changes.
+        if ( self::$separator !== $prev_separator ) {
+            self::$slug_cache  = [];
+            self::$clean_cache = [];
+        }
+
         self::$buffer_started = true;
         ob_start( [ __CLASS__, 'process_html' ] );
     }
@@ -218,8 +243,25 @@ class TestTag_HTML_Processor {
      * Minimal CSS→XPath translator covering the subset used in selector maps.
      * Handles: tag, .class, #id, [attr], [attr=val], [attr$=val], descendant ( ),
      * child (>), multiple selectors (,), :not(), common pseudo-classes stripped.
+     *
+     * Results are memoized in self::$xpath_cache (pure function; never invalidated).
      */
     private static function css_to_xpath( string $css ): ?string {
+        if ( isset( self::$xpath_cache[ $css ] ) ) {
+            // '' is used as the sentinel for a cached null (uncompilable selector).
+            return self::$xpath_cache[ $css ] !== '' ? self::$xpath_cache[ $css ] : null;
+        }
+
+        $result = self::css_to_xpath_compute( $css );
+
+        if ( count( self::$xpath_cache ) >= self::MAX_CACHE_ENTRIES ) {
+            self::$xpath_cache = [];
+        }
+        // Store '' instead of null so isset() correctly detects cached entries.
+        return ( self::$xpath_cache[ $css ] = $result ?? '' ) !== '' ? $result : null;
+    }
+
+    private static function css_to_xpath_compute( string $css ): ?string {
         // Multiple selectors — translate each and union them.
         if ( str_contains( $css, ',' ) ) {
             $parts = array_map( 'trim', explode( ',', $css ) );
@@ -331,27 +373,58 @@ class TestTag_HTML_Processor {
 
         $attr          = self::$attr;
         $text_fallback = TestTag_Settings::get_text_fallback();
-        $nodes         = $xpath->query( $targets_xp );
+
+        // Pre-build a label-for map: element-id → label text.
+        // This replaces per-element XPath queries in get_label_text() with a
+        // single up-front pass, reducing XPath overhead from O(n) to O(1).
+        $label_map = self::build_label_map( $xpath );
+
+        $nodes = $xpath->query( $targets_xp );
         if ( ! $nodes ) return;
 
         foreach ( $nodes as $node ) {
             if ( ! ( $node instanceof DOMElement ) ) continue;
             if ( $node->hasAttribute( $attr ) ) continue;
-            $value = self::auto_id( $node, $xpath, $text_fallback );
+            $value = self::auto_id( $node, $xpath, $text_fallback, $label_map );
             if ( ! $value ) continue;
             $node->setAttribute( $attr, $value );
             $node->setAttribute( self::$layer_key, 'auto' );
         }
     }
 
-    private static function auto_id( DOMElement $el, DOMXPath $xpath, bool $text_fallback = true ): ?string {
+    /**
+     * Builds a map from element IDs to associated label text.
+     * Scans all <label for="..."> elements once so get_label_text() can do a
+     * simple array lookup instead of running a per-element XPath query.
+     *
+     * @param DOMXPath $xpath
+     * @return array<string,string>  id → label text
+     */
+    private static function build_label_map( DOMXPath $xpath ): array {
+        $map    = [];
+        $labels = $xpath->query( '//label[@for]' );
+        if ( ! $labels ) return $map;
+        foreach ( $labels as $label ) {
+            if ( ! ( $label instanceof DOMElement ) ) continue;
+            $for = $label->getAttribute( 'for' );
+            // Store only the first matching label in DOM order (including empty
+            // text) so lookup behaviour is identical to the previous per-element
+            // XPath query which returned the first label found.
+            if ( $for && ! isset( $map[ $for ] ) ) {
+                $map[ $for ] = trim( $label->textContent );
+            }
+        }
+        return $map;
+    }
+
+    private static function auto_id( DOMElement $el, DOMXPath $xpath, bool $text_fallback = true, array $label_map = [] ): ?string {
         $tag = strtolower( $el->tagName );
         $tv  = self::element_token_values( $el, $xpath );
 
         // ── Form controls ─────────────────────────────────────────
         if ( in_array( $tag, [ 'input', 'textarea', 'select' ], true ) ) {
             $type  = strtolower( $el->getAttribute( 'type' ) ?: $tag );
-            $label = self::get_label_text( $el, $xpath );
+            $label = self::get_label_text( $el, $xpath, $label_map );
             $hint  = $label
                 ?: $el->getAttribute( 'name' )
                 ?: $el->getAttribute( 'placeholder' )
@@ -892,9 +965,25 @@ class TestTag_HTML_Processor {
         return 'concat(' . implode( ',', $concat ) . ')';
     }
 
-    private static function get_label_text( DOMElement $el, DOMXPath $xpath ): string {
+    /**
+     * Returns the text of the label associated with a form control.
+     *
+     * Prefers the pre-built `$label_map` (id → label text) built by
+     * build_label_map() to avoid repeated per-element XPath queries.
+     * Falls back to aria-label / aria-labelledby for unlabelled controls.
+     *
+     * @param DOMElement       $el
+     * @param DOMXPath         $xpath
+     * @param array<string,string> $label_map  id → label text (from build_label_map)
+     * @return string
+     */
+    private static function get_label_text( DOMElement $el, DOMXPath $xpath, array $label_map = [] ): string {
         $id = $el->getAttribute( 'id' );
         if ( $id ) {
+            if ( isset( $label_map[ $id ] ) ) {
+                return $label_map[ $id ];
+            }
+            // Fallback for callers that don't supply the pre-built map.
             $labels = $xpath->query( '//label[@for=' . self::xpath_quote( $id ) . ']' );
             if ( $labels && $labels->length > 0 ) {
                 return trim( $labels->item( 0 )->textContent );
@@ -1170,11 +1259,18 @@ class TestTag_HTML_Processor {
 
     private static function slug( string $str ): string {
         $sep = self::$separator;
-        $str = strtolower( $str );
-        $str = preg_replace( '/<[^>]+>/', '', $str );          // strip HTML tags
-        $str = preg_replace( '/[^a-z0-9]+/', $sep, $str );     // non-alphanumeric → separator
-        $str = trim( $str, $sep );
-        return substr( $str, 0, 50 );
+        $key = $sep . "\0" . $str;
+        if ( isset( self::$slug_cache[ $key ] ) ) {
+            return self::$slug_cache[ $key ];
+        }
+        if ( count( self::$slug_cache ) >= self::MAX_CACHE_ENTRIES ) {
+            self::$slug_cache = [];
+        }
+        $s = strtolower( $str );
+        $s = preg_replace( '/<[^>]+>/', '', $s );          // strip HTML tags
+        $s = preg_replace( '/[^a-z0-9]+/', $sep, $s );     // non-alphanumeric → separator
+        $s = trim( $s, $sep );
+        return self::$slug_cache[ $key ] = substr( $s, 0, 50 );
     }
 
     private static array $strip_prefixes = [];
@@ -1217,22 +1313,30 @@ class TestTag_HTML_Processor {
     private static function clean( string $s ): string {
         if ( ! $s ) return $s;
         self::load_naming_rules();
-        $sep   = self::$separator;
+        $sep = self::$separator;
+        $key = $sep . "\0" . $s;
+        if ( isset( self::$clean_cache[ $key ] ) ) {
+            return self::$clean_cache[ $key ];
+        }
+        if ( count( self::$clean_cache ) >= self::MAX_CACHE_ENTRIES ) {
+            self::$clean_cache = [];
+        }
         $sep_q = preg_quote( $sep, '/' );
+        $out   = $s;
         // Strip leading framework prefix (first match only).
         // Prefixes are defined with hyphens; translate to the current separator.
         foreach ( self::$strip_prefixes as $prefix ) {
             $prefix_sep = str_replace( '-', $sep, $prefix );
-            if ( str_starts_with( $s, $prefix_sep ) ) {
-                $s = substr( $s, strlen( $prefix_sep ) );
+            if ( str_starts_with( $out, $prefix_sep ) ) {
+                $out = substr( $out, strlen( $prefix_sep ) );
                 break;
             }
         }
         // Strip standalone segment tokens separated by the current separator.
         $segments_re = '/(?:^|' . $sep_q . ')(' . implode( '|', self::$strip_segments ) . ')(?=' . $sep_q . '|$)/';
-        $s = preg_replace( $segments_re, '', $s );
+        $out = preg_replace( $segments_re, '', $out );
         // Collapse repeated separators and trim.
-        $s = preg_replace( '/' . $sep_q . '{2,}/', $sep, $s );
-        return trim( $s, $sep );
+        $out = preg_replace( '/' . $sep_q . '{2,}/', $sep, $out );
+        return self::$clean_cache[ $key ] = trim( $out, $sep );
     }
 }
