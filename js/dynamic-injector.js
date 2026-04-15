@@ -61,6 +61,48 @@
             .slice(0, 50);
     }
 
+    // Mirrors PHP clean() — strips common framework prefixes and noise segments
+    // from a slugified string so ID-derived tags stay meaningful.
+    var CLEAN_PREFIXES = [
+        'core' + separator, 'woocommerce' + separator, 'wc' + separator,
+        'wpcf7' + separator + 'f', 'gform' + separator, 'gfield' + separator,
+        'wp' + separator, 'wordpress' + separator
+    ];
+    var CLEAN_SEGMENTS = [
+        'elementor', 'woocommerce', 'wc', 'core',
+        'divi', 'avada', 'betheme', 'flatsome', 'astra', 'generatepress',
+        'oceanwp', 'hello', 'twentytwentyfour', 'twentytwentythree',
+        'twentytwentytwo', 'twentytwentyone', 'twentytwenty',
+        'widget', 'module', 'block', 'section', 'container', 'wrapper',
+        'inner', 'outer', 'holder'
+    ];
+    var sepEsc = separator === '-' ? '\\-' : separator;
+    var segRe  = new RegExp(
+        '(?:^|' + sepEsc + ')(' + CLEAN_SEGMENTS.join('|') + ')(?=' + sepEsc + '|$)',
+        'g'
+    );
+    var multiSepRe = new RegExp(sepEsc + '{2,}', 'g');
+    var trimSepRe  = new RegExp('^' + sepEsc + '+|' + sepEsc + '+$', 'g');
+
+    function clean(s) {
+        if (!s) return s;
+        for (var i = 0; i < CLEAN_PREFIXES.length; i++) {
+            if (s.indexOf(CLEAN_PREFIXES[i]) === 0) {
+                s = s.slice(CLEAN_PREFIXES[i].length);
+                break;
+            }
+        }
+        s = s.replace(segRe, '');
+        s = s.replace(multiSepRe, separator);
+        s = s.replace(trimSepRe, '');
+        return s;
+    }
+
+    // Convenience: slugify then clean an element ID, matching PHP clean(slug($id)).
+    function cleanId(id) {
+        return clean(slug(id));
+    }
+
     /**
      * Builds a formatted tag value from a semantic type and an identifier,
      * applying the configured separator and type position.
@@ -282,7 +324,7 @@
             var al = el.getAttribute('aria-label');
             if (al) return formatId('button', slug(al), details);
             if (el.id) {
-                var idSlug = slug(el.id);
+                var idSlug = cleanId(el.id);
                 if (idSlug && !/^\d+$/.test(idSlug) && idSlug.length > 1) return formatId('button', idSlug, details);
             }
             var name = el.getAttribute('name');
@@ -338,7 +380,7 @@
             var al = el.getAttribute('aria-label');
             if (al) return formatId('link', slug(al), details);
             if (el.id) {
-                var idSlug = slug(el.id);
+                var idSlug = cleanId(el.id);
                 if (idSlug && !/^\d+$/.test(idSlug) && idSlug.length > 1) return formatId('link', idSlug, details);
             }
             var frag = hrefPathFragment(href);
@@ -356,8 +398,8 @@
             var al = el.getAttribute('aria-label');
             if (al) return formatId(tagName, slug(al), details);
             if (el.id) {
-                var clean = slug(el.id);
-                if (clean && !/^\d+$/.test(clean) && clean.length > 1) return formatId(tagName, clean, details);
+                var idSlug = cleanId(el.id);
+                if (idSlug && !/^\d+$/.test(idSlug) && idSlug.length > 1) return formatId(tagName, idSlug, details);
             }
             if (textFallback) {
                 var h = firstHeadingText(el);
@@ -371,8 +413,8 @@
             var al = el.getAttribute('aria-label');
             if (al) return formatId('heading', slug(al), details);
             if (el.id) {
-                var clean = slug(el.id);
-                if (clean && !/^\d+$/.test(clean) && clean.length > 1) return formatId('heading', clean, details);
+                var idSlug = cleanId(el.id);
+                if (idSlug && !/^\d+$/.test(idSlug) && idSlug.length > 1) return formatId('heading', idSlug, details);
             }
             if (textFallback) {
                 var text = el.textContent.trim();
@@ -398,8 +440,8 @@
             var al = el.getAttribute('aria-label');
             if (al) return formatId('form', slug(al), details);
             if (el.id) {
-                var clean = slug(el.id);
-                if (clean && !/^\d+$/.test(clean) && clean.length > 1) return formatId('form', clean, details);
+                var idSlug = cleanId(el.id);
+                if (idSlug && !/^\d+$/.test(idSlug) && idSlug.length > 1) return formatId('form', idSlug, details);
             }
             if (textFallback) {
                 var legend = el.querySelector('legend') || el.querySelector('h1,h2,h3,h4,h5,h6');
@@ -422,8 +464,8 @@
             var al = el.getAttribute('aria-label');
             if (al) return formatId('nav', slug(al), details);
             if (el.id) {
-                var clean = slug(el.id);
-                if (clean && !/^\d+$/.test(clean) && clean.length > 1) return formatId('nav', clean, details);
+                var idSlug = cleanId(el.id);
+                if (idSlug && !/^\d+$/.test(idSlug) && idSlug.length > 1) return formatId('nav', idSlug, details);
             }
             if (textFallback) {
                 var h = firstHeadingText(el);
@@ -437,8 +479,8 @@
             var al = el.getAttribute('aria-label');
             if (al) return formatId('list', slug(al), details);
             if (el.id) {
-                var clean = slug(el.id);
-                if (clean && !/^\d+$/.test(clean) && clean.length > 1) return formatId('list', clean, details);
+                var idSlug = cleanId(el.id);
+                if (idSlug && !/^\d+$/.test(idSlug) && idSlug.length > 1) return formatId('list', idSlug, details);
             }
             if (textFallback) {
                 var h = firstHeadingText(el);
@@ -480,8 +522,8 @@
             var al = el.getAttribute('aria-label');
             if (al) return formatId('item', slug(al), details);
             if (el.id) {
-                var clean = slug(el.id);
-                if (clean && !/^\d+$/.test(clean) && clean.length > 1) return formatId('item', clean, details);
+                var idSlug = cleanId(el.id);
+                if (idSlug && !/^\d+$/.test(idSlug) && idSlug.length > 1) return formatId('item', idSlug, details);
             }
             if (textFallback) {
                 var text = el.textContent.trim().slice(0, 40);
@@ -513,8 +555,8 @@
             var al = el.getAttribute('aria-label');
             if (al) return formatId('table', slug(al), details);
             if (el.id) {
-                var clean = slug(el.id);
-                if (clean && !/^\d+$/.test(clean) && clean.length > 1) return formatId('table', clean, details);
+                var idSlug = cleanId(el.id);
+                if (idSlug && !/^\d+$/.test(idSlug) && idSlug.length > 1) return formatId('table', idSlug, details);
             }
             var caption = el.querySelector('caption');
             if (caption) {
@@ -546,8 +588,8 @@
             var al = el.getAttribute('aria-label');
             if (al) return formatId('col', slug(al), details);
             if (el.id) {
-                var clean = slug(el.id);
-                if (clean && !/^\d+$/.test(clean) && clean.length > 1) return formatId('col', clean, details);
+                var idSlug = cleanId(el.id);
+                if (idSlug && !/^\d+$/.test(idSlug) && idSlug.length > 1) return formatId('col', idSlug, details);
             }
             if (textFallback) {
                 var text = el.textContent.trim();
@@ -577,8 +619,8 @@
             var al = el.getAttribute('aria-label');
             if (al) return formatId('fieldset', slug(al), details);
             if (el.id) {
-                var clean = slug(el.id);
-                if (clean && !/^\d+$/.test(clean) && clean.length > 1) return formatId('fieldset', clean, details);
+                var idSlug = cleanId(el.id);
+                if (idSlug && !/^\d+$/.test(idSlug) && idSlug.length > 1) return formatId('fieldset', idSlug, details);
             }
             if (textFallback) {
                 var legend = el.querySelector('legend');
@@ -595,8 +637,8 @@
             var al = el.getAttribute('aria-label');
             if (al) return formatId('details', slug(al), details);
             if (el.id) {
-                var clean = slug(el.id);
-                if (clean && !/^\d+$/.test(clean) && clean.length > 1) return formatId('details', clean, details);
+                var idSlug = cleanId(el.id);
+                if (idSlug && !/^\d+$/.test(idSlug) && idSlug.length > 1) return formatId('details', idSlug, details);
             }
             if (textFallback) {
                 var summary = el.querySelector('summary');
@@ -612,8 +654,8 @@
             var al = el.getAttribute('aria-label');
             if (al) return formatId('summary', slug(al), details);
             if (el.id) {
-                var clean = slug(el.id);
-                if (clean && !/^\d+$/.test(clean) && clean.length > 1) return formatId('summary', clean, details);
+                var idSlug = cleanId(el.id);
+                if (idSlug && !/^\d+$/.test(idSlug) && idSlug.length > 1) return formatId('summary', idSlug, details);
             }
             if (textFallback) {
                 var text = el.textContent.trim();
@@ -627,8 +669,8 @@
             var al = el.getAttribute('aria-label');
             if (al) return formatId('figure', slug(al), details);
             if (el.id) {
-                var clean = slug(el.id);
-                if (clean && !/^\d+$/.test(clean) && clean.length > 1) return formatId('figure', clean, details);
+                var idSlug = cleanId(el.id);
+                if (idSlug && !/^\d+$/.test(idSlug) && idSlug.length > 1) return formatId('figure', idSlug, details);
             }
             if (textFallback) {
                 var figcaption = el.querySelector('figcaption');
@@ -651,8 +693,8 @@
 
             // 2. Stable id (non-numeric)
             if (el.id) {
-                var clean = slug(el.id);
-                if (clean && !/^\d+$/.test(clean) && clean.length > 1) return formatId(prefix, clean, details);
+                var idSlug = cleanId(el.id);
+                if (idSlug && !/^\d+$/.test(idSlug) && idSlug.length > 1) return formatId(prefix, idSlug, details);
             }
 
             // 3. Elementor section/container
