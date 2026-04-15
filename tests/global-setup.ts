@@ -66,12 +66,12 @@ const FIXTURE_PAGE_CONTENT = `<!-- wp:html -->
         <h2 style="margin-bottom:6px;">Auto Layer Sample</h2>
         <p>These are common site controls/elements likely to be auto-tagged:</p>
         <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px;">
-          <a href="#">Primary link</a>
+          <a href="/contact" aria-label="Contact us">Contact</a>
           <button type="button">Button action</button>
           <input type="email" placeholder="Email input" aria-label="Email input" />
-          <select aria-label="Sample select">
-            <option>Option A</option>
-            <option>Option B</option>
+          <select id="fixture-select" name="fixture-select" aria-label="Sample select">
+            <option value="option-a">Option A</option>
+            <option value="option-b">Option B</option>
           </select>
         </div>
         <textarea rows="3" cols="32" aria-label="Sample textarea">Sample textarea content</textarea>
@@ -85,11 +85,15 @@ const FIXTURE_PAGE_CONTENT = `<!-- wp:html -->
 
       <section id="fixture-content-extras">
         <h2 style="margin-bottom:6px;">Additional Common Content</h2>
-        <ul>
+        <ul id="fixture-ul" style="padding-left:18px;">
           <li>Unordered list item</li>
           <li>Secondary list item</li>
         </ul>
-        <table style="border-collapse:collapse;min-width:260px;">
+        <ol id="fixture-ol" style="padding-left:18px;margin-top:8px;">
+          <li>First ordered item</li>
+          <li>Second ordered item</li>
+        </ol>
+        <table id="fixture-table" style="border-collapse:collapse;min-width:260px;margin-top:8px;">
           <caption style="text-align:left;padding-bottom:4px;">Sample metrics table</caption>
           <thead>
             <tr><th style="border:1px solid #ccc;padding:4px;">Metric</th><th style="border:1px solid #ccc;padding:4px;">Value</th></tr>
@@ -98,6 +102,14 @@ const FIXTURE_PAGE_CONTENT = `<!-- wp:html -->
             <tr><td style="border:1px solid #ccc;padding:4px;">Tagged elements</td><td style="border:1px solid #ccc;padding:4px;">Expected &gt; 0</td></tr>
           </tbody>
         </table>
+        <fieldset id="fixture-fieldset" style="margin-top:12px;border:1px solid #ccc;padding:10px;">
+          <legend>Shipping address</legend>
+          <input type="text" placeholder="Street" aria-label="Street address" />
+        </fieldset>
+        <details id="fixture-details" style="margin-top:12px;">
+          <summary>Toggle FAQ</summary>
+          <p>This is the expanded content.</p>
+        </details>
       </section>
     </article>
 

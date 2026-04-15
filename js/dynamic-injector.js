@@ -411,28 +411,227 @@
             return alt ? formatId('img', slug(alt), details) : null;
         }
 
-        // Custom select options (li inside a select-like list)
+        // Navigation
+        if (tagName === 'nav') {
+            var al = el.getAttribute('aria-label');
+            if (al) return formatId('nav', slug(al), details);
+            if (el.id) {
+                var clean = slug(el.id);
+                if (clean && !/^\d+$/.test(clean) && clean.length > 1) return formatId('nav', clean, details);
+            }
+            if (textFallback) {
+                var h = firstHeadingText(el);
+                if (h) return formatId('nav', slug(h), details);
+            }
+            return null;
+        }
+
+        // Lists (ul / ol)
+        if (tagName === 'ul' || tagName === 'ol') {
+            var al = el.getAttribute('aria-label');
+            if (al) return formatId('list', slug(al), details);
+            if (el.id) {
+                var clean = slug(el.id);
+                if (clean && !/^\d+$/.test(clean) && clean.length > 1) return formatId('list', clean, details);
+            }
+            if (textFallback) {
+                var h = firstHeadingText(el);
+                if (h) return formatId('list', slug(h), details);
+            }
+            return null;
+        }
+
+        // List items
         if (tagName === 'li') {
-            var relVal = el.getAttribute('rel');
-            var optValue = relVal || (textFallback ? el.textContent.trim() : '');
+            var relVal     = el.getAttribute('rel');
+            var parentEl   = el.parentElement;
+            var parentCls  = parentEl ? (parentEl.className || '') : '';
+            var isSelectList = parentEl && (parentCls.indexOf('select') !== -1 || parentCls.indexOf('options') !== -1);
+
+            if (isSelectList || relVal) {
+                // Custom select option
+                var optValue = relVal || (textFallback ? el.textContent.trim() : '');
+                if (!optValue) return null;
+                var optSlug = slug(optValue);
+                if (!optSlug) return null;
+                var selectName = null;
+                var walker = el.parentElement;
+                while (walker) {
+                    if (walker.hasAttribute('data-name')) {
+                        selectName = walker.getAttribute('data-name');
+                        break;
+                    }
+                    var sel = walker.querySelector(':scope > select[name]');
+                    if (sel) { selectName = sel.getAttribute('name'); break; }
+                    walker = walker.parentElement;
+                }
+                return selectName
+                    ? formatId('option', slug(selectName) + separator + optSlug, details)
+                    : formatId('option', optSlug, details);
+            }
+
+            // Standard list item
+            var al = el.getAttribute('aria-label');
+            if (al) return formatId('item', slug(al), details);
+            if (el.id) {
+                var clean = slug(el.id);
+                if (clean && !/^\d+$/.test(clean) && clean.length > 1) return formatId('item', clean, details);
+            }
+            if (textFallback) {
+                var text = el.textContent.trim().slice(0, 40);
+                if (text) return formatId('item', slug(text), details);
+            }
+            return null;
+        }
+
+        // Native select options
+        if (tagName === 'option') {
+            var value    = el.getAttribute('value');
+            var optValue = (value !== null && value !== '') ? value : (textFallback ? el.textContent.trim() : '');
             if (!optValue) return null;
             var optSlug = slug(optValue);
             if (!optSlug) return null;
-            // Walk up to find a data-name wrapper or sibling <select>
-            var selectName = null;
-            var parent = el.parentElement;
-            while (parent) {
-                if (parent.hasAttribute('data-name')) {
-                    selectName = parent.getAttribute('data-name');
-                    break;
-                }
-                var sel = parent.querySelector(':scope > select[name]');
-                if (sel) { selectName = sel.getAttribute('name'); break; }
-                parent = parent.parentElement;
+            // Find the parent <select>
+            var selectEl = el.parentElement;
+            while (selectEl && selectEl.tagName.toLowerCase() !== 'select') {
+                selectEl = selectEl.parentElement;
             }
+            var selectName = selectEl ? (selectEl.getAttribute('name') || selectEl.id || '') : '';
             return selectName
                 ? formatId('option', slug(selectName) + separator + optSlug, details)
                 : formatId('option', optSlug, details);
+        }
+
+        // Tables
+        if (tagName === 'table') {
+            var al = el.getAttribute('aria-label');
+            if (al) return formatId('table', slug(al), details);
+            if (el.id) {
+                var clean = slug(el.id);
+                if (clean && !/^\d+$/.test(clean) && clean.length > 1) return formatId('table', clean, details);
+            }
+            var caption = el.querySelector('caption');
+            if (caption) {
+                var text = caption.textContent.trim();
+                if (text) return formatId('table', slug(text), details);
+            }
+            if (textFallback) {
+                var h = firstHeadingText(el);
+                if (h) return formatId('table', slug(h), details);
+            }
+            return null;
+        }
+
+        // Table rows
+        if (tagName === 'tr') {
+            var al = el.getAttribute('aria-label');
+            if (al) return formatId('row', slug(al), details);
+            var n = 1;
+            var prev = el.previousElementSibling;
+            while (prev) {
+                if (prev.tagName.toLowerCase() === 'tr') n++;
+                prev = prev.previousElementSibling;
+            }
+            return formatId('row', String(n), details);
+        }
+
+        // Table header cells
+        if (tagName === 'th') {
+            var al = el.getAttribute('aria-label');
+            if (al) return formatId('col', slug(al), details);
+            if (el.id) {
+                var clean = slug(el.id);
+                if (clean && !/^\d+$/.test(clean) && clean.length > 1) return formatId('col', clean, details);
+            }
+            if (textFallback) {
+                var text = el.textContent.trim();
+                if (text) return formatId('col', slug(text), details);
+            }
+            return null;
+        }
+
+        // Table data cells
+        if (tagName === 'td') {
+            var al = el.getAttribute('aria-label');
+            if (al) return formatId('cell', slug(al), details);
+            var headers = el.getAttribute('headers');
+            if (headers) return formatId('cell', slug(headers), details);
+            var col = 1;
+            var prev = el.previousElementSibling;
+            while (prev) {
+                var prevTag = prev.tagName.toLowerCase();
+                if (prevTag === 'td' || prevTag === 'th') col++;
+                prev = prev.previousElementSibling;
+            }
+            return formatId('cell', String(col), details);
+        }
+
+        // Fieldsets
+        if (tagName === 'fieldset') {
+            var al = el.getAttribute('aria-label');
+            if (al) return formatId('fieldset', slug(al), details);
+            if (el.id) {
+                var clean = slug(el.id);
+                if (clean && !/^\d+$/.test(clean) && clean.length > 1) return formatId('fieldset', clean, details);
+            }
+            if (textFallback) {
+                var legend = el.querySelector('legend');
+                if (legend) {
+                    var text = legend.textContent.trim();
+                    if (text) return formatId('fieldset', slug(text), details);
+                }
+            }
+            return null;
+        }
+
+        // Details / Summary
+        if (tagName === 'details') {
+            var al = el.getAttribute('aria-label');
+            if (al) return formatId('details', slug(al), details);
+            if (el.id) {
+                var clean = slug(el.id);
+                if (clean && !/^\d+$/.test(clean) && clean.length > 1) return formatId('details', clean, details);
+            }
+            if (textFallback) {
+                var summary = el.querySelector('summary');
+                if (summary) {
+                    var text = summary.textContent.trim();
+                    if (text) return formatId('details', slug(text), details);
+                }
+            }
+            return null;
+        }
+
+        if (tagName === 'summary') {
+            var al = el.getAttribute('aria-label');
+            if (al) return formatId('summary', slug(al), details);
+            if (el.id) {
+                var clean = slug(el.id);
+                if (clean && !/^\d+$/.test(clean) && clean.length > 1) return formatId('summary', clean, details);
+            }
+            if (textFallback) {
+                var text = el.textContent.trim();
+                if (text) return formatId('summary', slug(text), details);
+            }
+            return null;
+        }
+
+        // Figures
+        if (tagName === 'figure') {
+            var al = el.getAttribute('aria-label');
+            if (al) return formatId('figure', slug(al), details);
+            if (el.id) {
+                var clean = slug(el.id);
+                if (clean && !/^\d+$/.test(clean) && clean.length > 1) return formatId('figure', clean, details);
+            }
+            if (textFallback) {
+                var figcaption = el.querySelector('figcaption');
+                if (figcaption) {
+                    var text = figcaption.textContent.trim();
+                    if (text) return formatId('figure', slug(text), details);
+                }
+            }
+            return null;
         }
 
         // Divs / spans — stable-first: aria-label → id → Elementor/Gutenberg attrs → role
@@ -501,16 +700,19 @@
     // ── Selector target list (mirrors PHP auto_generate targets) ──
     var AUTO_SELECTOR = [
         'a', 'button',
-        'input', 'textarea', 'select', 'form',
-        'section', 'article', 'aside', 'main', 'header', 'footer',
+        'input', 'textarea', 'select', 'option', 'form',
+        'section', 'article', 'aside', 'main', 'header', 'footer', 'nav',
         'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
         'p',
         'img',
+        'ul', 'ol', 'li',
+        'table', 'tr', 'th', 'td',
+        'fieldset',
+        'details', 'summary',
+        'figure',
         '[id]', '[role]',
         '[data-element_type]', '[data-widget_type]',
         '[class*="wp-block-"]',
-        'ul[class*="select"] li', 'ul[class*="options"] li',
-        'li[rel]',
     ].join(', ');
 
     // ── Process a newly added subtree ─────────────────────────────
