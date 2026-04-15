@@ -612,8 +612,8 @@ class TestTag_Settings {
                     <details class="testtag-selector-help">
                         <summary>Supported &amp; unsupported selector patterns</summary>
                         <div class="testtag-selector-help-body">
-                            <p><strong class="testtag-supported-label">Supported:</strong> type selectors (<code>nav</code>), class (<code>.nav-link</code>), ID (<code>#site-nav</code>), attribute selectors (<code>[href]</code>, <code>[data-id="x"]</code>), descendant (<code>nav a</code>), child (<code>nav &gt; a</code>), and <code>:not()</code> with a single simple argument.</p>
-                            <p><strong class="testtag-unsupported-label">Not supported:</strong> <code>:has()</code>, <code>:is()</code>, <code>:where()</code>, <code>:nth-child()</code> and related, sibling combinators (<code>+</code>&nbsp;<code>~</code>), and pseudo-elements (<code>::before</code>, <code>::after</code>).</p>
+                            <p><strong class="testtag-supported-label">Supported:</strong> type selectors (<code>nav</code>), class (<code>.nav-link</code>), ID (<code>#site-nav</code>), attribute selectors (<code>[href]</code>, <code>[data-id="x"]</code>), descendant (<code>nav a</code>), and child (<code>nav &gt; a</code>).</p>
+                            <p><strong class="testtag-unsupported-label">Not supported:</strong> <code>:not()</code>, <code>:has()</code>, <code>:is()</code>, <code>:where()</code>, <code>:nth-child()</code> and related, sibling combinators (<code>+</code>&nbsp;<code>~</code>), and pseudo-elements (<code>::before</code>, <code>::after</code>). Pseudo-classes are currently ignored by server-side selector matching.</p>
                             <p>Unsupported patterns are flagged inline as you type. Fix them before saving — the Save button will be blocked until all errors are resolved.</p>
                         </div>
                     </details>
