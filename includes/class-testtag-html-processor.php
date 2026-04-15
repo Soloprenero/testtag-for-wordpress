@@ -562,9 +562,9 @@ class TestTag_HTML_Processor {
         if ( $tag === 'option' ) {
             $value    = $el->getAttribute( 'value' );
             $optValue = ( $value !== '' ) ? $value : ( $text_fallback ? trim( $el->textContent ) : '' );
-            if ( ! $optValue ) return null;
+            if ( $optValue === '' ) return null;
             $optSlug  = self::slug( $optValue );
-            if ( ! $optSlug ) return null;
+            if ( $optSlug === '' ) return null;
             // Find the parent <select>
             $selectEl = $el->parentNode;
             while ( $selectEl instanceof DOMElement && strtolower( $selectEl->tagName ) !== 'select' ) {
