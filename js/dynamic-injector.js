@@ -23,6 +23,7 @@
     var separator    = (config.separator === '_') ? '_' : '-';
     var tokenOrder = (config.tokenOrder || 'type,identifier').split(',').filter(Boolean);
     var formatSeps = (config.formatSeps || separator).split(',');
+    var namingRules  = config.namingRules || { stripPrefixes: [], stripSegments: [] };
 
     // ── Dedup (dynamic elements only, scoped to parent) ──────────
     // Counters reset per parent element so sibling containers each get
@@ -59,6 +60,43 @@
             .replace(/[^a-z0-9]+/g, separator)
             .replace(/^[^a-z0-9]+|[^a-z0-9]+$/g, '')
             .slice(0, 50);
+    }
+
+    /**
+     * Strips common framework prefixes and generic structural segments from a
+     * slugified string. Mirrors PHP clean() in class-testtag-html-processor.php,
+     * consuming the same rules from window.TESTTAG.namingRules (naming-rules.json).
+     */
+    function clean(s) {
+        if (!s) return s;
+        var prefixes = namingRules.stripPrefixes || [];
+        var segments = namingRules.stripSegments || [];
+        // Strip leading framework prefix (first match only).
+        // Prefixes in the JSON are defined with hyphens; translate to the current separator.
+        for (var pi = 0; pi < prefixes.length; pi++) {
+            var pfx = prefixes[pi].replace(/-/g, separator);
+            if (s.indexOf(pfx) === 0) {
+                s = s.slice(pfx.length);
+                break;
+            }
+        }
+        // Strip standalone segment tokens separated by the current separator.
+        if (segments.length) {
+            var sepEsc = separator.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, '\\$&');
+            var segRe  = new RegExp('(?:^|' + sepEsc + ')(' + segments.join('|') + ')(?=' + sepEsc + '|$)', 'g');
+            s = s.replace(segRe, '');
+        }
+        // Collapse repeated separators and trim.
+        var sepEsc2 = separator.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, '\\$&');
+        s = s.replace(new RegExp(sepEsc2 + '{2,}', 'g'), separator);
+        // Trim leading/trailing separator.
+        var trimRe = new RegExp('^' + sepEsc2 + '+|' + sepEsc2 + '+$', 'g');
+        return s.replace(trimRe, '');
+    }
+
+    /** Slugifies an id attribute value then strips framework noise via clean(). */
+    function cleanId(id) {
+        return clean(slug(id));
     }
 
     /**
@@ -282,7 +320,7 @@
             var al = el.getAttribute('aria-label');
             if (al) return formatId('button', slug(al), details);
             if (el.id) {
-                var idSlug = slug(el.id);
+                var idSlug = cleanId(el.id);
                 if (idSlug && !/^\d+$/.test(idSlug) && idSlug.length > 1) return formatId('button', idSlug, details);
             }
             var name = el.getAttribute('name');
@@ -335,7 +373,7 @@
             var al = el.getAttribute('aria-label');
             if (al) return formatId('link', slug(al), details);
             if (el.id) {
-                var idSlug = slug(el.id);
+                var idSlug = cleanId(el.id);
                 if (idSlug && !/^\d+$/.test(idSlug) && idSlug.length > 1) return formatId('link', idSlug, details);
             }
             var frag = hrefPathFragment(href);
@@ -350,8 +388,8 @@
             var al = el.getAttribute('aria-label');
             if (al) return formatId(tagName, slug(al), details);
             if (el.id) {
-                var clean = slug(el.id);
-                if (clean && !/^\d+$/.test(clean) && clean.length > 1) return formatId(tagName, clean, details);
+                var idClean = cleanId(el.id);
+                if (idClean && !/^\d+$/.test(idClean) && idClean.length > 1) return formatId(tagName, idClean, details);
             }
             if (textFallback) {
                 var h = firstHeadingText(el);
@@ -365,8 +403,8 @@
             var al = el.getAttribute('aria-label');
             if (al) return formatId('heading', slug(al), details);
             if (el.id) {
-                var clean = slug(el.id);
-                if (clean && !/^\d+$/.test(clean) && clean.length > 1) return formatId('heading', clean, details);
+                var idClean = cleanId(el.id);
+                if (idClean && !/^\d+$/.test(idClean) && idClean.length > 1) return formatId('heading', idClean, details);
             }
             if (textFallback) {
                 var text = el.textContent.trim();
@@ -392,8 +430,8 @@
             var al = el.getAttribute('aria-label');
             if (al) return formatId('form', slug(al), details);
             if (el.id) {
-                var clean = slug(el.id);
-                if (clean && !/^\d+$/.test(clean) && clean.length > 1) return formatId('form', clean, details);
+                var idClean = cleanId(el.id);
+                if (idClean && !/^\d+$/.test(idClean) && idClean.length > 1) return formatId('form', idClean, details);
             }
             if (textFallback) {
                 var legend = el.querySelector('legend') || el.querySelector('h1,h2,h3,h4,h5,h6');
@@ -446,8 +484,8 @@
 
             // 2. Stable id (non-numeric)
             if (el.id) {
-                var clean = slug(el.id);
-                if (clean && !/^\d+$/.test(clean) && clean.length > 1) return formatId(prefix, clean, details);
+                var idClean = cleanId(el.id);
+                if (idClean && !/^\d+$/.test(idClean) && idClean.length > 1) return formatId(prefix, idClean, details);
             }
 
             // 3. Elementor section/container
@@ -464,7 +502,7 @@
             var eWidget = el.getAttribute('data-widget_type');
             if (eWidget) {
                 var wType = eWidget.replace(/\.default$/, '').replace(/^wp-widget-/, '');
-                var cleaned = slug(wType);
+                var cleaned = clean(slug(wType));
                 if (cleaned) return formatId(prefix, cleaned, details);
                 if (textFallback) {
                     var h = firstHeadingText(el);
@@ -477,7 +515,7 @@
             var classes = el.className ? el.className.split(/\s+/) : [];
             for (var i = 0; i < classes.length; i++) {
                 if (classes[i].indexOf('wp-block-') === 0) {
-                    var blockSlug = slug(classes[i].slice('wp-block-'.length));
+                    var blockSlug = clean(slug(classes[i].slice('wp-block-'.length)));
                     if (blockSlug) return formatId(prefix, blockSlug, details);
                     if (textFallback) {
                         var h = firstHeadingText(el);

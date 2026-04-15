@@ -1,0 +1,13 @@
+{
+    "stripPrefixes": [
+        "core-", "woocommerce-", "wc-", "wpcf7-f", "gform-", "gfield-", "wp-", "wordpress-"
+    ],
+    "stripSegments": [
+        "elementor", "woocommerce", "wc", "core",
+        "divi", "avada", "betheme", "flatsome", "astra", "generatepress",
+        "oceanwp", "hello", "twentytwentyfour", "twentytwentythree",
+        "twentytwentytwo", "twentytwentyone", "twentytwenty",
+        "widget", "module", "block", "section", "container", "wrapper",
+        "inner", "outer", "holder"
+    ]
+}
