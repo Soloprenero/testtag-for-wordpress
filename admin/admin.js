@@ -728,7 +728,7 @@
         var html = selectorPreviewHtmlEl.value.trim();
 
         if (!html) {
-            selectorPreviewResults.innerHTML = '';
+            selectorPreviewResults.replaceChildren();
             return;
         }
 
@@ -744,8 +744,11 @@
 
         var rows = tbody.querySelectorAll('tr.testtag-row');
         if (!rows.length) {
-            selectorPreviewResults.innerHTML =
-                '<p class="testtag-selector-preview-empty">No selector map rows. Add rows above to test selectors.</p>';
+            selectorPreviewResults.replaceChildren();
+            var emptyP = document.createElement('p');
+            emptyP.className = 'testtag-selector-preview-empty';
+            emptyP.textContent = 'No selector map rows. Add rows above to test selectors.';
+            selectorPreviewResults.appendChild(emptyP);
             return;
         }
 
@@ -825,17 +828,25 @@
             ul.appendChild(li);
         });
 
-        selectorPreviewResults.innerHTML = '';
+        selectorPreviewResults.replaceChildren();
         if (!hasAny) {
-            selectorPreviewResults.innerHTML =
-                '<p class="testtag-selector-preview-empty">No selector map rows. Add rows above to test selectors.</p>';
+            var emptyP2 = document.createElement('p');
+            emptyP2.className = 'testtag-selector-preview-empty';
+            emptyP2.textContent = 'No selector map rows. Add rows above to test selectors.';
+            selectorPreviewResults.appendChild(emptyP2);
         } else {
             selectorPreviewResults.appendChild(ul);
         }
     }
 
+    var selectorPreviewTimer = null;
+    function runSelectorPreviewDebounced() {
+        clearTimeout(selectorPreviewTimer);
+        selectorPreviewTimer = setTimeout(runSelectorPreview, 300);
+    }
+
     if (selectorPreviewHtmlEl) {
-        selectorPreviewHtmlEl.addEventListener('input', runSelectorPreview);
+        selectorPreviewHtmlEl.addEventListener('input', runSelectorPreviewDebounced);
         runSelectorPreview();
     }
 
@@ -845,7 +856,7 @@
             e.target.matches('input[name$="[selector]"]') ||
             e.target.matches('input[name$="[testid]"]')
         )) {
-            runSelectorPreview();
+            runSelectorPreviewDebounced();
         }
     });
 

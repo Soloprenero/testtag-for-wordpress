@@ -136,6 +136,8 @@ test.describe('TestTag Plugin - Selector Preview', () => {
       await settingsPage.scrollToSelectorPreview();
     });
 
+    let initialText: string | null = null;
+
     await test.step('Set HTML with a nav element', async () => {
       await settingsPage.setSelectorPreviewHtml(
         '<nav><a href="/">Home</a></nav>'
@@ -143,15 +145,19 @@ test.describe('TestTag Plugin - Selector Preview', () => {
     });
 
     await test.step('Record initial results text', async () => {
-      const initialText = await settingsPage.selectorPreviewResults.textContent();
-      expect(typeof initialText).toBe('string');
+      initialText = await settingsPage.selectorPreviewResults.textContent();
+      expect(initialText).not.toBeNull();
+      // The default selector map includes 'nav a[href="/"]' which should match the nav HTML.
+      expect(initialText).toContain('match');
     });
 
     await test.step('Replace HTML with a button element and verify results update', async () => {
       await settingsPage.setSelectorPreviewHtml('<button class="submit-btn">Submit</button>');
-      // After update the results should still render without throwing
       const updatedText = await settingsPage.selectorPreviewResults.textContent();
-      expect(typeof updatedText).toBe('string');
+      expect(updatedText).not.toBeNull();
+      // Results must actually change: the nav selector that matched in the first HTML
+      // should no longer match against a plain button element.
+      expect(updatedText).not.toBe(initialText);
     });
 
     await test.step('Capture screenshot after update', async () => {

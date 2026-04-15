@@ -14,6 +14,8 @@ export interface StringFormatOptions {
 export class TestTagSettingsPage extends AppPage {
   protected pageUrl = TEST_URLS.TESTTAG_SETTINGS;
 
+  static readonly SELECTOR_PREVIEW_RESULTS_ID = 'testtag-selector-preview-results';
+
   readonly heading: Locator;
   readonly attributeKeyField: Locator;
   readonly cssSelectorMapHeading: Locator;
@@ -28,7 +30,7 @@ export class TestTagSettingsPage extends AppPage {
     this.cssSelectorMapHeading = page.locator('text=CSS Selector Map').first();
     this.saveButton = page.locator('button[type="submit"], input[type="submit"]').first();
     this.selectorPreviewHtml = page.locator('#testtag-selector-preview-html');
-    this.selectorPreviewResults = page.locator('#testtag-selector-preview-results');
+    this.selectorPreviewResults = page.locator(`#${TestTagSettingsPage.SELECTOR_PREVIEW_RESULTS_ID}`);
   }
 
   async open(): Promise<void> {
@@ -55,8 +57,30 @@ export class TestTagSettingsPage extends AppPage {
    * Paste HTML into the selector preview textarea and wait for results to update.
    */
   async setSelectorPreviewHtml(html: string): Promise<void> {
+    const previousText = (await this.selectorPreviewResults.textContent())?.trim() ?? '';
+    const previousChildCount = await this.selectorPreviewResults.evaluate(
+      (el) => el.childElementCount,
+    ).catch(() => 0);
+
     await this.selectorPreviewHtml.fill(html);
     await this.selectorPreviewHtml.dispatchEvent('input');
+
+    await this.page.waitForFunction(
+      ({ selector, prevText, prevCount }: { selector: string; prevText: string; prevCount: number }) => {
+        const results = document.querySelector(selector);
+        if (!results) return false;
+        const text = results.textContent?.trim() ?? '';
+        const childCount = results.childElementCount;
+        return (
+          text !== prevText ||
+          childCount !== prevCount ||
+          text.length > 0 ||
+          childCount > 0
+        );
+      },
+      { selector: `#${TestTagSettingsPage.SELECTOR_PREVIEW_RESULTS_ID}`, prevText: previousText, prevCount: previousChildCount },
+      { timeout: 3000 },
+    );
   }
 
   async setAttributeKey(value: 'data-testid' | 'data-cy' | 'data-test'): Promise<void> {
