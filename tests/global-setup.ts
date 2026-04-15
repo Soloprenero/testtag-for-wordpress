@@ -110,6 +110,10 @@ const FIXTURE_PAGE_CONTENT = `<!-- wp:html -->
           <summary>Toggle FAQ</summary>
           <p>This is the expanded content.</p>
         </details>
+        <form id="fixture-form" aria-label="Contact form" style="margin-top:12px;padding:10px;border:1px solid #ccc;">
+          <label>Name <input type="text" name="contact-name" placeholder="Your name" /></label>
+          <button type="submit">Send</button>
+        </form>
       </section>
     </article>
 
