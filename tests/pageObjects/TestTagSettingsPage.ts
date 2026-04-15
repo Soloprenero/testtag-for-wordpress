@@ -14,10 +14,16 @@ export interface StringFormatOptions {
 export class TestTagSettingsPage extends AppPage {
   protected pageUrl = TEST_URLS.TESTTAG_SETTINGS;
 
+  static readonly SELECTOR_PREVIEW_RESULTS_ID = 'testtag-selector-preview-results';
+
   readonly heading: Locator;
   readonly attributeKeyField: Locator;
   readonly cssSelectorMapHeading: Locator;
   readonly saveButton: Locator;
+  readonly selectorPreviewHtml: Locator;
+  readonly selectorPreviewResults: Locator;
+  /** All CSS selector inputs in the selector-map table, by test ID. */
+  readonly selectorMapSelectorInputs: Locator;
 
   constructor(page: Page) {
     super(page);
@@ -25,6 +31,9 @@ export class TestTagSettingsPage extends AppPage {
     this.attributeKeyField = page.locator('select[name*="attribute_key"], input[name*="attribute_key"]').first();
     this.cssSelectorMapHeading = page.locator('text=CSS Selector Map').first();
     this.saveButton = page.locator('button[type="submit"], input[type="submit"]').first();
+    this.selectorPreviewHtml = page.locator('#testtag-selector-preview-html');
+    this.selectorPreviewResults = page.locator(`#${TestTagSettingsPage.SELECTOR_PREVIEW_RESULTS_ID}`);
+    this.selectorMapSelectorInputs = page.locator('[data-testid="testtag-map-selector-input"]');
   }
 
   async open(): Promise<void> {
@@ -40,6 +49,53 @@ export class TestTagSettingsPage extends AppPage {
   async scrollToCssSelectorMap(): Promise<void> {
     await this.cssSelectorMapHeading.scrollIntoViewIfNeeded();
     await this.cssSelectorMapHeading.waitFor({ state: 'visible', timeout: 3000 });
+  }
+
+  async scrollToSelectorPreview(): Promise<void> {
+    await this.selectorPreviewHtml.scrollIntoViewIfNeeded();
+    await this.selectorPreviewHtml.waitFor({ state: 'visible', timeout: 3000 });
+  }
+
+  /**
+   * Paste HTML into the selector preview textarea and wait for results to update.
+   */
+  async setSelectorPreviewHtml(html: string): Promise<void> {
+    const previousText = (await this.selectorPreviewResults.textContent())?.trim() ?? '';
+    const previousChildCount = await this.selectorPreviewResults.evaluate(
+      (el) => el.childElementCount,
+    ).catch(() => 0);
+
+    await this.selectorPreviewHtml.fill(html);
+    await this.selectorPreviewHtml.dispatchEvent('input');
+
+    await this.page.waitForFunction(
+      ({ selector, prevText, prevCount }: { selector: string; prevText: string; prevCount: number }) => {
+        const results = document.querySelector(selector);
+        if (!results) return false;
+        const text = results.textContent?.trim() ?? '';
+        const childCount = results.childElementCount;
+        return (
+          text !== prevText ||
+          childCount !== prevCount ||
+          text.length > 0 ||
+          childCount > 0
+        );
+      },
+      { selector: `#${TestTagSettingsPage.SELECTOR_PREVIEW_RESULTS_ID}`, prevText: previousText, prevCount: previousChildCount },
+      { timeout: 3000 },
+    );
+  }
+
+  /**
+   * Overwrite the CSS selector value in a selector-map row and trigger a preview refresh.
+   * The preview updates after the 300ms debounce; wait for expected results before asserting.
+   * @param selector CSS selector string to enter.
+   * @param rowIndex Zero-based index of the row to update (default: 0).
+   */
+  async setSelectorRowSelector(selector: string, rowIndex = 0): Promise<void> {
+    const input = this.selectorMapSelectorInputs.nth(rowIndex);
+    await input.fill(selector);
+    await input.dispatchEvent('input');
   }
 
   async setAttributeKey(value: 'data-testid' | 'data-cy' | 'data-test'): Promise<void> {
