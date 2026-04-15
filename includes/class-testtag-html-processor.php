@@ -1144,7 +1144,13 @@ class TestTag_HTML_Processor {
         $file  = TESTTAG_PLUGIN_DIR . 'naming-rules.json';
         if ( ! file_exists( $file ) ) return;
         $json  = file_get_contents( $file ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents
-        $rules = $json ? json_decode( $json, true ) : [];
+        $rules = [];
+        if ( $json ) {
+            $decoded = json_decode( $json, true );
+            if ( is_array( $decoded ) ) {
+                $rules = $decoded;
+            }
+        }
         self::$strip_prefixes = $rules['stripPrefixes'] ?? [];
         self::$strip_segments = $rules['stripSegments'] ?? [];
     }
