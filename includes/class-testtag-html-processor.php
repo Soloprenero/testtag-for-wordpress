@@ -26,6 +26,51 @@ class TestTag_HTML_Processor {
     public static function init(): void {
         add_action( 'template_redirect', [ __CLASS__, 'start_buffer' ] );
         add_action( 'current_screen',    [ __CLASS__, 'maybe_start_admin_buffer' ] );
+        add_filter( 'render_block',      [ __CLASS__, 'inject_block_attribute' ], 10, 2 );
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    // Block render — manual override injection
+    // ─────────────────────────────────────────────────────────────
+
+    /**
+     * Injects a manual testtagValue block attribute into the rendered HTML of a
+     * block, using the WP_HTML_Tag_Processor parser rather than a regex.
+     *
+     * Fires on the `render_block` filter so it covers both static (saved-content)
+     * blocks and dynamic (server-side rendered) blocks.  The JS
+     * `blocks.getSaveContent.extraProps` filter handles serialization for static
+     * blocks in the editor; this PHP filter is the authoritative source for all
+     * front-end output.
+     *
+     * @param string $block_content Rendered block HTML.
+     * @param array  $block         Parsed block data including 'attrs'.
+     * @return string Possibly-modified block HTML.
+     */
+    public static function inject_block_attribute( string $block_content, array $block ): string {
+        if ( ! TestTag_Settings::is_enabled() ) {
+            return $block_content;
+        }
+
+        $value = $block['attrs']['testtagValue'] ?? '';
+        if ( ! is_string( $value ) || '' === $value ) {
+            return $block_content;
+        }
+
+        if ( ! class_exists( 'WP_HTML_Tag_Processor' ) ) {
+            return $block_content;
+        }
+
+        $attr      = TestTag_Settings::get_attribute_key();
+        $processor = new WP_HTML_Tag_Processor( $block_content );
+
+        if ( ! $processor->next_tag() ) {
+            return $block_content;
+        }
+
+        $processor->set_attribute( $attr, $value );
+
+        return $processor->get_updated_html();
     }
 
     // ─────────────────────────────────────────────────────────────
