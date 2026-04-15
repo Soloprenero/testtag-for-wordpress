@@ -66,7 +66,7 @@ const FIXTURE_PAGE_CONTENT = `<!-- wp:html -->
         <h2 style="margin-bottom:6px;">Auto Layer Sample</h2>
         <p>These are common site controls/elements likely to be auto-tagged:</p>
         <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px;">
-          <a href="/contact" aria-label="Contact us">Contact</a>
+          <a href="#">Primary link</a>
           <button type="button">Button action</button>
           <input type="email" placeholder="Email input" aria-label="Email input" />
           <select id="fixture-select" name="fixture-select" aria-label="Sample select">

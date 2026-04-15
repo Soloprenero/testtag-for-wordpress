@@ -1,446 +1,192 @@
 import { test, expect } from '@tests/fixtures';
-import { FrontendPage } from '@pageObjects/FrontendPage';
-import { TEST_URLS } from '@tests/constants';
+import { TestPage } from '@pageObjects/TestPage';
 
 /**
  * Element Type Tagging — Auto Layer Coverage
  *
  * Verifies that every HTML element type handled by the auto-generate layer
- * receives a tag on the fixture page.  Tests are organised by element
- * category.  For each element we assert:
+ * receives a tag on the fixture page.  Each test:
  *
- *   1. data-testtag-layer="auto" is present (the plugin tagged it)
- *   2. The configured test attribute carries the expected value
+ *   1. Locates the element via its expected tag value (page.getByTestId),
+ *      which implicitly verifies the correct tag was generated.
+ *   2. Asserts data-testtag-layer="auto" to confirm the auto layer tagged it.
  *
- * Stable identifiers (aria-label / id / position-based) use exact-value
- * assertions.  Text-fallback elements use a /^{type}-/ prefix match so
- * minor wording changes do not break the suite.
- *
- * Tag derivation reference (default separator "-"):
- *   get_label_text:  label[for] → aria-label → aria-labelledby
- *   form controls:   label text → name → placeholder
- *   headings:        aria-label → id → text content (fallback)
- *   landmarks:       aria-label → id → first heading (fallback)
- *   lists/tables:    aria-label → id → caption/heading (fallback) / position
+ * All locators live on TestPage so tag values are maintained in one place.
  */
 test.describe('Element type tagging — auto layer coverage', () => {
+  let testPage: TestPage;
+
   test.beforeEach(async ({ page }) => {
-    const frontendPage = new FrontendPage(page);
-    await frontendPage.open(TEST_URLS.LAYER_FIXTURE_PAGE);
+    testPage = new TestPage(page);
+    await testPage.open();
   });
 
   // ── Links ────────────────────────────────────────────────────────────────────
 
-  test('a: regular link is tagged link-{aria-label}', async ({ page, testTagSettings }) => {
-    // <a href="/contact" aria-label="Contact us"> in #fixture-auto-sample
-    const link = page.locator('#fixture-auto-sample a[aria-label="Contact us"]');
-
-    await test.step('link has data-testtag-layer="auto"', async () => {
-      await expect(link).toHaveAttribute('data-testtag-layer', 'auto');
-    });
-
-    await test.step('link tag is link-contact-us (from aria-label)', async () => {
-      await expect(link).toHaveAttribute(testTagSettings.attributeKey, 'link-contact-us');
-    });
+  test('a: href="#" falls through to text fallback and is tagged', async () => {
+    await expect(testPage.primaryLink()).toBeVisible();
+    await expect(testPage.primaryLink()).toHaveAttribute('data-testtag-layer', 'auto');
   });
 
-  test('a: nav link is tagged nav-{fragment}', async ({ page, testTagSettings }) => {
-    // <a href="#fixture-inline-sample"> inside <nav aria-label="Primary">
-    const navLink = page.locator('#fixture-primary-nav a').first();
-
-    await test.step('nav link has data-testtag-layer="auto"', async () => {
-      await expect(navLink).toHaveAttribute('data-testtag-layer', 'auto');
-    });
-
-    await test.step('nav link tag starts with nav-', async () => {
-      const tag = await navLink.getAttribute(testTagSettings.attributeKey);
-      expect(tag).toMatch(/^nav-/);
-    });
+  test('a: nav link is tagged with nav- prefix', async () => {
+    await expect(testPage.firstNavLink()).toBeVisible();
+    await expect(testPage.firstNavLink()).toHaveAttribute('data-testtag-layer', 'auto');
   });
 
   // ── Buttons ──────────────────────────────────────────────────────────────────
 
-  test('button: is tagged button-{text}', async ({ page, testTagSettings }) => {
-    // <button type="button">Button action</button> in #fixture-auto-sample
-    const btn = page.locator('#fixture-auto-sample button[type="button"]');
-
-    await test.step('button has data-testtag-layer="auto"', async () => {
-      await expect(btn).toHaveAttribute('data-testtag-layer', 'auto');
-    });
-
-    await test.step('button tag is button-button-action (from text content)', async () => {
-      await expect(btn).toHaveAttribute(testTagSettings.attributeKey, 'button-button-action');
-    });
+  test('button: is tagged from text content', async () => {
+    await expect(testPage.actionButton()).toBeVisible();
+    await expect(testPage.actionButton()).toHaveAttribute('data-testtag-layer', 'auto');
   });
 
   // ── Form controls ────────────────────────────────────────────────────────────
 
-  test('input: email input is tagged input-{aria-label}', async ({ page, testTagSettings }) => {
-    // <input type="email" aria-label="Email input"> in #fixture-auto-sample
-    const input = page.locator('#fixture-auto-sample input[type="email"]');
-
-    await test.step('input has data-testtag-layer="auto"', async () => {
-      await expect(input).toHaveAttribute('data-testtag-layer', 'auto');
-    });
-
-    await test.step('input tag is input-email-input (from aria-label via get_label_text)', async () => {
-      await expect(input).toHaveAttribute(testTagSettings.attributeKey, 'input-email-input');
-    });
+  test('input: is tagged from aria-label', async () => {
+    await expect(testPage.emailInput()).toBeVisible();
+    await expect(testPage.emailInput()).toHaveAttribute('data-testtag-layer', 'auto');
   });
 
-  test('textarea: is tagged textarea-{aria-label}', async ({ page, testTagSettings }) => {
-    // <textarea aria-label="Sample textarea"> in #fixture-auto-sample
-    const textarea = page.locator('#fixture-auto-sample textarea');
-
-    await test.step('textarea has data-testtag-layer="auto"', async () => {
-      await expect(textarea).toHaveAttribute('data-testtag-layer', 'auto');
-    });
-
-    await test.step('textarea tag is textarea-sample-textarea (from aria-label)', async () => {
-      await expect(textarea).toHaveAttribute(testTagSettings.attributeKey, 'textarea-sample-textarea');
-    });
+  test('textarea: is tagged from aria-label', async () => {
+    await expect(testPage.sampleTextarea()).toBeVisible();
+    await expect(testPage.sampleTextarea()).toHaveAttribute('data-testtag-layer', 'auto');
   });
 
-  test('select: is tagged select-{aria-label}', async ({ page, testTagSettings }) => {
-    // <select id="fixture-select" aria-label="Sample select"> in #fixture-auto-sample
-    const select = page.locator('#fixture-select');
-
-    await test.step('select has data-testtag-layer="auto"', async () => {
-      await expect(select).toHaveAttribute('data-testtag-layer', 'auto');
-    });
-
-    await test.step('select tag is select-sample-select (from aria-label)', async () => {
-      await expect(select).toHaveAttribute(testTagSettings.attributeKey, 'select-sample-select');
-    });
+  test('select: is tagged from aria-label', async () => {
+    await expect(testPage.sampleSelect()).toBeVisible();
+    await expect(testPage.sampleSelect()).toHaveAttribute('data-testtag-layer', 'auto');
   });
 
-  test('form: is tagged form-{aria-label}', async ({ page, testTagSettings }) => {
-    // <form id="fixture-form" aria-label="Contact form"> in #fixture-content-extras
-    const form = page.locator('#fixture-form');
+  test('form: is tagged from aria-label', async () => {
+    await expect(testPage.contactForm()).toBeVisible();
+    await expect(testPage.contactForm()).toHaveAttribute('data-testtag-layer', 'auto');
+  });
 
-    await test.step('form has data-testtag-layer="auto"', async () => {
-      await expect(form).toHaveAttribute('data-testtag-layer', 'auto');
-    });
+  test('option: is tagged from select name and value attribute', async () => {
+    await expect(testPage.firstSelectOption()).toHaveAttribute('data-testtag-layer', 'auto');
+  });
 
-    await test.step('form tag is form-contact-form (from aria-label)', async () => {
-      await expect(form).toHaveAttribute(testTagSettings.attributeKey, 'form-contact-form');
-    });
+  test('fieldset: is tagged from id', async () => {
+    await expect(testPage.fieldset()).toBeVisible();
+    await expect(testPage.fieldset()).toHaveAttribute('data-testtag-layer', 'auto');
   });
 
   // ── Headings ─────────────────────────────────────────────────────────────────
 
-  test('h1: is tagged heading-{text}', async ({ page, testTagSettings }) => {
-    // <h1>Common Site Elements + Layer Samples</h1> in #fixture-site-header
-    const h1 = page.locator('#fixture-site-header h1');
-
-    await test.step('h1 has data-testtag-layer="auto"', async () => {
-      await expect(h1).toHaveAttribute('data-testtag-layer', 'auto');
-    });
-
-    await test.step('h1 tag is heading-common-site-elements-layer-samples', async () => {
-      await expect(h1).toHaveAttribute(
-        testTagSettings.attributeKey,
-        'heading-common-site-elements-layer-samples',
-      );
-    });
+  test('h1: is tagged from text content', async () => {
+    await expect(testPage.siteH1()).toBeVisible();
+    await expect(testPage.siteH1()).toHaveAttribute('data-testtag-layer', 'auto');
   });
 
-  test('h2: is tagged heading-{text}', async ({ page, testTagSettings }) => {
-    // <h2>Selector-map Layer Sample</h2> in #fixture-selector-sample (no pre-authored attrs)
-    const h2 = page.locator('#fixture-selector-sample h2');
-
-    await test.step('h2 has data-testtag-layer="auto"', async () => {
-      await expect(h2).toHaveAttribute('data-testtag-layer', 'auto');
-    });
-
-    await test.step('h2 tag is heading-selector-map-layer-sample (from text)', async () => {
-      await expect(h2).toHaveAttribute(
-        testTagSettings.attributeKey,
-        'heading-selector-map-layer-sample',
-      );
-    });
+  test('h2: is tagged from text content', async () => {
+    await expect(testPage.selectorMapH2()).toBeVisible();
+    await expect(testPage.selectorMapH2()).toHaveAttribute('data-testtag-layer', 'auto');
   });
 
   // ── Paragraphs ───────────────────────────────────────────────────────────────
 
-  test('p: is tagged text-{nearest-tagged-ancestor}', async ({ page, testTagSettings }) => {
-    // <p> in #fixture-inline-sample; nearest tagged ancestor is #fixture-inline-sample
-    // which gets section-fixture-inline-sample, so p gets text-section-fixture-inline-sample
-    const p = page.locator('#fixture-inline-sample p');
-
-    await test.step('p has data-testtag-layer="auto"', async () => {
-      await expect(p).toHaveAttribute('data-testtag-layer', 'auto');
-    });
-
-    await test.step('p tag starts with text-', async () => {
-      const tag = await p.getAttribute(testTagSettings.attributeKey);
-      expect(tag).toMatch(/^text-/);
-    });
+  test('p: is tagged using nearest tagged ancestor as prefix', async () => {
+    await expect(testPage.inlineParagraph()).toBeVisible();
+    await expect(testPage.inlineParagraph()).toHaveAttribute('data-testtag-layer', 'auto');
   });
 
   // ── Media ────────────────────────────────────────────────────────────────────
 
-  test('img: is tagged img-{alt}', async ({ page, testTagSettings }) => {
-    // <img alt="Placeholder graphic"> in #fixture-sidebar figure
-    const img = page.locator('#fixture-sidebar img');
-
-    await test.step('img has data-testtag-layer="auto"', async () => {
-      await expect(img).toHaveAttribute('data-testtag-layer', 'auto');
-    });
-
-    await test.step('img tag is img-placeholder-graphic (from alt attribute)', async () => {
-      await expect(img).toHaveAttribute(testTagSettings.attributeKey, 'img-placeholder-graphic');
-    });
+  test('img: is tagged from alt attribute', async () => {
+    await expect(testPage.sidebarImage()).toBeVisible();
+    await expect(testPage.sidebarImage()).toHaveAttribute('data-testtag-layer', 'auto');
   });
 
   // ── Landmark elements ────────────────────────────────────────────────────────
 
-  test('header: is tagged header-{id}', async ({ page, testTagSettings }) => {
-    const header = page.locator('#fixture-site-header');
-
-    await test.step('header has data-testtag-layer="auto"', async () => {
-      await expect(header).toHaveAttribute('data-testtag-layer', 'auto');
-    });
-
-    await test.step('header tag is header-fixture-site-header (from id)', async () => {
-      await expect(header).toHaveAttribute(testTagSettings.attributeKey, 'header-fixture-site-header');
-    });
+  test('header: is tagged from id', async () => {
+    await expect(testPage.siteHeader()).toBeVisible();
+    await expect(testPage.siteHeader()).toHaveAttribute('data-testtag-layer', 'auto');
   });
 
-  test('nav: is tagged nav-{aria-label}', async ({ page, testTagSettings }) => {
-    const nav = page.locator('#fixture-primary-nav');
-
-    await test.step('nav has data-testtag-layer="auto"', async () => {
-      await expect(nav).toHaveAttribute('data-testtag-layer', 'auto');
-    });
-
-    await test.step('nav tag is nav-primary (from aria-label="Primary")', async () => {
-      await expect(nav).toHaveAttribute(testTagSettings.attributeKey, 'nav-primary');
-    });
+  test('nav: is tagged from aria-label', async () => {
+    await expect(testPage.primaryNav()).toBeVisible();
+    await expect(testPage.primaryNav()).toHaveAttribute('data-testtag-layer', 'auto');
   });
 
-  test('main: is tagged main-{id}', async ({ page, testTagSettings }) => {
-    const main = page.locator('#fixture-main');
-
-    await test.step('main has data-testtag-layer="auto"', async () => {
-      await expect(main).toHaveAttribute('data-testtag-layer', 'auto');
-    });
-
-    await test.step('main tag is main-fixture-main (from id)', async () => {
-      await expect(main).toHaveAttribute(testTagSettings.attributeKey, 'main-fixture-main');
-    });
+  test('main: is tagged from id', async () => {
+    await expect(testPage.mainContent()).toBeVisible();
+    await expect(testPage.mainContent()).toHaveAttribute('data-testtag-layer', 'auto');
   });
 
-  test('section: is tagged section-{id}', async ({ page, testTagSettings }) => {
-    const section = page.locator('#fixture-inline-sample');
-
-    await test.step('section has data-testtag-layer="auto"', async () => {
-      await expect(section).toHaveAttribute('data-testtag-layer', 'auto');
-    });
-
-    await test.step('section tag is section-fixture-inline-sample (from id)', async () => {
-      await expect(section).toHaveAttribute(
-        testTagSettings.attributeKey,
-        'section-fixture-inline-sample',
-      );
-    });
+  test('section: is tagged from id', async () => {
+    await expect(testPage.inlineSection()).toBeVisible();
+    await expect(testPage.inlineSection()).toHaveAttribute('data-testtag-layer', 'auto');
   });
 
-  test('article: is tagged article-{aria-label}', async ({ page, testTagSettings }) => {
-    // <article id="fixture-content" aria-label="Main content">
-    const article = page.locator('#fixture-content');
-
-    await test.step('article has data-testtag-layer="auto"', async () => {
-      await expect(article).toHaveAttribute('data-testtag-layer', 'auto');
-    });
-
-    await test.step('article tag is article-main-content (from aria-label)', async () => {
-      await expect(article).toHaveAttribute(testTagSettings.attributeKey, 'article-main-content');
-    });
+  test('article: is tagged from aria-label', async () => {
+    await expect(testPage.contentArticle()).toBeVisible();
+    await expect(testPage.contentArticle()).toHaveAttribute('data-testtag-layer', 'auto');
   });
 
-  test('aside: is tagged aside-{aria-label}', async ({ page, testTagSettings }) => {
-    // <aside id="fixture-sidebar" aria-label="Sidebar">
-    const aside = page.locator('#fixture-sidebar');
-
-    await test.step('aside has data-testtag-layer="auto"', async () => {
-      await expect(aside).toHaveAttribute('data-testtag-layer', 'auto');
-    });
-
-    await test.step('aside tag is aside-sidebar (from aria-label)', async () => {
-      await expect(aside).toHaveAttribute(testTagSettings.attributeKey, 'aside-sidebar');
-    });
+  test('aside: is tagged from aria-label', async () => {
+    await expect(testPage.sidebarAside()).toBeVisible();
+    await expect(testPage.sidebarAside()).toHaveAttribute('data-testtag-layer', 'auto');
   });
 
-  test('footer: is tagged footer-{id}', async ({ page, testTagSettings }) => {
-    const footer = page.locator('#fixture-footer');
-
-    await test.step('footer has data-testtag-layer="auto"', async () => {
-      await expect(footer).toHaveAttribute('data-testtag-layer', 'auto');
-    });
-
-    await test.step('footer tag is footer-fixture-footer (from id)', async () => {
-      await expect(footer).toHaveAttribute(testTagSettings.attributeKey, 'footer-fixture-footer');
-    });
+  test('footer: is tagged from id', async () => {
+    await expect(testPage.siteFooter()).toBeVisible();
+    await expect(testPage.siteFooter()).toHaveAttribute('data-testtag-layer', 'auto');
   });
 
   // ── Lists ────────────────────────────────────────────────────────────────────
 
-  test('ul: is tagged list-{id}', async ({ page, testTagSettings }) => {
-    const ul = page.locator('#fixture-ul');
-
-    await test.step('ul has data-testtag-layer="auto"', async () => {
-      await expect(ul).toHaveAttribute('data-testtag-layer', 'auto');
-    });
-
-    await test.step('ul tag is list-fixture-ul (from id)', async () => {
-      await expect(ul).toHaveAttribute(testTagSettings.attributeKey, 'list-fixture-ul');
-    });
+  test('ul: is tagged from id', async () => {
+    await expect(testPage.unorderedList()).toBeVisible();
+    await expect(testPage.unorderedList()).toHaveAttribute('data-testtag-layer', 'auto');
   });
 
-  test('ol: is tagged list-{id}', async ({ page, testTagSettings }) => {
-    const ol = page.locator('#fixture-ol');
-
-    await test.step('ol has data-testtag-layer="auto"', async () => {
-      await expect(ol).toHaveAttribute('data-testtag-layer', 'auto');
-    });
-
-    await test.step('ol tag is list-fixture-ol (from id)', async () => {
-      await expect(ol).toHaveAttribute(testTagSettings.attributeKey, 'list-fixture-ol');
-    });
+  test('ol: is tagged from id', async () => {
+    await expect(testPage.orderedList()).toBeVisible();
+    await expect(testPage.orderedList()).toHaveAttribute('data-testtag-layer', 'auto');
   });
 
-  test('li: standard list item is tagged item-{text}', async ({ page, testTagSettings }) => {
-    const li = page.locator('#fixture-ul li').first();
-
-    await test.step('li has data-testtag-layer="auto"', async () => {
-      await expect(li).toHaveAttribute('data-testtag-layer', 'auto');
-    });
-
-    await test.step('li tag starts with item-', async () => {
-      const tag = await li.getAttribute(testTagSettings.attributeKey);
-      expect(tag).toMatch(/^item-/);
-    });
+  test('li: standard list item is tagged from text content', async () => {
+    await expect(testPage.firstListItem()).toBeVisible();
+    await expect(testPage.firstListItem()).toHaveAttribute('data-testtag-layer', 'auto');
   });
 
   // ── Tables ───────────────────────────────────────────────────────────────────
 
-  test('table: is tagged table-{id}', async ({ page, testTagSettings }) => {
-    const table = page.locator('#fixture-table');
-
-    await test.step('table has data-testtag-layer="auto"', async () => {
-      await expect(table).toHaveAttribute('data-testtag-layer', 'auto');
-    });
-
-    await test.step('table tag is table-fixture-table (from id)', async () => {
-      await expect(table).toHaveAttribute(testTagSettings.attributeKey, 'table-fixture-table');
-    });
+  test('table: is tagged from id', async () => {
+    await expect(testPage.metricsTable()).toBeVisible();
+    await expect(testPage.metricsTable()).toHaveAttribute('data-testtag-layer', 'auto');
   });
 
-  test('tr: is tagged row-{position}', async ({ page, testTagSettings }) => {
-    const tr = page.locator('#fixture-table thead tr').first();
-
-    await test.step('tr has data-testtag-layer="auto"', async () => {
-      await expect(tr).toHaveAttribute('data-testtag-layer', 'auto');
-    });
-
-    await test.step('tr tag is row-1 (first sibling position)', async () => {
-      await expect(tr).toHaveAttribute(testTagSettings.attributeKey, 'row-1');
-    });
+  test('tr: is tagged from sibling position, scoped to parent table', async () => {
+    await expect(testPage.tableHeaderRow()).toBeVisible();
+    await expect(testPage.tableHeaderRow()).toHaveAttribute('data-testtag-layer', 'auto');
   });
 
-  test('th: is tagged col-{text}', async ({ page, testTagSettings }) => {
-    const th = page.locator('#fixture-table th').first();
-
-    await test.step('th has data-testtag-layer="auto"', async () => {
-      await expect(th).toHaveAttribute('data-testtag-layer', 'auto');
-    });
-
-    await test.step('th tag starts with col-', async () => {
-      const tag = await th.getAttribute(testTagSettings.attributeKey);
-      expect(tag).toMatch(/^col-/);
-    });
+  test('th: is tagged from text content', async () => {
+    await expect(testPage.firstTableHeaderCell()).toBeVisible();
+    await expect(testPage.firstTableHeaderCell()).toHaveAttribute('data-testtag-layer', 'auto');
   });
 
-  test('td: is tagged cell-{column-position}', async ({ page, testTagSettings }) => {
-    const td = page.locator('#fixture-table tbody td').first();
-
-    await test.step('td has data-testtag-layer="auto"', async () => {
-      await expect(td).toHaveAttribute('data-testtag-layer', 'auto');
-    });
-
-    await test.step('td tag is cell-1 (first column)', async () => {
-      await expect(td).toHaveAttribute(testTagSettings.attributeKey, 'cell-1');
-    });
+  test('td: is tagged from column position, scoped to parent table', async () => {
+    await expect(testPage.firstTableDataCell()).toBeVisible();
+    await expect(testPage.firstTableDataCell()).toHaveAttribute('data-testtag-layer', 'auto');
   });
 
-  // ── Select options ───────────────────────────────────────────────────────────
+  // ── Details / Summary / Figure ───────────────────────────────────────────────
 
-  test('option: is tagged option-{select-name}-{value}', async ({ page, testTagSettings }) => {
-    // <option value="option-a"> inside <select name="fixture-select">
-    const option = page.locator('#fixture-select option').first();
-
-    await test.step('option has data-testtag-layer="auto"', async () => {
-      await expect(option).toHaveAttribute('data-testtag-layer', 'auto');
-    });
-
-    await test.step('option tag is option-fixture-select-option-a (select name + value)', async () => {
-      await expect(option).toHaveAttribute(
-        testTagSettings.attributeKey,
-        'option-fixture-select-option-a',
-      );
-    });
+  test('details: is tagged from id', async () => {
+    await expect(testPage.detailsDisclosure()).toBeVisible();
+    await expect(testPage.detailsDisclosure()).toHaveAttribute('data-testtag-layer', 'auto');
   });
 
-  // ── Fieldset / Details / Figure ──────────────────────────────────────────────
-
-  test('fieldset: is tagged fieldset-{id}', async ({ page, testTagSettings }) => {
-    const fieldset = page.locator('#fixture-fieldset');
-
-    await test.step('fieldset has data-testtag-layer="auto"', async () => {
-      await expect(fieldset).toHaveAttribute('data-testtag-layer', 'auto');
-    });
-
-    await test.step('fieldset tag is fieldset-fixture-fieldset (from id)', async () => {
-      await expect(fieldset).toHaveAttribute(testTagSettings.attributeKey, 'fieldset-fixture-fieldset');
-    });
+  test('summary: is tagged from text content', async () => {
+    await expect(testPage.detailsSummary()).toBeVisible();
+    await expect(testPage.detailsSummary()).toHaveAttribute('data-testtag-layer', 'auto');
   });
 
-  test('details: is tagged details-{id}', async ({ page, testTagSettings }) => {
-    const details = page.locator('#fixture-details');
-
-    await test.step('details has data-testtag-layer="auto"', async () => {
-      await expect(details).toHaveAttribute('data-testtag-layer', 'auto');
-    });
-
-    await test.step('details tag is details-fixture-details (from id)', async () => {
-      await expect(details).toHaveAttribute(testTagSettings.attributeKey, 'details-fixture-details');
-    });
-  });
-
-  test('summary: is tagged summary-{text}', async ({ page, testTagSettings }) => {
-    const summary = page.locator('#fixture-details summary');
-
-    await test.step('summary has data-testtag-layer="auto"', async () => {
-      await expect(summary).toHaveAttribute('data-testtag-layer', 'auto');
-    });
-
-    await test.step('summary tag starts with summary-', async () => {
-      const tag = await summary.getAttribute(testTagSettings.attributeKey);
-      expect(tag).toMatch(/^summary-/);
-    });
-  });
-
-  test('figure: is tagged figure-{figcaption}', async ({ page, testTagSettings }) => {
-    const figure = page.locator('#fixture-sidebar figure');
-
-    await test.step('figure has data-testtag-layer="auto"', async () => {
-      await expect(figure).toHaveAttribute('data-testtag-layer', 'auto');
-    });
-
-    await test.step('figure tag starts with figure-', async () => {
-      const tag = await figure.getAttribute(testTagSettings.attributeKey);
-      expect(tag).toMatch(/^figure-/);
-    });
+  test('figure: is tagged from figcaption text', async () => {
+    await expect(testPage.sidebarFigure()).toBeVisible();
+    await expect(testPage.sidebarFigure()).toHaveAttribute('data-testtag-layer', 'auto');
   });
 });
