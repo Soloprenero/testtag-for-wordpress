@@ -352,7 +352,10 @@ class TestTag_HTML_Processor {
                 $al = $el->getAttribute( 'aria-label' );
                 if ( $al ) return self::format_id( 'nav', self::slug( $al ), $tv );
                 if ( $href === '/' ) return self::format_id( 'nav', 'home', $tv );
-                if ( str_starts_with( $href, '#' ) ) return self::format_id( 'nav', self::slug( substr( $href, 1 ) ), $tv );
+                if ( str_starts_with( $href, '#' ) ) {
+                    $frag = self::slug( substr( $href, 1 ) );
+                    if ( $frag ) return self::format_id( 'nav', $frag, $tv );
+                }
                 $frag = self::href_path_fragment( $href );
                 if ( $frag ) return self::format_id( 'nav', $frag, $tv );
                 if ( $text_fallback ) return self::format_id( 'nav', self::slug( $linkText ?: $href ), $tv );
@@ -392,7 +395,10 @@ class TestTag_HTML_Processor {
             }
             $frag = self::href_path_fragment( $href );
             if ( $frag ) return self::format_id( 'link', $frag, $tv );
-            if ( str_starts_with( $href, '#' ) ) return self::format_id( 'link', self::slug( substr( $href, 1 ) ), $tv );
+            if ( str_starts_with( $href, '#' ) ) {
+                $frag = self::slug( substr( $href, 1 ) );
+                if ( $frag ) return self::format_id( 'link', $frag, $tv );
+            }
             if ( $text_fallback && $linkText ) return self::format_id( 'link', self::slug( $linkText ), $tv );
             return null;
         }

@@ -305,7 +305,10 @@
                 var al = el.getAttribute('aria-label');
                 if (al) return formatId('nav', slug(al), details);
                 if (href === '/')               return formatId('nav', 'home', details);
-                if (href.startsWith('#'))       return formatId('nav', slug(href.slice(1)), details);
+                if (href.startsWith('#')) {
+                    var frag = slug(href.slice(1));
+                    if (frag) return formatId('nav', frag, details);
+                }
                 var frag = hrefPathFragment(href);
                 if (frag) return formatId('nav', frag, details);
                 if (textFallback) return formatId('nav', slug(linkText || href), details);
@@ -340,7 +343,10 @@
             }
             var frag = hrefPathFragment(href);
             if (frag) return formatId('link', frag, details);
-            if (href.startsWith('#'))   return formatId('link', slug(href.slice(1)), details);
+            if (href.startsWith('#')) {
+                var frag = slug(href.slice(1));
+                if (frag) return formatId('link', frag, details);
+            }
             if (textFallback && linkText) return formatId('link', slug(linkText), details);
             return null;
         }
