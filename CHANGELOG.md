@@ -2,6 +2,19 @@
 
 All notable changes to TestTag for WordPress are documented in this file.
 
+## [Unreleased] — Extended Element Type Tagging Coverage
+
+### Fixed / Added
+
+- **Expanded auto-tagging to cover all common HTML elements** in both the PHP processor and JS dynamic injector. Previously untagged elements and their generated tag formats:
+  - `<ul>` / `<ol>` → `list-{aria-label|id|heading}`; `<li>` → `item-{aria-label|id|text}` (previously only tagged inside custom select lists)
+  - `<table>` → `table-{aria-label|id|caption}`; `<tr>` → `row-{position}`; `<th>` → `col-{text}`; `<td>` → `cell-{column}`
+  - `<option>` → `option-{select-name}-{value}` (native select options were not tagged at all)
+  - `<nav>` → `nav-{aria-label|id|heading}` (was missing from targets entirely)
+  - `<fieldset>` → `fieldset-{aria-label|id|legend}`; `<details>` → `details-{aria-label|id|summary}`; `<summary>` → `summary-{aria-label|id|text}`; `<figure>` → `figure-{aria-label|id|figcaption}`
+
+---
+
 ## [Unreleased] — Configurable Test Tag String Format
 
 ### Settings UI — Tag Format Builder
