@@ -324,8 +324,8 @@
             var al = el.getAttribute('aria-label');
             if (al) return formatId('button', slug(al), details);
             if (el.id) {
-                var idSlug = cleanId(el.id);
-                if (idSlug && !/^\d+$/.test(idSlug) && idSlug.length > 1) return formatId('button', idSlug, details);
+                var cleanedId = cleanId(el.id);
+                if (cleanedId && !/^\d+$/.test(cleanedId) && cleanedId.length > 1) return formatId('button', cleanedId, details);
             }
             var name = el.getAttribute('name');
             if (name) return formatId('button', slug(name), details);
@@ -380,8 +380,8 @@
             var al = el.getAttribute('aria-label');
             if (al) return formatId('link', slug(al), details);
             if (el.id) {
-                var idSlug = cleanId(el.id);
-                if (idSlug && !/^\d+$/.test(idSlug) && idSlug.length > 1) return formatId('link', idSlug, details);
+                var cleanedId = cleanId(el.id);
+                if (cleanedId && !/^\d+$/.test(cleanedId) && cleanedId.length > 1) return formatId('link', cleanedId, details);
             }
             var frag = hrefPathFragment(href);
             if (frag) return formatId('link', frag, details);
@@ -398,8 +398,8 @@
             var al = el.getAttribute('aria-label');
             if (al) return formatId(tagName, slug(al), details);
             if (el.id) {
-                var idSlug = cleanId(el.id);
-                if (idSlug && !/^\d+$/.test(idSlug) && idSlug.length > 1) return formatId(tagName, idSlug, details);
+                var cleanedId = cleanId(el.id);
+                if (cleanedId && !/^\d+$/.test(cleanedId) && cleanedId.length > 1) return formatId(tagName, cleanedId, details);
             }
             if (textFallback) {
                 var h = firstHeadingText(el);
@@ -413,8 +413,8 @@
             var al = el.getAttribute('aria-label');
             if (al) return formatId('heading', slug(al), details);
             if (el.id) {
-                var idSlug = cleanId(el.id);
-                if (idSlug && !/^\d+$/.test(idSlug) && idSlug.length > 1) return formatId('heading', idSlug, details);
+                var cleanedId = cleanId(el.id);
+                if (cleanedId && !/^\d+$/.test(cleanedId) && cleanedId.length > 1) return formatId('heading', cleanedId, details);
             }
             if (textFallback) {
                 var text = el.textContent.trim();
@@ -440,8 +440,8 @@
             var al = el.getAttribute('aria-label');
             if (al) return formatId('form', slug(al), details);
             if (el.id) {
-                var idSlug = cleanId(el.id);
-                if (idSlug && !/^\d+$/.test(idSlug) && idSlug.length > 1) return formatId('form', idSlug, details);
+                var cleanedId = cleanId(el.id);
+                if (cleanedId && !/^\d+$/.test(cleanedId) && cleanedId.length > 1) return formatId('form', cleanedId, details);
             }
             if (textFallback) {
                 var legend = el.querySelector('legend') || el.querySelector('h1,h2,h3,h4,h5,h6');
@@ -464,8 +464,8 @@
             var al = el.getAttribute('aria-label');
             if (al) return formatId('nav', slug(al), details);
             if (el.id) {
-                var idSlug = cleanId(el.id);
-                if (idSlug && !/^\d+$/.test(idSlug) && idSlug.length > 1) return formatId('nav', idSlug, details);
+                var cleanedId = cleanId(el.id);
+                if (cleanedId && !/^\d+$/.test(cleanedId) && cleanedId.length > 1) return formatId('nav', cleanedId, details);
             }
             if (textFallback) {
                 var h = firstHeadingText(el);
@@ -479,8 +479,8 @@
             var al = el.getAttribute('aria-label');
             if (al) return formatId('list', slug(al), details);
             if (el.id) {
-                var idSlug = cleanId(el.id);
-                if (idSlug && !/^\d+$/.test(idSlug) && idSlug.length > 1) return formatId('list', idSlug, details);
+                var cleanedId = cleanId(el.id);
+                if (cleanedId && !/^\d+$/.test(cleanedId) && cleanedId.length > 1) return formatId('list', cleanedId, details);
             }
             if (textFallback) {
                 var h = firstHeadingText(el);
@@ -522,8 +522,8 @@
             var al = el.getAttribute('aria-label');
             if (al) return formatId('item', slug(al), details);
             if (el.id) {
-                var idSlug = cleanId(el.id);
-                if (idSlug && !/^\d+$/.test(idSlug) && idSlug.length > 1) return formatId('item', idSlug, details);
+                var cleanedId = cleanId(el.id);
+                if (cleanedId && !/^\d+$/.test(cleanedId) && cleanedId.length > 1) return formatId('item', cleanedId, details);
             }
             if (textFallback) {
                 var text = el.textContent.trim().slice(0, 40);
@@ -555,8 +555,8 @@
             var al = el.getAttribute('aria-label');
             if (al) return formatId('table', slug(al), details);
             if (el.id) {
-                var idSlug = cleanId(el.id);
-                if (idSlug && !/^\d+$/.test(idSlug) && idSlug.length > 1) return formatId('table', idSlug, details);
+                var cleanedId = cleanId(el.id);
+                if (cleanedId && !/^\d+$/.test(cleanedId) && cleanedId.length > 1) return formatId('table', cleanedId, details);
             }
             var caption = el.querySelector('caption');
             if (caption) {
@@ -588,8 +588,8 @@
             var al = el.getAttribute('aria-label');
             if (al) return formatId('col', slug(al), details);
             if (el.id) {
-                var idSlug = cleanId(el.id);
-                if (idSlug && !/^\d+$/.test(idSlug) && idSlug.length > 1) return formatId('col', idSlug, details);
+                var cleanedId = cleanId(el.id);
+                if (cleanedId && !/^\d+$/.test(cleanedId) && cleanedId.length > 1) return formatId('col', cleanedId, details);
             }
             if (textFallback) {
                 var text = el.textContent.trim();
@@ -619,8 +619,8 @@
             var al = el.getAttribute('aria-label');
             if (al) return formatId('fieldset', slug(al), details);
             if (el.id) {
-                var idSlug = cleanId(el.id);
-                if (idSlug && !/^\d+$/.test(idSlug) && idSlug.length > 1) return formatId('fieldset', idSlug, details);
+                var cleanedId = cleanId(el.id);
+                if (cleanedId && !/^\d+$/.test(cleanedId) && cleanedId.length > 1) return formatId('fieldset', cleanedId, details);
             }
             if (textFallback) {
                 var legend = el.querySelector('legend');
@@ -637,8 +637,8 @@
             var al = el.getAttribute('aria-label');
             if (al) return formatId('details', slug(al), details);
             if (el.id) {
-                var idSlug = cleanId(el.id);
-                if (idSlug && !/^\d+$/.test(idSlug) && idSlug.length > 1) return formatId('details', idSlug, details);
+                var cleanedId = cleanId(el.id);
+                if (cleanedId && !/^\d+$/.test(cleanedId) && cleanedId.length > 1) return formatId('details', cleanedId, details);
             }
             if (textFallback) {
                 var summary = el.querySelector('summary');
@@ -654,8 +654,8 @@
             var al = el.getAttribute('aria-label');
             if (al) return formatId('summary', slug(al), details);
             if (el.id) {
-                var idSlug = cleanId(el.id);
-                if (idSlug && !/^\d+$/.test(idSlug) && idSlug.length > 1) return formatId('summary', idSlug, details);
+                var cleanedId = cleanId(el.id);
+                if (cleanedId && !/^\d+$/.test(cleanedId) && cleanedId.length > 1) return formatId('summary', cleanedId, details);
             }
             if (textFallback) {
                 var text = el.textContent.trim();
@@ -669,8 +669,8 @@
             var al = el.getAttribute('aria-label');
             if (al) return formatId('figure', slug(al), details);
             if (el.id) {
-                var idSlug = cleanId(el.id);
-                if (idSlug && !/^\d+$/.test(idSlug) && idSlug.length > 1) return formatId('figure', idSlug, details);
+                var cleanedId = cleanId(el.id);
+                if (cleanedId && !/^\d+$/.test(cleanedId) && cleanedId.length > 1) return formatId('figure', cleanedId, details);
             }
             if (textFallback) {
                 var figcaption = el.querySelector('figcaption');
@@ -693,8 +693,8 @@
 
             // 2. Stable id (non-numeric)
             if (el.id) {
-                var idSlug = cleanId(el.id);
-                if (idSlug && !/^\d+$/.test(idSlug) && idSlug.length > 1) return formatId(prefix, idSlug, details);
+                var cleanedId = cleanId(el.id);
+                if (cleanedId && !/^\d+$/.test(cleanedId) && cleanedId.length > 1) return formatId(prefix, cleanedId, details);
             }
 
             // 3. Elementor section/container
