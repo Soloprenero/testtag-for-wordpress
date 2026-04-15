@@ -18,6 +18,8 @@ export class TestTagSettingsPage extends AppPage {
   readonly attributeKeyField: Locator;
   readonly cssSelectorMapHeading: Locator;
   readonly saveButton: Locator;
+  readonly selectorPreviewHtml: Locator;
+  readonly selectorPreviewResults: Locator;
 
   constructor(page: Page) {
     super(page);
@@ -25,6 +27,8 @@ export class TestTagSettingsPage extends AppPage {
     this.attributeKeyField = page.locator('select[name*="attribute_key"], input[name*="attribute_key"]').first();
     this.cssSelectorMapHeading = page.locator('text=CSS Selector Map').first();
     this.saveButton = page.locator('button[type="submit"], input[type="submit"]').first();
+    this.selectorPreviewHtml = page.locator('#testtag-selector-preview-html');
+    this.selectorPreviewResults = page.locator('#testtag-selector-preview-results');
   }
 
   async open(): Promise<void> {
@@ -40,6 +44,19 @@ export class TestTagSettingsPage extends AppPage {
   async scrollToCssSelectorMap(): Promise<void> {
     await this.cssSelectorMapHeading.scrollIntoViewIfNeeded();
     await this.cssSelectorMapHeading.waitFor({ state: 'visible', timeout: 3000 });
+  }
+
+  async scrollToSelectorPreview(): Promise<void> {
+    await this.selectorPreviewHtml.scrollIntoViewIfNeeded();
+    await this.selectorPreviewHtml.waitFor({ state: 'visible', timeout: 3000 });
+  }
+
+  /**
+   * Paste HTML into the selector preview textarea and wait for results to update.
+   */
+  async setSelectorPreviewHtml(html: string): Promise<void> {
+    await this.selectorPreviewHtml.fill(html);
+    await this.selectorPreviewHtml.dispatchEvent('input');
   }
 
   async setAttributeKey(value: 'data-testid' | 'data-cy' | 'data-test'): Promise<void> {

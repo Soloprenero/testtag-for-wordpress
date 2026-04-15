@@ -716,6 +716,139 @@
     // Attach to all existing rows on page load.
     tbody.querySelectorAll('input[name$="[selector]"]').forEach(attachSelectorValidation);
 
+    // ── Selector Preview ──────────────────────────────────────────
+    var selectorPreviewHtmlEl = document.getElementById('testtag-selector-preview-html');
+    var selectorPreviewResults = document.getElementById('testtag-selector-preview-results');
+
+    var MAX_PREVIEW_SNIPPETS = 3;
+    var MAX_SNIPPET_LENGTH   = 120;
+
+    function runSelectorPreview() {
+        if (!selectorPreviewHtmlEl || !selectorPreviewResults) return;
+        var html = selectorPreviewHtmlEl.value.trim();
+
+        if (!html) {
+            selectorPreviewResults.innerHTML = '';
+            return;
+        }
+
+        var doc;
+        try {
+            // DOMParser creates a sandboxed, detached document; scripts are not executed.
+            // Results are only used for querySelectorAll matching and displayed via textContent.
+            doc = (new DOMParser()).parseFromString(html, 'text/html');
+        } catch (e) {
+            selectorPreviewResults.textContent = 'Could not parse HTML.';
+            return;
+        }
+
+        var rows = tbody.querySelectorAll('tr.testtag-row');
+        if (!rows.length) {
+            selectorPreviewResults.innerHTML =
+                '<p class="testtag-selector-preview-empty">No selector map rows. Add rows above to test selectors.</p>';
+            return;
+        }
+
+        var hasAny = false;
+        var ul = document.createElement('ul');
+        ul.className = 'testtag-selector-preview-list';
+
+        rows.forEach(function (row) {
+            var selInput = row.querySelector('input[name$="[selector]"]');
+            var tagInput = row.querySelector('input[name$="[testid]"]');
+            var sel = selInput ? selInput.value.trim() : '';
+            var tag = tagInput ? tagInput.value.trim() : '';
+            if (!sel) return;
+            hasAny = true;
+
+            var count = 0;
+            var snippets = [];
+            var isInvalid = false;
+            try {
+                var matches = doc.querySelectorAll(sel);
+                count = matches.length;
+                for (var i = 0; i < Math.min(matches.length, MAX_PREVIEW_SNIPPETS); i++) {
+                    var outer = matches[i].outerHTML;
+                    snippets.push(outer.length > MAX_SNIPPET_LENGTH ? outer.slice(0, MAX_SNIPPET_LENGTH) + '\u2026' : outer);
+                }
+            } catch (e) {
+                isInvalid = true;
+            }
+
+            var li = document.createElement('li');
+            li.className = 'testtag-selector-preview-row';
+
+            var badge = document.createElement('span');
+            if (isInvalid) {
+                badge.className = 'testtag-selector-preview-count is-invalid';
+                badge.textContent = 'invalid selector';
+            } else {
+                badge.className = 'testtag-selector-preview-count' + (count > 0 ? ' has-matches' : ' no-matches');
+                badge.textContent = count + (count === 1 ? ' match' : ' matches');
+            }
+            li.appendChild(badge);
+            li.appendChild(document.createTextNode('\u00a0'));
+
+            var selectorCode = document.createElement('code');
+            selectorCode.className = 'testtag-selector-preview-sel';
+            selectorCode.textContent = sel;
+            li.appendChild(selectorCode);
+
+            if (tag) {
+                li.appendChild(document.createTextNode(' \u2192 '));
+                var tagCode = document.createElement('code');
+                tagCode.className = 'testtag-selector-preview-tag';
+                tagCode.textContent = tag;
+                li.appendChild(tagCode);
+            }
+
+            if (!isInvalid && snippets.length) {
+                var matchList = document.createElement('ul');
+                matchList.className = 'testtag-selector-preview-matches';
+                snippets.forEach(function (snippet) {
+                    var item = document.createElement('li');
+                    var code = document.createElement('code');
+                    // snippet is set via textContent (not innerHTML) to prevent XSS.
+                    code.textContent = snippet;
+                    item.appendChild(code);
+                    matchList.appendChild(item);
+                });
+                if (count > MAX_PREVIEW_SNIPPETS) {
+                    var more = document.createElement('li');
+                    more.className = 'testtag-selector-preview-more';
+                    more.textContent = '\u2026and ' + (count - MAX_PREVIEW_SNIPPETS) + ' more';
+                    matchList.appendChild(more);
+                }
+                li.appendChild(matchList);
+            }
+
+            ul.appendChild(li);
+        });
+
+        selectorPreviewResults.innerHTML = '';
+        if (!hasAny) {
+            selectorPreviewResults.innerHTML =
+                '<p class="testtag-selector-preview-empty">No selector map rows. Add rows above to test selectors.</p>';
+        } else {
+            selectorPreviewResults.appendChild(ul);
+        }
+    }
+
+    if (selectorPreviewHtmlEl) {
+        selectorPreviewHtmlEl.addEventListener('input', runSelectorPreview);
+        runSelectorPreview();
+    }
+
+    // Re-run preview when selector or testid fields change.
+    tbody.addEventListener('input', function (e) {
+        if (e.target && (
+            e.target.matches('input[name$="[selector]"]') ||
+            e.target.matches('input[name$="[testid]"]')
+        )) {
+            runSelectorPreview();
+        }
+    });
+
     // Attach validation to selector inputs in rows added dynamically (add row / preset apply).
     // Use a MutationObserver instead of overriding appendChild for reliability.
     var rowObserver = new MutationObserver(function (mutations) {
@@ -726,6 +859,7 @@
                 if (sel) attachSelectorValidation(sel);
             });
         });
+        runSelectorPreview();
     });
     rowObserver.observe(tbody, { childList: true });
 })();
