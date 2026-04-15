@@ -728,4 +728,40 @@
         });
     });
     rowObserver.observe(tbody, { childList: true });
+
+    // ── Block save when any selector has an unsupported pattern ───
+    var settingsForm = table.closest('form');
+    if (settingsForm) {
+        settingsForm.addEventListener('submit', function (e) {
+            // Re-validate every selector input to ensure feedback is current.
+            var inputs = tbody.querySelectorAll('input[name$="[selector]"]');
+            var firstError = null;
+            inputs.forEach(function (input) {
+                validateSelectorInput(input);
+                if (!firstError && input.classList.contains('testtag-selector-error')) {
+                    firstError = input;
+                }
+            });
+
+            var existingBanner = document.getElementById('testtag-selector-save-error');
+
+            if (firstError) {
+                e.preventDefault();
+                firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                firstError.focus();
+
+                if (!existingBanner) {
+                    var banner = document.createElement('div');
+                    banner.id = 'testtag-selector-save-error';
+                    banner.className = 'notice notice-error is-dismissible';
+                    banner.innerHTML =
+                        '<p><strong>Save blocked:</strong> One or more CSS selectors use unsupported patterns. ' +
+                        'Fix or remove the flagged rows before saving.</p>';
+                    settingsForm.parentNode.insertBefore(banner, settingsForm);
+                }
+            } else {
+                if (existingBanner) existingBanner.remove();
+            }
+        });
+    }
 })();
