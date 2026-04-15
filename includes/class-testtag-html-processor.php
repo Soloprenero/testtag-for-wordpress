@@ -406,8 +406,7 @@ class TestTag_HTML_Processor {
             if ( ! ( $label instanceof DOMElement ) ) continue;
             $for = $label->getAttribute( 'for' );
             if ( $for && ! isset( $map[ $for ] ) ) {
-                $text = trim( $label->textContent );
-                if ( $text ) $map[ $for ] = $text;
+                $map[ $for ] = trim( $label->textContent );
             }
         }
         return $map;
