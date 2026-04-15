@@ -267,19 +267,21 @@ class TestTag_HTML_Processor {
     private static function auto_generate( DOMDocument $doc, DOMXPath $xpath ): void {
         $targets_xp = implode( ' | ', [
             '//a', '//button',
-            '//input', '//textarea', '//select', '//form',
-            '//section', '//article', '//aside', '//main', '//header', '//footer',
+            '//input', '//textarea', '//select', '//option', '//form',
+            '//section', '//article', '//aside', '//main', '//header', '//footer', '//nav',
             '//h1', '//h2', '//h3', '//h4', '//h5', '//h6',
             '//p',
             '//img',
+            '//ul', '//ol', '//li',
+            '//table', '//tr', '//th', '//td',
+            '//fieldset',
+            '//details', '//summary',
+            '//figure',
             '//*[@id]',
             '//*[@role]',
             '//*[@data-element_type]',
             '//*[@data-widget_type]',
             '//*[contains(@class,"wp-block-")]',
-            '//ul[contains(@class,"select")]//li',
-            '//ul[contains(@class,"options")]//li',
-            '//*[@rel and self::li]',
         ] );
 
         $attr          = self::$attr;
@@ -350,7 +352,10 @@ class TestTag_HTML_Processor {
                 $al = $el->getAttribute( 'aria-label' );
                 if ( $al ) return self::format_id( 'nav', self::slug( $al ), $tv );
                 if ( $href === '/' ) return self::format_id( 'nav', 'home', $tv );
-                if ( str_starts_with( $href, '#' ) ) return self::format_id( 'nav', self::slug( substr( $href, 1 ) ), $tv );
+                if ( str_starts_with( $href, '#' ) ) {
+                    $frag = self::slug( substr( $href, 1 ) );
+                    if ( $frag ) return self::format_id( 'nav', $frag, $tv );
+                }
                 $frag = self::href_path_fragment( $href );
                 if ( $frag ) return self::format_id( 'nav', $frag, $tv );
                 if ( $text_fallback ) return self::format_id( 'nav', self::slug( $linkText ?: $href ), $tv );
@@ -390,8 +395,27 @@ class TestTag_HTML_Processor {
             }
             $frag = self::href_path_fragment( $href );
             if ( $frag ) return self::format_id( 'link', $frag, $tv );
-            if ( str_starts_with( $href, '#' ) ) return self::format_id( 'link', self::slug( substr( $href, 1 ) ), $tv );
+            if ( str_starts_with( $href, '#' ) ) {
+                $frag = self::slug( substr( $href, 1 ) );
+                if ( $frag ) return self::format_id( 'link', $frag, $tv );
+            }
             if ( $text_fallback && $linkText ) return self::format_id( 'link', self::slug( $linkText ), $tv );
+            return null;
+        }
+
+        // ── Navigation ────────────────────────────────────────────
+        if ( $tag === 'nav' ) {
+            $al = $el->getAttribute( 'aria-label' );
+            if ( $al ) return self::format_id( 'nav', self::slug( $al ), $tv );
+            $id = $el->getAttribute( 'id' );
+            if ( $id ) {
+                $clean = self::clean( self::slug( $id ) );
+                if ( $clean && ! ctype_digit( $clean ) && strlen( $clean ) > 1 ) return self::format_id( 'nav', $clean, $tv );
+            }
+            if ( $text_fallback ) {
+                $h = self::first_heading_text( $el );
+                if ( $h ) return self::format_id( 'nav', self::slug( $h ), $tv );
+            }
             return null;
         }
 
@@ -467,35 +491,231 @@ class TestTag_HTML_Processor {
             return $alt ? self::format_id( 'img', self::slug( $alt ), $tv ) : null;
         }
 
-        // ── Custom select options ─────────────────────────────────
-        if ( $tag === 'li' ) {
-            $relVal = $el->getAttribute( 'rel' );
-            $optValue = $relVal ?: ( $text_fallback ? trim( $el->textContent ) : '' );
-            if ( ! $optValue ) return null;
-            $optSlug = self::slug( $optValue );
-            if ( ! $optSlug ) return null;
+        // ── Lists ─────────────────────────────────────────────────
+        if ( $tag === 'ul' || $tag === 'ol' ) {
+            $al = $el->getAttribute( 'aria-label' );
+            if ( $al ) return self::format_id( 'list', self::slug( $al ), $tv );
+            $id = $el->getAttribute( 'id' );
+            if ( $id ) {
+                $clean = self::clean( self::slug( $id ) );
+                if ( $clean && ! ctype_digit( $clean ) && strlen( $clean ) > 1 ) return self::format_id( 'list', $clean, $tv );
+            }
+            if ( $text_fallback ) {
+                $h = self::first_heading_text( $el );
+                if ( $h ) return self::format_id( 'list', self::slug( $h ), $tv );
+            }
+            return null;
+        }
 
-            // Walk up to find a data-name wrapper or sibling <select>
-            $selectName = null;
-            $parent = $el->parentNode;
-            while ( $parent && $parent instanceof DOMElement ) {
-                if ( $parent->hasAttribute( 'data-name' ) ) {
-                    $selectName = $parent->getAttribute( 'data-name' );
-                    break;
-                }
-                // Look for a sibling or descendant <select>
-                foreach ( $parent->childNodes as $child ) {
-                    if ( $child instanceof DOMElement && $child->tagName === 'select' && $child->hasAttribute( 'name' ) ) {
-                        $selectName = $child->getAttribute( 'name' );
-                        break 2;
+        // ── List items ────────────────────────────────────────────
+        if ( $tag === 'li' ) {
+            $relVal    = $el->getAttribute( 'rel' );
+            $parentEl  = $el->parentNode instanceof DOMElement ? $el->parentNode : null;
+            $parentCls = $parentEl ? $parentEl->getAttribute( 'class' ) : '';
+            $isSelectList = $parentEl && (
+                str_contains( $parentCls, 'select' ) ||
+                str_contains( $parentCls, 'options' )
+            );
+
+            if ( $isSelectList || $relVal ) {
+                // Custom select option — walk up to find a data-name wrapper or sibling <select>
+                $optValue  = $relVal ?: ( $text_fallback ? trim( $el->textContent ) : '' );
+                if ( ! $optValue ) return null;
+                $optSlug   = self::slug( $optValue );
+                if ( ! $optSlug ) return null;
+                $selectName = null;
+                $walker    = $el->parentNode;
+                while ( $walker instanceof DOMElement ) {
+                    if ( $walker->hasAttribute( 'data-name' ) ) {
+                        $selectName = $walker->getAttribute( 'data-name' );
+                        break;
                     }
+                    foreach ( $walker->childNodes as $child ) {
+                        if ( $child instanceof DOMElement && $child->tagName === 'select' && $child->hasAttribute( 'name' ) ) {
+                            $selectName = $child->getAttribute( 'name' );
+                            break 2;
+                        }
+                    }
+                    $walker = $walker->parentNode;
                 }
-                $parent = $parent->parentNode;
+                return $selectName
+                    ? self::format_id( 'option', self::slug( $selectName ) . self::$separator . $optSlug, $tv )
+                    : self::format_id( 'option', $optSlug, $tv );
             }
 
+            // Standard list item
+            $al = $el->getAttribute( 'aria-label' );
+            if ( $al ) return self::format_id( 'item', self::slug( $al ), $tv );
+            $id = $el->getAttribute( 'id' );
+            if ( $id ) {
+                $clean = self::clean( self::slug( $id ) );
+                if ( $clean && ! ctype_digit( $clean ) && strlen( $clean ) > 1 ) return self::format_id( 'item', $clean, $tv );
+            }
+            if ( $text_fallback ) {
+                $text = trim( $el->textContent );
+                if ( $text ) return self::format_id( 'item', self::slug( substr( $text, 0, 40 ) ), $tv );
+            }
+            return null;
+        }
+
+        // ── Native select options ─────────────────────────────────
+        if ( $tag === 'option' ) {
+            $value    = $el->getAttribute( 'value' );
+            $optValue = ( $value !== '' ) ? $value : ( $text_fallback ? trim( $el->textContent ) : '' );
+            if ( $optValue === '' ) return null;
+            $optSlug  = self::slug( $optValue );
+            if ( $optSlug === '' ) return null;
+            // Find the parent <select>
+            $selectEl = $el->parentNode;
+            while ( $selectEl instanceof DOMElement && strtolower( $selectEl->tagName ) !== 'select' ) {
+                $selectEl = $selectEl->parentNode;
+            }
+            $selectName = null;
+            if ( $selectEl instanceof DOMElement ) {
+                $selectName = $selectEl->getAttribute( 'name' ) ?: $selectEl->getAttribute( 'id' );
+            }
             return $selectName
                 ? self::format_id( 'option', self::slug( $selectName ) . self::$separator . $optSlug, $tv )
                 : self::format_id( 'option', $optSlug, $tv );
+        }
+
+        // ── Tables ────────────────────────────────────────────────
+        if ( $tag === 'table' ) {
+            $al = $el->getAttribute( 'aria-label' );
+            if ( $al ) return self::format_id( 'table', self::slug( $al ), $tv );
+            $id = $el->getAttribute( 'id' );
+            if ( $id ) {
+                $clean = self::clean( self::slug( $id ) );
+                if ( $clean && ! ctype_digit( $clean ) && strlen( $clean ) > 1 ) return self::format_id( 'table', $clean, $tv );
+            }
+            $caption = $el->getElementsByTagName( 'caption' )->item( 0 );
+            if ( $caption ) {
+                $text = trim( $caption->textContent );
+                if ( $text ) return self::format_id( 'table', self::slug( $text ), $tv );
+            }
+            if ( $text_fallback ) {
+                $h = self::first_heading_text( $el );
+                if ( $h ) return self::format_id( 'table', self::slug( $h ), $tv );
+            }
+            return null;
+        }
+
+        // ── Table rows ────────────────────────────────────────────
+        if ( $tag === 'tr' ) {
+            $al = $el->getAttribute( 'aria-label' );
+            if ( $al ) return self::format_id( 'row', self::slug( $al ), $tv );
+            // Position among sibling <tr> elements (1-indexed)
+            $n    = 1;
+            $prev = $el->previousSibling;
+            while ( $prev ) {
+                if ( $prev instanceof DOMElement && strtolower( $prev->tagName ) === 'tr' ) $n++;
+                $prev = $prev->previousSibling;
+            }
+            return self::format_id( 'row', (string) $n, $tv );
+        }
+
+        // ── Table header cells ────────────────────────────────────
+        if ( $tag === 'th' ) {
+            $al = $el->getAttribute( 'aria-label' );
+            if ( $al ) return self::format_id( 'col', self::slug( $al ), $tv );
+            $id = $el->getAttribute( 'id' );
+            if ( $id ) {
+                $clean = self::clean( self::slug( $id ) );
+                if ( $clean && ! ctype_digit( $clean ) && strlen( $clean ) > 1 ) return self::format_id( 'col', $clean, $tv );
+            }
+            if ( $text_fallback ) {
+                $text = trim( $el->textContent );
+                if ( $text ) return self::format_id( 'col', self::slug( $text ), $tv );
+            }
+            return null;
+        }
+
+        // ── Table data cells ──────────────────────────────────────
+        if ( $tag === 'td' ) {
+            $al = $el->getAttribute( 'aria-label' );
+            if ( $al ) return self::format_id( 'cell', self::slug( $al ), $tv );
+            $headers = $el->getAttribute( 'headers' );
+            if ( $headers ) return self::format_id( 'cell', self::slug( $headers ), $tv );
+            // Column position among siblings (1-indexed)
+            $col  = 1;
+            $prev = $el->previousSibling;
+            while ( $prev ) {
+                if ( $prev instanceof DOMElement && in_array( strtolower( $prev->tagName ), [ 'td', 'th' ], true ) ) $col++;
+                $prev = $prev->previousSibling;
+            }
+            return self::format_id( 'cell', (string) $col, $tv );
+        }
+
+        // ── Fieldsets ─────────────────────────────────────────────
+        if ( $tag === 'fieldset' ) {
+            $al = $el->getAttribute( 'aria-label' );
+            if ( $al ) return self::format_id( 'fieldset', self::slug( $al ), $tv );
+            $id = $el->getAttribute( 'id' );
+            if ( $id ) {
+                $clean = self::clean( self::slug( $id ) );
+                if ( $clean && ! ctype_digit( $clean ) && strlen( $clean ) > 1 ) return self::format_id( 'fieldset', $clean, $tv );
+            }
+            if ( $text_fallback ) {
+                $legend = $el->getElementsByTagName( 'legend' )->item( 0 );
+                if ( $legend ) {
+                    $text = trim( $legend->textContent );
+                    if ( $text ) return self::format_id( 'fieldset', self::slug( $text ), $tv );
+                }
+            }
+            return null;
+        }
+
+        // ── Details / Summary ─────────────────────────────────────
+        if ( $tag === 'details' ) {
+            $al = $el->getAttribute( 'aria-label' );
+            if ( $al ) return self::format_id( 'details', self::slug( $al ), $tv );
+            $id = $el->getAttribute( 'id' );
+            if ( $id ) {
+                $clean = self::clean( self::slug( $id ) );
+                if ( $clean && ! ctype_digit( $clean ) && strlen( $clean ) > 1 ) return self::format_id( 'details', $clean, $tv );
+            }
+            if ( $text_fallback ) {
+                $summary = $el->getElementsByTagName( 'summary' )->item( 0 );
+                if ( $summary ) {
+                    $text = trim( $summary->textContent );
+                    if ( $text ) return self::format_id( 'details', self::slug( $text ), $tv );
+                }
+            }
+            return null;
+        }
+
+        if ( $tag === 'summary' ) {
+            $al = $el->getAttribute( 'aria-label' );
+            if ( $al ) return self::format_id( 'summary', self::slug( $al ), $tv );
+            $id = $el->getAttribute( 'id' );
+            if ( $id ) {
+                $clean = self::clean( self::slug( $id ) );
+                if ( $clean && ! ctype_digit( $clean ) && strlen( $clean ) > 1 ) return self::format_id( 'summary', $clean, $tv );
+            }
+            if ( $text_fallback ) {
+                $text = trim( $el->textContent );
+                if ( $text ) return self::format_id( 'summary', self::slug( $text ), $tv );
+            }
+            return null;
+        }
+
+        // ── Figures ───────────────────────────────────────────────
+        if ( $tag === 'figure' ) {
+            $al = $el->getAttribute( 'aria-label' );
+            if ( $al ) return self::format_id( 'figure', self::slug( $al ), $tv );
+            $id = $el->getAttribute( 'id' );
+            if ( $id ) {
+                $clean = self::clean( self::slug( $id ) );
+                if ( $clean && ! ctype_digit( $clean ) && strlen( $clean ) > 1 ) return self::format_id( 'figure', $clean, $tv );
+            }
+            if ( $text_fallback ) {
+                $figcaption = $el->getElementsByTagName( 'figcaption' )->item( 0 );
+                if ( $figcaption ) {
+                    $text = trim( $figcaption->textContent );
+                    if ( $text ) return self::format_id( 'figure', self::slug( $text ), $tv );
+                }
+            }
+            return null;
         }
 
         // ── Divs / spans ──────────────────────────────────────────
