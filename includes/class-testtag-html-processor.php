@@ -27,7 +27,7 @@ class TestTag_HTML_Processor {
      * Within-request (and cross-request in PHP-FPM) memoization caches.
      *
      * slug_cache  — keyed by separator + "\0" + raw string.
-     * clean_cache — keyed by separator + "\0" + slugified string.
+     * clean_cache — keyed by separator + "\0" + raw string.
      * xpath_cache — keyed by raw CSS selector (pure function; never invalidated).
      *
      * All caches are capped at MAX_CACHE_ENTRIES to prevent unbounded memory
@@ -200,8 +200,9 @@ class TestTag_HTML_Processor {
      * Results are memoized in self::$xpath_cache (pure function; never invalidated).
      */
     private static function css_to_xpath( string $css ): ?string {
-        if ( array_key_exists( $css, self::$xpath_cache ) ) {
-            return self::$xpath_cache[ $css ];
+        if ( isset( self::$xpath_cache[ $css ] ) ) {
+            // '' is used as the sentinel for a cached null (uncompilable selector).
+            return self::$xpath_cache[ $css ] !== '' ? self::$xpath_cache[ $css ] : null;
         }
 
         $result = self::css_to_xpath_compute( $css );
@@ -209,7 +210,8 @@ class TestTag_HTML_Processor {
         if ( count( self::$xpath_cache ) >= self::MAX_CACHE_ENTRIES ) {
             self::$xpath_cache = [];
         }
-        return self::$xpath_cache[ $css ] = $result;
+        // Store '' instead of null so isset() correctly detects cached entries.
+        return ( self::$xpath_cache[ $css ] = $result ?? '' ) !== '' ? $result : null;
     }
 
     private static function css_to_xpath_compute( string $css ): ?string {

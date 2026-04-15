@@ -36,28 +36,6 @@ if ( ! function_exists( 'get_option' ) ) {
     }
 }
 
-foreach ( [
-    'wp_doing_ajax'          => fn() => false,
-    'wp_doing_cron'          => fn() => false,
-    'wp_is_json_request'     => fn() => false,
-    'is_user_logged_in'      => fn() => true,
-    'wp_get_environment_type' => fn() => 'development',
-    'current_user_can'       => fn( $c ) => true,
-    'sanitize_text_field'    => fn( $s ) => trim( $s ),
-    'esc_url'                => fn( $u ) => $u,
-    'admin_url'              => fn( $p ) => 'http://localhost/wp-admin/' . $p,
-    'add_action'             => fn() => null,
-    'add_filter'             => fn() => null,
-    'add_management_page'    => fn() => null,
-    'register_setting'       => fn() => null,
-] as $fn => $cb ) {
-    if ( ! function_exists( $fn ) ) {
-        // PHP 8 — create_function replaced by anonymous function assignment
-        // We use a wrapper to register named stubs.
-    }
-}
-
-// Use direct function declarations for compatibility:
 if ( ! function_exists( 'wp_doing_ajax' ) )          { function wp_doing_ajax():bool{ return false; } }
 if ( ! function_exists( 'wp_doing_cron' ) )          { function wp_doing_cron():bool{ return false; } }
 if ( ! function_exists( 'wp_is_json_request' ) )     { function wp_is_json_request():bool{ return false; } }
