@@ -19,7 +19,7 @@
         var tr   = document.createElement('tr');
         tr.className = 'testtag-row';
         tr.innerHTML =
-            '<td><input type="text" name="' + base + '[selector]" value="' + escAttr(selector) + '" placeholder="nav a[href=\'#about\']" class="regular-text" /></td>' +
+            '<td><input type="text" name="' + base + '[selector]" data-testid="testtag-map-selector-input" value="' + escAttr(selector) + '" placeholder="nav a[href=\'#about\']" class="regular-text" /></td>' +
             '<td><input type="text" name="' + base + '[testid]"   value="' + escAttr(testid)   + '" placeholder="nav-about" class="regular-text" /></td>' +
             '<td><button type="button" class="button testtag-remove-row">Remove</button></td>';
         return tr;

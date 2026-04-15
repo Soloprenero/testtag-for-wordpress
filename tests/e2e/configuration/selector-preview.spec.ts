@@ -71,10 +71,12 @@ test.describe('TestTag Plugin - Selector Preview', () => {
       );
     });
 
-    await test.step('Assert results are rendered (selector map has default rows)', async () => {
-      // The results container should contain either a list of rows or the empty-state message.
-      const resultsText = await settingsPage.selectorPreviewResults.textContent();
-      expect(resultsText).not.toBeNull();
+    await test.step('Overwrite first selector row with a deterministic selector', async () => {
+      await settingsPage.setSelectorRowSelector('nav.site-nav a');
+    });
+
+    await test.step('Assert preview shows "2 matches" for the deterministic selector', async () => {
+      await expect(settingsPage.selectorPreviewResults).toContainText('2 matches');
     });
 
     await test.step('Capture screenshot of results', async () => {

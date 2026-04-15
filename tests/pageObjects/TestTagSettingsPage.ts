@@ -22,6 +22,8 @@ export class TestTagSettingsPage extends AppPage {
   readonly saveButton: Locator;
   readonly selectorPreviewHtml: Locator;
   readonly selectorPreviewResults: Locator;
+  /** All CSS selector inputs in the selector-map table, by test ID. */
+  readonly selectorMapSelectorInputs: Locator;
 
   constructor(page: Page) {
     super(page);
@@ -31,6 +33,7 @@ export class TestTagSettingsPage extends AppPage {
     this.saveButton = page.locator('button[type="submit"], input[type="submit"]').first();
     this.selectorPreviewHtml = page.locator('#testtag-selector-preview-html');
     this.selectorPreviewResults = page.locator(`#${TestTagSettingsPage.SELECTOR_PREVIEW_RESULTS_ID}`);
+    this.selectorMapSelectorInputs = page.locator('[data-testid="testtag-map-selector-input"]');
   }
 
   async open(): Promise<void> {
@@ -81,6 +84,18 @@ export class TestTagSettingsPage extends AppPage {
       { selector: `#${TestTagSettingsPage.SELECTOR_PREVIEW_RESULTS_ID}`, prevText: previousText, prevCount: previousChildCount },
       { timeout: 3000 },
     );
+  }
+
+  /**
+   * Overwrite the CSS selector value in a selector-map row and trigger a preview refresh.
+   * The preview updates after the 300ms debounce; wait for expected results before asserting.
+   * @param selector CSS selector string to enter.
+   * @param rowIndex Zero-based index of the row to update (default: 0).
+   */
+  async setSelectorRowSelector(selector: string, rowIndex = 0): Promise<void> {
+    const input = this.selectorMapSelectorInputs.nth(rowIndex);
+    await input.fill(selector);
+    await input.dispatchEvent('input');
   }
 
   async setAttributeKey(value: 'data-testid' | 'data-cy' | 'data-test'): Promise<void> {

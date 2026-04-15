@@ -625,7 +625,8 @@ class TestTag_Settings {
                                     name="<?php echo self::OPTION_SELECTOR_MAP; ?>[<?php echo $i; ?>][selector]"
                                     value="<?php echo esc_attr( $row['selector'] ); ?>"
                                     placeholder="nav a[href='#about']"
-                                    class="regular-text" /></td>
+                                    class="regular-text"
+                                    data-testid="testtag-map-selector-input" /></td>
                                 <td><input type="text"
                                     name="<?php echo self::OPTION_SELECTOR_MAP; ?>[<?php echo $i; ?>][testid]"
                                     value="<?php echo esc_attr( $row['testid'] ); ?>"
