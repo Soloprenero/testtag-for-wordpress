@@ -695,13 +695,18 @@
         var val = input.value.trim();
         if (!val) {
             clearSelectorFeedback(input);
-            return;
-        }
-        var unsupportedMsg = detectUnsupportedPattern(val);
-        if (unsupportedMsg) {
-            showSelectorFeedback(input, unsupportedMsg, 'error');
         } else {
-            clearSelectorFeedback(input);
+            var unsupportedMsg = detectUnsupportedPattern(val);
+            if (unsupportedMsg) {
+                showSelectorFeedback(input, unsupportedMsg, 'error');
+            } else {
+                clearSelectorFeedback(input);
+            }
+        }
+        // Auto-clear the save-blocked banner once all errors have been resolved.
+        var banner = document.getElementById('testtag-selector-save-error');
+        if (banner && !tbody.querySelector('input[name$="[selector]"].testtag-selector-error')) {
+            banner.remove();
         }
     }
 
@@ -756,7 +761,13 @@
                     banner.className = 'notice notice-error is-dismissible';
                     banner.innerHTML =
                         '<p><strong>Save blocked:</strong> One or more CSS selectors use unsupported patterns. ' +
-                        'Fix or remove the flagged rows before saving.</p>';
+                        'Fix or remove the flagged rows before saving.</p>' +
+                        '<button type="button" class="notice-dismiss">' +
+                        '<span class="screen-reader-text">Dismiss this notice.</span>' +
+                        '</button>';
+                    banner.querySelector('.notice-dismiss').addEventListener('click', function () {
+                        banner.remove();
+                    });
                     settingsForm.parentNode.insertBefore(banner, settingsForm);
                 }
             } else {
