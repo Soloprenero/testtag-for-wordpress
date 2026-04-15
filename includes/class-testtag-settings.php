@@ -414,6 +414,7 @@ class TestTag_Settings {
         $tokenOrder        = implode( ',', self::get_token_order() );
         $formatSeps        = implode( ',', self::get_format_seps() );
         $formatCustomized  = self::is_format_customized() ? '1' : '0';
+        $selector_preview_sample = "<nav class=\"site-nav\">\n  <a href=\"/home\">Home</a>\n  <a href=\"/about\">About</a>\n  <a href=\"/contact\">Contact</a>\n</nav>\n<button class=\"cta-btn\">Get Started</button>";
 
         $base_url = admin_url( 'tools.php?page=testtag' );
         ?>
@@ -624,7 +625,8 @@ class TestTag_Settings {
                                     name="<?php echo self::OPTION_SELECTOR_MAP; ?>[<?php echo $i; ?>][selector]"
                                     value="<?php echo esc_attr( $row['selector'] ); ?>"
                                     placeholder="nav a[href='#about']"
-                                    class="regular-text" /></td>
+                                    class="regular-text"
+                                    data-testid="testtag-map-selector-input" /></td>
                                 <td><input type="text"
                                     name="<?php echo self::OPTION_SELECTOR_MAP; ?>[<?php echo $i; ?>][testid]"
                                     value="<?php echo esc_attr( $row['testid'] ); ?>"
@@ -643,6 +645,15 @@ class TestTag_Settings {
                             </tr>
                         </tfoot>
                     </table>
+
+                    <div class="testtag-selector-preview">
+                        <span class="testtag-format-preview-label">
+                            Selector Preview
+                            <span class="testtag-format-preview-hint">(paste HTML to test which elements each selector matches)</span>
+                        </span>
+                        <textarea id="testtag-selector-preview-html" class="testtag-format-preview-html" rows="5" spellcheck="false" placeholder="Paste your theme HTML here…"><?php echo esc_textarea( $selector_preview_sample ); ?></textarea>
+                        <div id="testtag-selector-preview-results" class="testtag-selector-preview-results" aria-live="polite"></div>
+                    </div>
                 </div>
 
                 <?php submit_button( 'Save Settings' ); ?>
