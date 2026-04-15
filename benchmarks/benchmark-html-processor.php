@@ -17,6 +17,12 @@
  *   avg=<ms>  min=<ms>  max=<ms>  tags=<count>  html_len=<bytes>
  */
 
+if ( 'cli' !== PHP_SAPI && 'cli' !== php_sapi_name() ) {
+    if ( ! headers_sent() ) {
+        header( 'HTTP/1.1 404 Not Found' );
+    }
+    exit;
+}
 // ─── Minimal WordPress stubs ─────────────────────────────────────────────────
 define( 'ABSPATH', __DIR__ . '/../' );
 
