@@ -25,6 +25,7 @@ if ( 'cli' !== PHP_SAPI && 'cli' !== php_sapi_name() ) {
 }
 // ─── Minimal WordPress stubs ─────────────────────────────────────────────────
 define( 'ABSPATH', __DIR__ . '/../' );
+define( 'TESTTAG_PLUGIN_DIR', __DIR__ . '/../' );
 
 if ( ! function_exists( 'get_option' ) ) {
     function get_option( string $key, $default = false ) {

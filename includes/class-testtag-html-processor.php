@@ -28,7 +28,9 @@ class TestTag_HTML_Processor {
      *
      * slug_cache  — keyed by separator + "\0" + raw string.
      * clean_cache — keyed by separator + "\0" + raw string.
-     * xpath_cache — keyed by raw CSS selector (pure function; never invalidated).
+     * xpath_cache — keyed by raw CSS selector. Not invalidated by settings
+     *               changes (pure function), but reset when it reaches
+     *               MAX_CACHE_ENTRIES to cap memory usage.
      *
      * All caches are capped at MAX_CACHE_ENTRIES to prevent unbounded memory
      * growth in long-running PHP-FPM workers.
@@ -405,6 +407,9 @@ class TestTag_HTML_Processor {
         foreach ( $labels as $label ) {
             if ( ! ( $label instanceof DOMElement ) ) continue;
             $for = $label->getAttribute( 'for' );
+            // Store only the first matching label in DOM order (including empty
+            // text) so lookup behaviour is identical to the previous per-element
+            // XPath query which returned the first label found.
             if ( $for && ! isset( $map[ $for ] ) ) {
                 $map[ $for ] = trim( $label->textContent );
             }
