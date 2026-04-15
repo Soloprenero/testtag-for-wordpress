@@ -180,6 +180,10 @@ const PARITY_FIXTURE_PAGE_CONTENT =
     '<h3 id="parity-features-heading">Our Features</h3>' +
     '<a href="/parity-target-page" aria-label="Parity Link Label">Click here</a>' +
     '<a href="/parity-docs">Documentation</a>' +
+    // Naming-rules parity: prefix stripping — woocommerce- prefix should be removed from the ID
+    '<button id="woocommerce-add-to-cart" type="button">Add to Cart</button>' +
+    // Naming-rules parity: segment stripping — elementor segment in the middle should be removed
+    '<h2 id="product-elementor-title">Product Details</h2>' +
   '</div>' +
   '<!-- /wp:html -->';
 

@@ -25,6 +25,19 @@
     var formatSeps = (config.formatSeps || separator).split(',');
     var namingRules  = config.namingRules || { stripPrefixes: [], stripSegments: [] };
 
+    // ── Pre-compiled regexes for clean() ─────────────────────────
+    // Compiled once at init (separator and namingRules are fixed after boot)
+    // so the mutation-observer hot-path never constructs new RegExp objects.
+    var _cleanSepEsc     = separator.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, '\\$&');
+    var _cleanSegments   = (namingRules.stripSegments || []).map(function (seg) {
+        return seg.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, '\\$&');
+    });
+    var _cleanSegRe      = _cleanSegments.length
+        ? new RegExp('(?:^|' + _cleanSepEsc + ')(' + _cleanSegments.join('|') + ')(?=' + _cleanSepEsc + '|$)', 'g')
+        : null;
+    var _cleanMultiSepRe = new RegExp(_cleanSepEsc + '{2,}', 'g');
+    var _cleanTrimSepRe  = new RegExp('^' + _cleanSepEsc + '+|' + _cleanSepEsc + '+$', 'g');
+
     // ── Dedup (dynamic elements only, scoped to parent) ──────────
     // Counters reset per parent element so sibling containers each get
     // clean values — e.g. every product card gets "post-title" rather
@@ -69,8 +82,6 @@
     function clean(s) {
         if (!s) return s;
         var prefixes = namingRules.stripPrefixes || [];
-        var segments = namingRules.stripSegments || [];
-        var sepEsc   = separator.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, '\\$&');
         // Strip leading framework prefix (first match only).
         // Prefixes in the JSON are defined with hyphens; translate to the current separator.
         for (var pi = 0; pi < prefixes.length; pi++) {
@@ -81,14 +92,12 @@
             }
         }
         // Strip standalone segment tokens separated by the current separator.
-        if (segments.length) {
-            var segRe = new RegExp('(?:^|' + sepEsc + ')(' + segments.join('|') + ')(?=' + sepEsc + '|$)', 'g');
-            s = s.replace(segRe, '');
+        if (_cleanSegRe) {
+            s = s.replace(_cleanSegRe, '');
         }
         // Collapse repeated separators and trim.
-        s = s.replace(new RegExp(sepEsc + '{2,}', 'g'), separator);
-        // Trim leading/trailing separator.
-        return s.replace(new RegExp('^' + sepEsc + '+|' + sepEsc + '+$', 'g'), '');
+        s = s.replace(_cleanMultiSepRe, separator);
+        return s.replace(_cleanTrimSepRe, '');
     }
 
     // Convenience: slugify then clean an element ID, matching PHP clean(slug($id)).
