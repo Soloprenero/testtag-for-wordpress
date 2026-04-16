@@ -135,7 +135,8 @@ class TestTag_Settings {
         $order      = self::get_token_order();
         $type_class = [ 'type', 'role' ];
         $id_class   = [ 'identifier', 'aria-label', 'aria-labelledby', 'placeholder', 'id', 'name' ];
-        $ti = PHP_INT_MAX; $ii = PHP_INT_MAX;
+        $ti = PHP_INT_MAX;
+        $ii = PHP_INT_MAX;
         foreach ( $order as $i => $t ) {
             if ( in_array( $t, $type_class, true ) && $i < $ti ) $ti = $i;
             if ( in_array( $t, $id_class,   true ) && $i < $ii ) $ii = $i;
@@ -490,7 +491,7 @@ class TestTag_Settings {
                                 <!-- Formula bar: [attr name]="[active zone]" on one line -->
                                 <div class="testtag-formula-bar">
                                     <input type="text" id="testtag-attr-key"
-                                        name="<?php echo self::OPTION_ATTRIBUTE_KEY; ?>"
+                                        name="<?php echo esc_attr( self::OPTION_ATTRIBUTE_KEY ); ?>"
                                         value="<?php echo esc_attr( $attrKey ); ?>"
                                         class="testtag-formula-attr-input"
                                         placeholder="data-testid"
@@ -508,7 +509,7 @@ class TestTag_Settings {
 
                                 <div class="testtag-attrkey-field testtag-separator-field">
                                     <label for="testtag-separator">Default separator</label>
-                                    <select id="testtag-separator" name="<?php echo self::OPTION_SEPARATOR; ?>">
+                                    <select id="testtag-separator" name="<?php echo esc_attr( self::OPTION_SEPARATOR ); ?>">
                                         <option value="-" <?php selected( $separator, '-' ); ?>>Hyphen — <code>search-field</code></option>
                                         <option value="_" <?php selected( $separator, '_' ); ?>>Underscore — <code>search_field</code></option>
                                     </select>
@@ -549,7 +550,7 @@ class TestTag_Settings {
                             <th scope="row">Force Enable</th>
                             <td>
                                 <label>
-                                    <input type="checkbox" name="<?php echo self::OPTION_FORCE_ENABLE; ?>"
+                                    <input type="checkbox" name="<?php echo esc_attr( self::OPTION_FORCE_ENABLE ); ?>"
                                         value="1" <?php checked( $force, '1' ); ?> />
                                     Inject attributes for <strong>all visitors</strong> on all environments
                                 </label>
@@ -564,7 +565,7 @@ class TestTag_Settings {
                             <th scope="row">Text Fallback</th>
                             <td>
                                 <label>
-                                    <input type="checkbox" name="<?php echo self::OPTION_TEXT_FALLBACK; ?>"
+                                    <input type="checkbox" name="<?php echo esc_attr( self::OPTION_TEXT_FALLBACK ); ?>"
                                         value="1" <?php checked( $textFallback, '1' ); ?> />
                                     Use visible text as a <strong>last-resort</strong> source for auto-generated tags
                                 </label>
@@ -635,13 +636,13 @@ class TestTag_Settings {
                             <?php foreach ( $map as $i => $row ) : ?>
                             <tr class="testtag-row">
                                 <td><input type="text"
-                                    name="<?php echo self::OPTION_SELECTOR_MAP; ?>[<?php echo $i; ?>][selector]"
+                                    name="<?php echo esc_attr( self::OPTION_SELECTOR_MAP ); ?>[<?php echo $i; ?>][selector]"
                                     value="<?php echo esc_attr( $row['selector'] ); ?>"
                                     placeholder="nav a[href='#about']"
                                     class="regular-text"
                                     data-testid="testtag-map-selector-input" /></td>
                                 <td><input type="text"
-                                    name="<?php echo self::OPTION_SELECTOR_MAP; ?>[<?php echo $i; ?>][testid]"
+                                    name="<?php echo esc_attr( self::OPTION_SELECTOR_MAP ); ?>[<?php echo $i; ?>][testid]"
                                     value="<?php echo esc_attr( $row['testid'] ); ?>"
                                     placeholder="nav-about"
                                     class="regular-text" /></td>
@@ -776,7 +777,7 @@ class TestTag_Settings {
     private static function get_changelog(): array {
         return [
             [
-                'version' => '1.5.0-beta',
+                'version' => '1.5.1-beta',
                 'date'    => '2026-04-16',
                 'changes' => [
                     'New: Drag-and-drop Tag Format builder — compose tag values from tokens (<code>type</code>, <code>role</code>, <code>identifier</code>, <code>aria-label</code>, <code>id</code>, <code>name</code>, and more) with per-gap separators.',

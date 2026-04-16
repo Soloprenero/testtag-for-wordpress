@@ -422,18 +422,20 @@ class TestTag_HTML_Processor {
 
     private static function auto_id( DOMElement $el, DOMXPath $xpath, bool $text_fallback = true, array $label_map = [] ): ?string {
         $tag = strtolower( $el->tagName );
-        $tv  = self::element_token_values( $el, $xpath );
 
         // ── Form controls ─────────────────────────────────────────
         if ( in_array( $tag, [ 'input', 'textarea', 'select' ], true ) ) {
             $type  = strtolower( $el->getAttribute( 'type' ) ?: $tag );
+
+            // Bail early before computing token values — hidden inputs are never tagged.
+            if ( $type === 'hidden' ) return null;
+
+            $tv    = self::element_token_values( $el, $xpath );
             $label = self::get_label_text( $el, $xpath, $label_map );
             $hint  = $label
                 ?: $el->getAttribute( 'name' )
                 ?: $el->getAttribute( 'placeholder' )
                 ?: '';
-
-            if ( $type === 'hidden' )  return null; // never tag hidden inputs
             if ( $type === 'search' )  return self::format_id( 'input', 'search', $tv );
             if ( in_array( $type, [ 'submit', 'button' ], true ) ) return self::format_id( 'button', self::slug( $el->getAttribute( 'value' ) ?: $hint ?: 'submit' ), $tv );
             if ( $type === 'checkbox' ) return self::format_id( 'checkbox', self::slug( $hint ), $tv );
@@ -442,6 +444,9 @@ class TestTag_HTML_Processor {
             if ( $tag === 'textarea' ) return self::format_id( 'textarea', self::slug( $hint ), $tv );
             return self::format_id( 'input', self::slug( $hint ?: $type ), $tv );
         }
+
+        // Compute token values once for all non-form-control element types.
+        $tv = self::element_token_values( $el, $xpath );
 
         // ── Buttons ───────────────────────────────────────────────
         if ( $tag === 'button' ) {
@@ -1127,17 +1132,6 @@ class TestTag_HTML_Processor {
     }
 
     /**
-     * Extracts and slugifies per-token attribute values from a DOM element.
-     * Used to populate concrete token slots (role, aria-label, id, etc.) in
-     * format_id() so each configured token resolves to the right attribute.
-     *
-     * For aria-labelledby, referenced element texts are resolved via XPath.
-     *
-     * @param DOMElement $el
-     * @param DOMXPath   $xpath
-     * @return array<string,string>
-     */
-    /**
      * Returns the implicit ARIA role for an element when no explicit role attribute is set.
      */
     private static function inferred_aria_role( DOMElement $el ): string {
@@ -1206,6 +1200,17 @@ class TestTag_HTML_Processor {
         return $map[ $tag ] ?? '';
     }
 
+    /**
+     * Extracts and slugifies per-token attribute values from a DOM element.
+     * Used to populate concrete token slots (role, aria-label, id, etc.) in
+     * format_id() so each configured token resolves to the right attribute.
+     *
+     * For aria-labelledby, referenced element texts are resolved via XPath.
+     *
+     * @param DOMElement $el
+     * @param DOMXPath   $xpath
+     * @return array<string,string>
+     */
     private static function element_token_values( DOMElement $el, DOMXPath $xpath ): array {
         $values = [];
 
@@ -1227,8 +1232,7 @@ class TestTag_HTML_Processor {
                 if ( ! $ref_id ) {
                     continue;
                 }
-                $escaped = str_replace( '"', '&quot;', $ref_id );
-                $refs    = $xpath->query( '//*[@id="' . $escaped . '"]' );
+                $refs = $xpath->query( '//*[@id=' . self::xpath_quote( $ref_id ) . ']' );
                 if ( $refs && $refs->length > 0 ) {
                     $text = trim( $refs->item( 0 )->textContent );
                     if ( $text ) {
@@ -1336,8 +1340,10 @@ class TestTag_HTML_Processor {
             }
         }
         // Strip standalone segment tokens separated by the current separator.
-        $segments_re = '/(?:^|' . $sep_q . ')(' . implode( '|', self::$strip_segments ) . ')(?=' . $sep_q . '|$)/';
-        $out = preg_replace( $segments_re, '', $out );
+        if ( ! empty( self::$strip_segments ) ) {
+            $segments_re = '/(?:^|' . $sep_q . ')(' . implode( '|', self::$strip_segments ) . ')(?=' . $sep_q . '|$)/';
+            $out = preg_replace( $segments_re, '', $out );
+        }
         // Collapse repeated separators and trim.
         $out = preg_replace( '/' . $sep_q . '{2,}/', $sep, $out );
         return self::$clean_cache[ $key ] = trim( $out, $sep );
