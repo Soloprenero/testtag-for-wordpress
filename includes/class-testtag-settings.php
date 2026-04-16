@@ -777,7 +777,7 @@ class TestTag_Settings {
     private static function get_changelog(): array {
         return [
             [
-                'version' => '1.6.0-beta',
+                'version' => '1.5.1-beta',
                 'date'    => '2026-04-16',
                 'changes' => [
                     'New: Drag-and-drop Tag Format builder — compose tag values from tokens (<code>type</code>, <code>role</code>, <code>identifier</code>, <code>aria-label</code>, <code>id</code>, <code>name</code>, and more) with per-gap separators.',

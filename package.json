@@ -1,6 +1,6 @@
 {
   "name": "testtag-for-wordpress",
-  "version": "1.6.0-beta",
+  "version": "1.5.1-beta",
   "description": "Automatically tag any element on your WordPress site with test attributes for Playwright, Cypress, Selenium, or any automation framework.",
   "license": "GPL-2.0-or-later",
   "scripts": {
