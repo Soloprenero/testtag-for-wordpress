@@ -2,6 +2,19 @@
 
 All notable changes to TestTag for WordPress are documented in this file.
 
+## [Unreleased] — CSS Selector Validation in Settings UI
+
+### Added / Changed
+
+- **Inline validation** (`admin/admin.js`): Each CSS selector input in the Selector Map is validated as the user types. Unsupported patterns (`:has()`, `:is()`, `:where()`, `:nth-child()` and relatives, `:not()`, sibling combinators `+`/`~`, and pseudo-elements `::before`/`::after`) are highlighted with a red border and an inline error message describing the issue and suggesting an alternative.
+- **Pre-save blocking** (`admin/admin.js`): The form `submit` handler re-validates all selector inputs before saving. If any input is invalid, the save is blocked (`e.preventDefault()`), the page scrolls to the first offending field, and a dismissible `notice-error` banner is inserted above the form. The banner includes a `.notice-dismiss` button that removes it on click and also auto-clears when all inline errors are resolved — no second save attempt needed.
+- **Guidance panel** (`includes/class-testtag-settings.php`): A collapsible `<details>` element ("Supported & unsupported selector patterns") is displayed above the selector table. It lists supported patterns (type selectors, class, ID, attribute selectors, descendant, child) and unsupported ones with inline code examples, helping users author compatible selectors upfront.
+- **Row alignment** (`admin/admin.css`): Selector map table cells changed from `vertical-align: middle` to `vertical-align: top` so the CSS selector and tag value inputs stay top-anchored when an error message expands the row height, keeping the left-to-right pairing visually unambiguous.
+- **Semantic color labels** (`admin/admin.css`): New `.testtag-supported-label` (green) and `.testtag-unsupported-label` (red) styles replace emoji in the guidance panel, improving accessibility.
+- **E2E tests** (`tests/e2e/configuration/selector-validation.spec.ts`): Six Playwright tests covering: guidance panel visibility, inline error for `:has()`, inline error for sibling combinator, save-blocked banner appearance and manual dismiss, and clean pass for valid selectors.
+
+---
+
 ## [Unreleased] — Extended Element Type Tagging Coverage
 
 ### Fixed / Added
