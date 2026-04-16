@@ -1,3 +1,7 @@
+/**
+ * Copyright (c) 2026 Gary Young III (https://garyyoungiii.com)
+ * Soloprenero — https://soloprenero.com
+ */
 import { request, type APIRequestContext } from '@playwright/test';
 import path from 'path';
 import { mkdirSync } from 'fs';

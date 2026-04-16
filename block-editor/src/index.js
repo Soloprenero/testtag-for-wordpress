@@ -1,4 +1,7 @@
 /**
+ * Copyright (c) 2026 Gary Young III (https://garyyoungiii.com)
+ * Soloprenero — https://soloprenero.com
+ *
  * TestTag for WordPress — Block Editor Panel Source
  * Requires @wordpress/scripts to compile.
  * Run `npm run build` to output to block-editor/build/index.js

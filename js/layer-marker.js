@@ -1,4 +1,7 @@
 /**
+ * Copyright (c) 2026 Gary Young III (https://garyyoungiii.com)
+ * Soloprenero — https://soloprenero.com
+ *
  * TestTag for WordPress — layer marker
  *
  * Marks the layer source on server-tagged elements so Audit Mode
