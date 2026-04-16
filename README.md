@@ -36,7 +36,7 @@ TestTag applies tags through four layers. **TestTag is completely non-destructiv
 
 * **Configurable Attribute Key:** Seamlessly match your framework. Choose from `data-testid`, `data-cy`, `data-test`, or define any custom `data-*` attribute.
 * **Inline Attributes:** Keep direct, handwritten `data-*` values in your markup for exact control.
-* **Selector Map:** Auto-generate tags for hard-to-target theme elements using CSS selector rules (nav, footers, widgets, Elementor sections).
+* **Selector Map:** Explicit `selector → tag` mappings for hard-to-target theme elements (nav, footers, widgets, Elementor sections). Unsupported selector patterns (`:has()`, `:is()`, sibling combinators, etc.) are flagged with inline errors as you type, and saving is blocked until all errors are resolved. A collapsible guidance panel lists supported and unsupported patterns with examples.
 * **Auto Layer:** Fill in everything else with predictable semantic IDs.
 * **Dynamic Layer:** Automatically tags elements added to the page via JavaScript after initial load.
 * **Environment Guard:** Built for safety. By default, it only injects tags for logged-in admins and non-production environments (`local`, `development`, `staging`). 

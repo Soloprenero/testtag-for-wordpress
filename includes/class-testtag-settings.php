@@ -414,6 +414,7 @@ class TestTag_Settings {
         $tokenOrder        = implode( ',', self::get_token_order() );
         $formatSeps        = implode( ',', self::get_format_seps() );
         $formatCustomized  = self::is_format_customized() ? '1' : '0';
+        $selector_preview_sample = "<nav class=\"site-nav\">\n  <a href=\"/home\">Home</a>\n  <a href=\"/about\">About</a>\n  <a href=\"/contact\">Contact</a>\n</nav>\n<button class=\"cta-btn\">Get Started</button>";
 
         $base_url = admin_url( 'tools.php?page=testtag' );
         ?>
@@ -609,6 +610,14 @@ class TestTag_Settings {
                         Maps CSS selectors to explicit tag values for theme elements outside block content —
                         nav, footer, widgets, Elementor sections. Applied before auto-generation so these always win.
                     </p>
+                    <details class="testtag-selector-help">
+                        <summary>Supported &amp; unsupported selector patterns</summary>
+                        <div class="testtag-selector-help-body">
+                            <p><strong class="testtag-supported-label">Supported:</strong> type selectors (<code>nav</code>), class (<code>.nav-link</code>), ID (<code>#site-nav</code>), attribute selectors (<code>[href]</code>, <code>[data-id="x"]</code>), descendant (<code>nav a</code>), and child (<code>nav &gt; a</code>).</p>
+                            <p><strong class="testtag-unsupported-label">Not supported:</strong> <code>:not()</code>, <code>:has()</code>, <code>:is()</code>, <code>:where()</code>, <code>:nth-child()</code> and related, sibling combinators (<code>+</code>&nbsp;<code>~</code>), and pseudo-elements (<code>::before</code>, <code>::after</code>). Pseudo-classes are currently ignored by server-side selector matching.</p>
+                            <p>Unsupported patterns are flagged inline as you type. Fix them before saving — the Save button will be blocked until all errors are resolved.</p>
+                        </div>
+                    </details>
                     <table class="widefat testtag-map-table" id="testtag-map-table">
                         <thead>
                             <tr>
@@ -624,7 +633,8 @@ class TestTag_Settings {
                                     name="<?php echo self::OPTION_SELECTOR_MAP; ?>[<?php echo $i; ?>][selector]"
                                     value="<?php echo esc_attr( $row['selector'] ); ?>"
                                     placeholder="nav a[href='#about']"
-                                    class="regular-text" /></td>
+                                    class="regular-text"
+                                    data-testid="testtag-map-selector-input" /></td>
                                 <td><input type="text"
                                     name="<?php echo self::OPTION_SELECTOR_MAP; ?>[<?php echo $i; ?>][testid]"
                                     value="<?php echo esc_attr( $row['testid'] ); ?>"
@@ -643,6 +653,15 @@ class TestTag_Settings {
                             </tr>
                         </tfoot>
                     </table>
+
+                    <div class="testtag-selector-preview">
+                        <span class="testtag-format-preview-label">
+                            Selector Preview
+                            <span class="testtag-format-preview-hint">(paste HTML to test which elements each selector matches)</span>
+                        </span>
+                        <textarea id="testtag-selector-preview-html" class="testtag-format-preview-html" rows="5" spellcheck="false" placeholder="Paste your theme HTML here…"><?php echo esc_textarea( $selector_preview_sample ); ?></textarea>
+                        <div id="testtag-selector-preview-results" class="testtag-selector-preview-results" aria-live="polite"></div>
+                    </div>
                 </div>
 
                 <?php submit_button( 'Save Settings' ); ?>
@@ -752,14 +771,14 @@ class TestTag_Settings {
     private static function get_changelog(): array {
         return [
             [
-                'version' => '1.5.0',
-                'date'    => '2026-04-06',
+                'version' => '1.5.0-beta',
+                'date'    => '2026-04-16',
                 'changes' => [
-                    'New: String format configuration — choose <strong>separator</strong> (<code>-</code> or <code>_</code>), whether to <strong>include the element type</strong>, and whether it appears <strong>before or after the identifier</strong>.',
-                    'Settings are in the <em>Test Tag Format</em> card alongside the existing attribute key field.',
-                    'Separator applies to both the type/identifier join and word boundaries within slugs (e.g. <code>button_send_message</code> with <code>_</code>).',
-                    'Dedup counter suffixes now also use the configured separator.',
-                    'String format settings are included in Export / Import.',
+                    'New: Drag-and-drop Tag Format builder — compose tag values from tokens (<code>type</code>, <code>role</code>, <code>identifier</code>, <code>aria-label</code>, <code>id</code>, <code>name</code>, and more) with per-gap separators.',
+                    'New: CSS selector map validation — inline errors and pre-save blocking for unsupported selector patterns.',
+                    'New: Extended auto-tagging for <code>&lt;ul&gt;</code>, <code>&lt;ol&gt;</code>, <code>&lt;li&gt;</code>, <code>&lt;table&gt;</code>, <code>&lt;tr&gt;</code>, <code>&lt;th&gt;</code>, <code>&lt;td&gt;</code>, <code>&lt;nav&gt;</code>, <code>&lt;fieldset&gt;</code>, <code>&lt;details&gt;</code>, <code>&lt;summary&gt;</code>, and <code>&lt;figure&gt;</code>.',
+                    'New: Live HTML preview in the Tag Format card — paste any element and see the generated tag value update in real time.',
+                    'String format settings (separator, token order, per-gap separators) are included in Export / Import.',
                 ],
             ],
             [
