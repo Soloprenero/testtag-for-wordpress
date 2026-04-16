@@ -27,6 +27,7 @@ All notable changes to TestTag for WordPress are documented in this file.
 - Card heading renamed from "Attribute Key" to "Test Tag Format".
 - Row alignment in selector map table changed to `vertical-align: top`.
 - Semantic color labels (`.testtag-supported-label` / `.testtag-unsupported-label`) replace emoji in guidance panel.
+- Settings page: "About" card heading renamed to "Overview" (plugin summary); "About" tab renamed to "Contribute" (author info, license, changelog).
 
 ---
 
@@ -41,8 +42,8 @@ All notable changes to TestTag for WordPress are documented in this file.
 ## [1.4.1-beta] - 2026-04-04
 
 ### Added
-- Buy / Donate support link in the plugin About tab.
-- Pay-what-you-want explanation in the About tab.
+- Buy / Donate support link in the plugin Contribute tab.
+- Pay-what-you-want explanation in the Contribute tab.
 - Support section in README with a pay-what-you-want link.
 - New project-level CHANGELOG.md and CONTRIBUTORS.md files.
 
