@@ -771,14 +771,14 @@ class TestTag_Settings {
     private static function get_changelog(): array {
         return [
             [
-                'version' => '1.5.0',
-                'date'    => '2026-04-06',
+                'version' => '1.5.0-beta',
+                'date'    => '2026-04-16',
                 'changes' => [
-                    'New: String format configuration — choose <strong>separator</strong> (<code>-</code> or <code>_</code>), whether to <strong>include the element type</strong>, and whether it appears <strong>before or after the identifier</strong>.',
-                    'Settings are in the <em>Test Tag Format</em> card alongside the existing attribute key field.',
-                    'Separator applies to both the type/identifier join and word boundaries within slugs (e.g. <code>button_send_message</code> with <code>_</code>).',
-                    'Dedup counter suffixes now also use the configured separator.',
-                    'String format settings are included in Export / Import.',
+                    'New: Drag-and-drop Tag Format builder — compose tag values from tokens (<code>type</code>, <code>role</code>, <code>identifier</code>, <code>aria-label</code>, <code>id</code>, <code>name</code>, and more) with per-gap separators.',
+                    'New: CSS selector map validation — inline errors and pre-save blocking for unsupported selector patterns.',
+                    'New: Extended auto-tagging for <code>&lt;ul&gt;</code>, <code>&lt;ol&gt;</code>, <code>&lt;li&gt;</code>, <code>&lt;table&gt;</code>, <code>&lt;tr&gt;</code>, <code>&lt;th&gt;</code>, <code>&lt;td&gt;</code>, <code>&lt;nav&gt;</code>, <code>&lt;fieldset&gt;</code>, <code>&lt;details&gt;</code>, <code>&lt;summary&gt;</code>, and <code>&lt;figure&gt;</code>.',
+                    'New: Live HTML preview in the Tag Format card — paste any element and see the generated tag value update in real time.',
+                    'String format settings (separator, token order, per-gap separators) are included in Export / Import.',
                 ],
             ],
             [
