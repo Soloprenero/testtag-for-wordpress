@@ -8,16 +8,13 @@
  *               and a CSS selector map for explicit overrides. Works on any WordPress site —
  *               Elementor, Gutenberg, or classic themes.
  * Version:      1.5.0-beta
- * Author:            Soloprenero
- * Author URI:        https://soloprenero.com
- *
- * Authored by:       Gary Young
- * Copyright:         2026 Soloprenero. All rights reserved.
+ * Author:       Gary Young III
+ * Author URI:   https://garyyoungiii.com
  * Requires at least: 6.0
  * Requires PHP: 8.0
  * License:      GPL-2.0-or-later
  * License URI:  https://www.gnu.org/licenses/gpl-2.0.html
- * Copyright:     Gary Young III / Soloprenero (https://soloprenero.com)
+ * Copyright:    (c) 2026 Gary Young III (https://garyyoungiii.com) / Soloprenero (https://soloprenero.com)
  * Text Domain:  testtag
  */
 
