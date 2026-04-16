@@ -18,7 +18,7 @@ All notable changes to TestTag for WordPress are documented in this file.
 - **↺ Reset button**: Restores default `type,identifier` with `-` separator.
 - **Live HTML preview**: Pre-populated textarea; tag value updates in real time as tokens/separators change.
 - **`element_token_values()` / `elementDetails()`**: New PHP/JS helpers for per-token attribute extraction including implicit ARIA role inference.
-- **13 new Playwright e2e tests** in `tests/e2e/configuration/string-format.spec.ts`.
+- **Playwright e2e tests** for string format configuration in `tests/e2e/configuration/string-format.spec.ts`.
 
 ### Changed
 
