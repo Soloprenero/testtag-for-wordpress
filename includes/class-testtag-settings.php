@@ -223,8 +223,14 @@ class TestTag_Settings {
     }
 
     public static function register_settings(): void {
-        register_setting( 'testtag_group', self::OPTION_FORCE_ENABLE );
-        register_setting( 'testtag_group', self::OPTION_TEXT_FALLBACK );
+        register_setting( 'testtag_group', self::OPTION_FORCE_ENABLE, [
+            'type'              => 'string',
+            'sanitize_callback' => fn( $val ) => $val === '1' ? '1' : '0',
+        ] );
+        register_setting( 'testtag_group', self::OPTION_TEXT_FALLBACK, [
+            'type'              => 'string',
+            'sanitize_callback' => fn( $val ) => $val === '0' ? '0' : '1',
+        ] );
         register_setting( 'testtag_group', self::OPTION_TOKEN_ORDER, [
             'type'              => 'string',
             'show_in_rest'      => true,
@@ -311,20 +317,21 @@ class TestTag_Settings {
         $redirect = admin_url( 'tools.php?page=testtag' );
 
         if ( empty( $_FILES['testtag_import_file']['tmp_name'] ) ) {
-            wp_redirect( add_query_arg( 'testtag_import', 'no_file', $redirect ) );
+            wp_safe_redirect( add_query_arg( 'testtag_import', 'no_file', $redirect ) );
             exit;
         }
 
+        // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- is_uploaded_file() validates this server-set tmp path.
         $tmp_name = wp_unslash( $_FILES['testtag_import_file']['tmp_name'] );
         if ( ! is_string( $tmp_name ) || ! is_uploaded_file( $tmp_name ) ) {
-            wp_redirect( add_query_arg( 'testtag_import', 'no_file', $redirect ) );
+            wp_safe_redirect( add_query_arg( 'testtag_import', 'no_file', $redirect ) );
             exit;
         }
 
         // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents
         $content = file_get_contents( $tmp_name );
         if ( $content === false ) {
-            wp_redirect( add_query_arg( 'testtag_import', 'invalid', $redirect ) );
+            wp_safe_redirect( add_query_arg( 'testtag_import', 'invalid', $redirect ) );
             exit;
         }
         $data = json_decode( $content, true );
@@ -334,7 +341,7 @@ class TestTag_Settings {
             empty( $data['settings'] ) ||
             ( $data['plugin'] ?? '' ) !== 'testtag-for-wordpress'
         ) {
-            wp_redirect( add_query_arg( 'testtag_import', 'invalid', $redirect ) );
+            wp_safe_redirect( add_query_arg( 'testtag_import', 'invalid', $redirect ) );
             exit;
         }
 
@@ -382,7 +389,7 @@ class TestTag_Settings {
             update_option( self::OPTION_SELECTOR_MAP, self::sanitize_selector_map( $s[ self::OPTION_SELECTOR_MAP ] ) );
         }
 
-        wp_redirect( add_query_arg( 'testtag_import', 'success', $redirect ) );
+        wp_safe_redirect( add_query_arg( 'testtag_import', 'success', $redirect ) );
         exit;
     }
 
@@ -636,13 +643,13 @@ class TestTag_Settings {
                             <?php foreach ( $map as $i => $row ) : ?>
                             <tr class="testtag-row">
                                 <td><input type="text"
-                                    name="<?php echo esc_attr( self::OPTION_SELECTOR_MAP ); ?>[<?php echo $i; ?>][selector]"
+                                    name="<?php echo esc_attr( self::OPTION_SELECTOR_MAP ); ?>[<?php echo absint( $i ); ?>][selector]"
                                     value="<?php echo esc_attr( $row['selector'] ); ?>"
                                     placeholder="nav a[href='#about']"
                                     class="regular-text"
                                     data-testid="testtag-map-selector-input" /></td>
                                 <td><input type="text"
-                                    name="<?php echo esc_attr( self::OPTION_SELECTOR_MAP ); ?>[<?php echo $i; ?>][testid]"
+                                    name="<?php echo esc_attr( self::OPTION_SELECTOR_MAP ); ?>[<?php echo absint( $i ); ?>][testid]"
                                     value="<?php echo esc_attr( $row['testid'] ); ?>"
                                     placeholder="nav-about"
                                     class="regular-text" /></td>
