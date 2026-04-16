@@ -159,3 +159,7 @@ driver.find_element(By.CSS_SELECTOR, '[data-test="button-send-message"]').click(
 1. Copy the testtag-for-wordpress/ folder into your wp-content/plugins/ directory.
 
 2. Activate it via Plugins → Installed Plugins.
+
+## License
+
+This plugin is licensed under the [GNU General Public License v2 or later](LICENSE) (GPL-2.0-or-later).

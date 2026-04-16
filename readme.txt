@@ -34,7 +34,7 @@ An existing attribute is never overwritten.
 * Dynamic injector for AJAX/infinite-scroll content via MutationObserver
 * Export/import settings as JSON
 * Presets for common plugins (WooCommerce, Contact Form 7, Gravity Forms)
-* Pay-what-you-want support link in plugin About tab
+* Pay-what-you-want support link in plugin Contribute tab
 
 = Common use cases =
 

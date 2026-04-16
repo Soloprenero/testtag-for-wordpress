@@ -425,8 +425,8 @@ class TestTag_Settings {
             <nav class="nav-tab-wrapper">
                 <a href="<?php echo esc_url( $base_url . '&tab=settings' ); ?>"
                    class="nav-tab <?php echo $tab === 'settings' ? 'nav-tab-active' : ''; ?>">Settings</a>
-                <a href="<?php echo esc_url( $base_url . '&tab=about' ); ?>"
-                   class="nav-tab <?php echo $tab === 'about' ? 'nav-tab-active' : ''; ?>">About</a>
+                <a href="<?php echo esc_url( $base_url . '&tab=contribute' ); ?>"
+                   class="nav-tab <?php echo $tab === 'contribute' ? 'nav-tab-active' : ''; ?>">Contribute</a>
             </nav>
 
             <?php if ( $tab === 'settings' ) : ?>
@@ -450,7 +450,7 @@ class TestTag_Settings {
             <?php endif; ?>
 
             <div class="testtag-card">
-                <h2>About</h2>
+                <h2>Overview</h2>
                 <p>
                     Automatically tag any element on your WordPress site with test attributes
                     for <strong>Playwright</strong>, <strong>Cypress</strong>, <strong>Selenium</strong>,
@@ -701,7 +701,7 @@ class TestTag_Settings {
                 </div>
             </div>
 
-            <?php elseif ( $tab === 'about' ) : ?>
+            <?php elseif ( $tab === 'contribute' ) : ?>
 
             <div class="testtag-card">
                 <h2>About the Author</h2>
