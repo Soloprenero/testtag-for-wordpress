@@ -9,7 +9,7 @@ All notable changes to TestTag for WordPress are documented in this file.
 - **CSS Selector Validation** — Inline validation as the user types in the Selector Map. Unsupported patterns (`:has()`, `:is()`, `:where()`, `:nth-child()` and relatives, `:not()`, sibling combinators `+`/`~`, and pseudo-elements `::before`/`::after`) are highlighted with a red border and an inline error message.
 - **Pre-save blocking**: The save is blocked if any selector input is invalid, with a dismissible error banner and auto-scroll to the first offending field.
 - **Guidance panel**: A collapsible "Supported & unsupported selector patterns" panel above the selector table.
-- **E2E tests** for selector validation (`tests/e2e/configuration/selector-validation.spec.ts`): 6 Playwright tests.
+- **E2E tests** for selector validation (`tests/e2e/configuration/selector-validation.spec.ts`).
 - **Extended element type tagging**: Auto-tagging now covers `<ul>`/`<ol>`, `<li>`, `<table>`, `<tr>`, `<th>`, `<td>`, `<option>`, `<nav>`, `<fieldset>`, `<details>`, `<summary>`, `<figure>` in both PHP and JS injectors.
 - **Drag-and-drop Tag Format builder**: Replaced checkbox/radio controls with a visual token builder. Tokens are dragged from the Palette into the Active zone.
 - **Per-gap separators**: Each gap between active tokens shows a clickable `-`/`_` toggle.
