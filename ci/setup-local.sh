@@ -85,7 +85,7 @@ echo -e "${GREEN}✓ WordPress configured${NC}"
 
 # Activate TestTag plugin
 echo -e "${YELLOW}Activating TestTag plugin...${NC}"
-docker exec "$WP_CONTAINER" wp plugin activate testtag-for-wordpress --allow-root 2>/dev/null || echo "Plugin may already be active"
+docker exec "$WP_CONTAINER" wp plugin activate testtag-for-wp --allow-root 2>/dev/null || echo "Plugin may already be active"
 
 echo -e "${GREEN}✓ TestTag plugin activated${NC}"
 

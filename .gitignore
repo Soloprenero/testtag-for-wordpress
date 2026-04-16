@@ -9,6 +9,7 @@ playwright-report/
 test-results/
 test-results.json
 .env.test
+block-test-output.txt
 
 # Playwright
 tests/.auth/

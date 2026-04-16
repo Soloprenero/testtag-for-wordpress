@@ -2,7 +2,7 @@
  * Copyright (c) 2026 Gary Young III (https://garyyoungiii.com)
  * Soloprenero — https://soloprenero.com
  *
- * TestTag for WordPress — Audit Mode
+ * TestTag for WP — Audit Mode
  *
  * When active, hovering any tagged element shows a fixed tooltip with:
  *   - Tag value

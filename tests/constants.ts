@@ -33,6 +33,6 @@ export const TEST_USERS = {
 } as const;
 
 export const TESTTAG_PLUGIN = {
-  slug: 'testtag-for-wordpress/testtag-for-wordpress.php',
-  rowSelector: 'tr[data-plugin="testtag-for-wordpress/testtag-for-wordpress.php"]',
+  slug: 'testtag-for-wp/testtag-for-wp.php',
+  rowSelector: 'tr[data-plugin="testtag-for-wp/testtag-for-wp.php"]',
 } as const;

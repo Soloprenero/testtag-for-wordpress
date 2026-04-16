@@ -27,7 +27,7 @@ class TestTag_Settings {
         add_action( 'admin_enqueue_scripts', [ __CLASS__, 'enqueue_admin_assets' ] );
         add_action( 'admin_post_testtag_export', [ __CLASS__, 'handle_export' ] );
         add_action( 'admin_post_testtag_import', [ __CLASS__, 'handle_import' ] );
-        add_filter( 'plugin_action_links_testtag-for-wordpress/testtag-for-wordpress.php',
+        add_filter( 'plugin_action_links_testtag-for-wp/testtag-for-wp.php',
                     [ __CLASS__, 'add_plugin_action_links' ] );
     }
 
@@ -208,7 +208,7 @@ class TestTag_Settings {
     // ─────────────────────────────────────────────────────────────
     public static function add_settings_page(): void {
         add_management_page(
-            'TestTag for WordPress',
+            'TestTag for WP',
             'TestTag',
             'manage_options',
             'testtag',
@@ -287,7 +287,7 @@ class TestTag_Settings {
 
         $data = [
             'version'  => '1.0',
-            'plugin'   => 'testtag-for-wordpress',
+            'plugin'   => 'testtag-for-wp',
             'settings' => [
                 self::OPTION_ATTRIBUTE_KEY  => self::get_attribute_key(),
                 self::OPTION_FORCE_ENABLE   => get_option( self::OPTION_FORCE_ENABLE, '0' ),
@@ -339,7 +339,7 @@ class TestTag_Settings {
         if (
             ! is_array( $data ) ||
             empty( $data['settings'] ) ||
-            ( $data['plugin'] ?? '' ) !== 'testtag-for-wordpress'
+            ( $data['plugin'] ?? '' ) !== 'testtag-for-wp'
         ) {
             wp_safe_redirect( add_query_arg( 'testtag_import', 'invalid', $redirect ) );
             exit;
@@ -432,7 +432,7 @@ class TestTag_Settings {
         $base_url = admin_url( 'tools.php?page=testtag' );
         ?>
         <div class="wrap testtag-wrap">
-            <h1>🏷️ TestTag for WordPress</h1>
+            <h1>🏷️ TestTag for WP</h1>
 
             <nav class="nav-tab-wrapper">
                 <a href="<?php echo esc_url( $base_url . '&tab=settings' ); ?>"
@@ -738,7 +738,7 @@ class TestTag_Settings {
             <div class="testtag-card">
                 <h2>License</h2>
                 <p>
-                    TestTag for WordPress is open-source software licensed under the
+                    TestTag for WP is open-source software licensed under the
                     <a href="https://www.gnu.org/licenses/gpl-2.0.html" target="_blank" rel="noopener noreferrer">GNU General Public License v2.0 or later</a>.
                     You are free to use, modify, and distribute it under those terms.
                 </p>

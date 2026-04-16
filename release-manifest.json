@@ -1,10 +1,10 @@
 {
   "requiredFiles": [
-    "testtag-for-wordpress.php",
+    "testtag-for-wp.php",
     "readme.txt",
     "README.md",
     "CHANGELOG.md",
-    "CONTRIBUTORS.md",
+    ".github/CONTRIBUTORS.md",
     "naming-rules.json",
     "includes/class-testtag-presets.php",
     "includes/class-testtag-settings.php",

@@ -1,6 +1,6 @@
 <?php
 /**
- * Plugin Name:  TestTag for WordPress
+ * Plugin Name:  TestTag for WP
  * Plugin URI:   https://github.com/garyyoungiii/testtag-for-wordpress
  * Description:  Automatically tag any element on your WordPress site with test
  *               attributes for Playwright, Cypress, Selenium, or any automation
