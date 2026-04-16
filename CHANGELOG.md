@@ -2,7 +2,7 @@
 
 All notable changes to TestTag for WordPress are documented in this file.
 
-## [1.5.0-beta] - 2026-04-16
+## [1.6.0-beta] - 2026-04-16
 
 ### Added
 
