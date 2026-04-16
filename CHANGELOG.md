@@ -1,6 +1,6 @@
 # Changelog
 
-All notable changes to TestTag for WordPress are documented in this file.
+All notable changes to TestTag for WP are documented in this file.
 
 ## [1.5.1-beta] - 2026-04-16
 

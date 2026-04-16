@@ -1,10 +1,10 @@
-# TestTag for WordPress
+# TestTag for WP
 
 **Stop manually tagging your blocks.**
 
 I hate manually adding `data-testid` attributes to every button, input, and container across a dynamic WordPress site. It's a tiring, repetitive chore that slows down your development cycle, litters your markup, and is usually the first thing to break when a layout changes. 
 
-**TestTag for Wordpress**  gets **99% of the job done for you** in a highly configurable way. It automatically tags any element on your WordPress site with test attributes for Playwright, Cypress, Selenium, or any automation framework that queries the DOM. 
+**TestTag for WP**  gets **99% of the job done for you** in a highly configurable way. It automatically tags any element on your WordPress site with test attributes for Playwright, Cypress, Selenium, or any automation framework that queries the DOM. 
 
 Whether you are using Gutenberg, Elementor, classic themes, or writing your own HTML, TestTag intelligently handles the heavy lifting so you can focus on writing tests, not markup.
 
@@ -156,7 +156,7 @@ driver.find_element(By.CSS_SELECTOR, '[data-test="button-send-message"]').click(
 
 ### Manual Installation
 
-1. Copy the testtag-for-wordpress/ folder into your wp-content/plugins/ directory.
+1. Copy the testtag-for-wp/ folder into your wp-content/plugins/ directory.
 
 2. Activate it via Plugins → Installed Plugins.
 

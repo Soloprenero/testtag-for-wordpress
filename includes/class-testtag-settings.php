@@ -27,7 +27,7 @@ class TestTag_Settings {
         add_action( 'admin_enqueue_scripts', [ __CLASS__, 'enqueue_admin_assets' ] );
         add_action( 'admin_post_testtag_export', [ __CLASS__, 'handle_export' ] );
         add_action( 'admin_post_testtag_import', [ __CLASS__, 'handle_import' ] );
-        add_filter( 'plugin_action_links_testtag-for-wordpress/testtag-for-wordpress.php',
+        add_filter( 'plugin_action_links_testtag-for-wp/testtag-for-wp.php',
                     [ __CLASS__, 'add_plugin_action_links' ] );
     }
 
@@ -208,7 +208,7 @@ class TestTag_Settings {
     // ─────────────────────────────────────────────────────────────
     public static function add_settings_page(): void {
         add_management_page(
-            'TestTag for WordPress',
+            'TestTag for WP',
             'TestTag',
             'manage_options',
             'testtag',
@@ -223,8 +223,14 @@ class TestTag_Settings {
     }
 
     public static function register_settings(): void {
-        register_setting( 'testtag_group', self::OPTION_FORCE_ENABLE );
-        register_setting( 'testtag_group', self::OPTION_TEXT_FALLBACK );
+        register_setting( 'testtag_group', self::OPTION_FORCE_ENABLE, [
+            'type'              => 'string',
+            'sanitize_callback' => fn( $val ) => $val === '1' ? '1' : '0',
+        ] );
+        register_setting( 'testtag_group', self::OPTION_TEXT_FALLBACK, [
+            'type'              => 'string',
+            'sanitize_callback' => fn( $val ) => $val === '0' ? '0' : '1',
+        ] );
         register_setting( 'testtag_group', self::OPTION_TOKEN_ORDER, [
             'type'              => 'string',
             'show_in_rest'      => true,
@@ -281,7 +287,7 @@ class TestTag_Settings {
 
         $data = [
             'version'  => '1.0',
-            'plugin'   => 'testtag-for-wordpress',
+            'plugin'   => 'testtag-for-wp',
             'settings' => [
                 self::OPTION_ATTRIBUTE_KEY  => self::get_attribute_key(),
                 self::OPTION_FORCE_ENABLE   => get_option( self::OPTION_FORCE_ENABLE, '0' ),
@@ -311,20 +317,21 @@ class TestTag_Settings {
         $redirect = admin_url( 'tools.php?page=testtag' );
 
         if ( empty( $_FILES['testtag_import_file']['tmp_name'] ) ) {
-            wp_redirect( add_query_arg( 'testtag_import', 'no_file', $redirect ) );
+            wp_safe_redirect( add_query_arg( 'testtag_import', 'no_file', $redirect ) );
             exit;
         }
 
+        // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- is_uploaded_file() validates this server-set tmp path.
         $tmp_name = wp_unslash( $_FILES['testtag_import_file']['tmp_name'] );
         if ( ! is_string( $tmp_name ) || ! is_uploaded_file( $tmp_name ) ) {
-            wp_redirect( add_query_arg( 'testtag_import', 'no_file', $redirect ) );
+            wp_safe_redirect( add_query_arg( 'testtag_import', 'no_file', $redirect ) );
             exit;
         }
 
         // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents
         $content = file_get_contents( $tmp_name );
         if ( $content === false ) {
-            wp_redirect( add_query_arg( 'testtag_import', 'invalid', $redirect ) );
+            wp_safe_redirect( add_query_arg( 'testtag_import', 'invalid', $redirect ) );
             exit;
         }
         $data = json_decode( $content, true );
@@ -332,9 +339,9 @@ class TestTag_Settings {
         if (
             ! is_array( $data ) ||
             empty( $data['settings'] ) ||
-            ( $data['plugin'] ?? '' ) !== 'testtag-for-wordpress'
+            ( $data['plugin'] ?? '' ) !== 'testtag-for-wp'
         ) {
-            wp_redirect( add_query_arg( 'testtag_import', 'invalid', $redirect ) );
+            wp_safe_redirect( add_query_arg( 'testtag_import', 'invalid', $redirect ) );
             exit;
         }
 
@@ -382,7 +389,7 @@ class TestTag_Settings {
             update_option( self::OPTION_SELECTOR_MAP, self::sanitize_selector_map( $s[ self::OPTION_SELECTOR_MAP ] ) );
         }
 
-        wp_redirect( add_query_arg( 'testtag_import', 'success', $redirect ) );
+        wp_safe_redirect( add_query_arg( 'testtag_import', 'success', $redirect ) );
         exit;
     }
 
@@ -425,7 +432,7 @@ class TestTag_Settings {
         $base_url = admin_url( 'tools.php?page=testtag' );
         ?>
         <div class="wrap testtag-wrap">
-            <h1>🏷️ TestTag for WordPress</h1>
+            <h1>🏷️ TestTag for WP</h1>
 
             <nav class="nav-tab-wrapper">
                 <a href="<?php echo esc_url( $base_url . '&tab=settings' ); ?>"
@@ -636,13 +643,13 @@ class TestTag_Settings {
                             <?php foreach ( $map as $i => $row ) : ?>
                             <tr class="testtag-row">
                                 <td><input type="text"
-                                    name="<?php echo esc_attr( self::OPTION_SELECTOR_MAP ); ?>[<?php echo $i; ?>][selector]"
+                                    name="<?php echo esc_attr( self::OPTION_SELECTOR_MAP ); ?>[<?php echo absint( $i ); ?>][selector]"
                                     value="<?php echo esc_attr( $row['selector'] ); ?>"
                                     placeholder="nav a[href='#about']"
                                     class="regular-text"
                                     data-testid="testtag-map-selector-input" /></td>
                                 <td><input type="text"
-                                    name="<?php echo esc_attr( self::OPTION_SELECTOR_MAP ); ?>[<?php echo $i; ?>][testid]"
+                                    name="<?php echo esc_attr( self::OPTION_SELECTOR_MAP ); ?>[<?php echo absint( $i ); ?>][testid]"
                                     value="<?php echo esc_attr( $row['testid'] ); ?>"
                                     placeholder="nav-about"
                                     class="regular-text" /></td>
@@ -731,7 +738,7 @@ class TestTag_Settings {
             <div class="testtag-card">
                 <h2>License</h2>
                 <p>
-                    TestTag for WordPress is open-source software licensed under the
+                    TestTag for WP is open-source software licensed under the
                     <a href="https://www.gnu.org/licenses/gpl-2.0.html" target="_blank" rel="noopener noreferrer">GNU General Public License v2.0 or later</a>.
                     You are free to use, modify, and distribute it under those terms.
                 </p>

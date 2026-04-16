@@ -47,11 +47,11 @@ wp option update home "${TEST_URL}" --allow-root
 wp option update siteurl "${TEST_URL}" --allow-root
 
 # Check if TestTag plugin is active
-if wp plugin is-active testtag-for-wordpress --allow-root 2>/dev/null; then
+if wp plugin is-active testtag-for-wp --allow-root 2>/dev/null; then
   echo "✓ TestTag plugin already active"
 else
   echo "🔌 Activating TestTag plugin..."
-  wp plugin activate testtag-for-wordpress --allow-root || true
+  wp plugin activate testtag-for-wp --allow-root || true
 fi
 
 # Configure TestTag plugin
@@ -62,7 +62,7 @@ wp option update testtag_force_enable 1 --allow-root
 
 # Create / update the layer-fixture page with proper Gutenberg block content
 echo "📄 Ensuring layer fixture page..."
-bash /var/www/html/wp-content/plugins/testtag-for-wordpress/ci/ensure-fixture-page.sh
+bash /var/www/html/wp-content/plugins/testtag-for-wp/ci/ensure-fixture-page.sh
 
 echo "✅ WordPress initialization complete!"
 echo ""

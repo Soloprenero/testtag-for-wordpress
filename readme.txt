@@ -1,11 +1,11 @@
-=== TestTag for WordPress ===
+=== TestTag for WP ===
 Contributors: garyyoungiii
 Donate link: https://soloprenero.com/buy/testtag-for-wordpress/
-Tags: testing, playwright, cypress, selenium, qa, automation, testid
+Tags: testing, playwright, cypress, selenium, qa
 Requires at least: 6.0
-Tested up to: 6.9.4
+Tested up to: 6.9
 Requires PHP: 8.0
-Stable tag: 1.5.0-beta
+Stable tag: 1.5.1-beta
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -76,6 +76,12 @@ By default, injection is limited to admins and local/development/staging. You ca
 4. Preset cards for supported plugins
 
 == Changelog ==
+
+= 1.5.1-beta =
+* Security: replaced wp_redirect() with wp_safe_redirect() throughout settings handlers
+* Security: added sanitization callbacks to register_setting() for force-enable and text-fallback options
+* Security: validate file upload tmp_name with is_uploaded_file() before use in import handler
+* Security: escape loop index with absint() in selector map HTML output
 
 = 1.5.0-beta =
 * Inline CSS selector validation in Selector Map: unsupported patterns (`:has()`, `:is()`, `:not()`, sibling combinators, etc.) are flagged with a red border and error message as you type
