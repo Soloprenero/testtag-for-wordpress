@@ -117,6 +117,34 @@ export class TestTagSettingsPage extends AppPage {
   }
 
   /**
+   * Add a new row to the CSS Selector Map table.
+   * Clicks "Add Row", fills the selector and tag-value inputs in the new row.
+   */
+  async addSelectorMapRow(selector: string, tagValue: string): Promise<void> {
+    const addRowBtn = this.page.locator('#testtag-add-row');
+    await addRowBtn.click();
+    const rows = this.page.locator('tr.testtag-row');
+    const lastRow = rows.last();
+    await lastRow.locator('input[name$="[selector]"]').fill(selector);
+    await lastRow.locator('input[name$="[testid]"]').fill(tagValue);
+    // Trigger blur so validation fires.
+    await lastRow.locator('input[name$="[selector]"]').blur();
+  }
+
+  /**
+   * Get the validation error/warning message for the last selector-map row.
+   */
+  async getLastRowSelectorMessage(): Promise<string | null> {
+    const rows = this.page.locator('tr.testtag-row');
+    const lastRow = rows.last();
+    const msg = lastRow.locator('.testtag-selector-msg');
+    if (await msg.isVisible({ timeout: 1000 }).catch(() => false)) {
+      return msg.textContent();
+    }
+    return null;
+  }
+
+  /**
    * Set string-format options on the settings page.
    * Must be called while the settings page is open; call saveSettings() afterwards.
    */

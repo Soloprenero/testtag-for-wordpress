@@ -77,6 +77,12 @@ By default, injection is limited to admins and local/development/staging. You ca
 
 == Changelog ==
 
+= Unreleased =
+* Inline CSS selector validation in Selector Map: unsupported patterns (`:has()`, `:is()`, `:not()`, sibling combinators, etc.) are flagged with a red border and error message as you type
+* Pre-save blocking: form save is prevented when any selector is invalid; a dismissible error banner is shown and auto-clears once all errors are resolved
+* Collapsible guidance panel listing supported and unsupported selector patterns with inline code examples
+* Selector map row alignment changed to top-align so CSS selector and tag value inputs always stay paired left-to-right when error messages expand the row
+
 = 1.4.1 =
 * CI/release hardening only (no runtime plugin behavior changes)
 * Updated GitHub Actions for Node 24 transition readiness

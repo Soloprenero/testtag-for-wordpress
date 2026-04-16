@@ -610,6 +610,14 @@ class TestTag_Settings {
                         Maps CSS selectors to explicit tag values for theme elements outside block content —
                         nav, footer, widgets, Elementor sections. Applied before auto-generation so these always win.
                     </p>
+                    <details class="testtag-selector-help">
+                        <summary>Supported &amp; unsupported selector patterns</summary>
+                        <div class="testtag-selector-help-body">
+                            <p><strong class="testtag-supported-label">Supported:</strong> type selectors (<code>nav</code>), class (<code>.nav-link</code>), ID (<code>#site-nav</code>), attribute selectors (<code>[href]</code>, <code>[data-id="x"]</code>), descendant (<code>nav a</code>), and child (<code>nav &gt; a</code>).</p>
+                            <p><strong class="testtag-unsupported-label">Not supported:</strong> <code>:not()</code>, <code>:has()</code>, <code>:is()</code>, <code>:where()</code>, <code>:nth-child()</code> and related, sibling combinators (<code>+</code>&nbsp;<code>~</code>), and pseudo-elements (<code>::before</code>, <code>::after</code>). Pseudo-classes are currently ignored by server-side selector matching.</p>
+                            <p>Unsupported patterns are flagged inline as you type. Fix them before saving — the Save button will be blocked until all errors are resolved.</p>
+                        </div>
+                    </details>
                     <table class="widefat testtag-map-table" id="testtag-map-table">
                         <thead>
                             <tr>
