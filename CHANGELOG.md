@@ -28,6 +28,15 @@ All notable changes to TestTag for WordPress are documented in this file.
 - Row alignment in selector map table changed to `vertical-align: top`.
 - Semantic color labels (`.testtag-supported-label` / `.testtag-unsupported-label`) replace emoji in guidance panel.
 
+### Fixed
+
+- **`clean()`**: Guard against an empty `$strip_segments` list (missing or empty `naming-rules.json` would produce a malformed regex that incorrectly matched empty strings between separators).
+- **`element_token_values()`**: `aria-labelledby` XPath lookup now uses `xpath_quote()` instead of a manual `str_replace` that did not handle single-quote characters in element IDs.
+- **`auto_id()`**: Deferred `element_token_values()` (which runs XPath queries) until after the `type=hidden` early-return so hidden inputs never incur that overhead.
+- **Readability**: Moved orphaned `element_token_values()` docblock to sit directly above the function (was misplaced before `inferred_aria_role()`).
+- **Readability**: Split inline `$ti = PHP_INT_MAX; $ii = PHP_INT_MAX;` onto separate lines in `get_type_position()`.
+- **Best practice**: All `echo self::OPTION_*` constant names used as HTML `name=` attribute values now go through `esc_attr()`.
+
 ---
 
 ## [1.4.1] - 2026-04-04
