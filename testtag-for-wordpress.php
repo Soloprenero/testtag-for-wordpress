@@ -23,11 +23,11 @@ define( 'TESTTAG_VERSION',    '1.5.0-beta' );
 define( 'TESTTAG_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
 define( 'TESTTAG_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
 
-require_once TESTTAG_PLUGIN_DIR . 'includes/class-testtag-presets.php';
-require_once TESTTAG_PLUGIN_DIR . 'includes/class-testtag-settings.php';
-require_once TESTTAG_PLUGIN_DIR . 'includes/class-testtag-html-processor.php';
-require_once TESTTAG_PLUGIN_DIR . 'includes/class-testtag-layer-marker.php';
-require_once TESTTAG_PLUGIN_DIR . 'includes/class-testtag-audit.php';
+require_once TESTTAG_PLUGIN_DIR . 'src/includes/class-testtag-presets.php';
+require_once TESTTAG_PLUGIN_DIR . 'src/includes/class-testtag-settings.php';
+require_once TESTTAG_PLUGIN_DIR . 'src/includes/class-testtag-html-processor.php';
+require_once TESTTAG_PLUGIN_DIR . 'src/includes/class-testtag-layer-marker.php';
+require_once TESTTAG_PLUGIN_DIR . 'src/includes/class-testtag-audit.php';
 
 TestTag_Settings::init();
 TestTag_HTML_Processor::init();

@@ -13,7 +13,7 @@ class TestTag_Layer_Marker {
 
         wp_enqueue_script(
             'testtag-layer-marker',
-            TESTTAG_PLUGIN_URL . 'js/layer-marker.js',
+            TESTTAG_PLUGIN_URL . 'src/js/layer-marker.js',
             [],
             TESTTAG_VERSION,
             true
@@ -32,7 +32,7 @@ class TestTag_Layer_Marker {
 
         wp_enqueue_script(
             'testtag-dynamic-injector',
-            TESTTAG_PLUGIN_URL . 'js/dynamic-injector.js',
+            TESTTAG_PLUGIN_URL . 'src/js/dynamic-injector.js',
             [ 'testtag-layer-marker' ],
             TESTTAG_VERSION,
             true

@@ -5,9 +5,6 @@
     "README.md",
     "CHANGELOG.md",
     "CONTRIBUTORS.md",
-    "naming-rules.json",
-    "includes/class-testtag-presets.php",
-    "includes/class-testtag-settings.php",
-    "js/dynamic-injector.js"
+    "src/"
   ]
 }

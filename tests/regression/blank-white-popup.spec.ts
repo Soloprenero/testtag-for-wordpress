@@ -10,7 +10,7 @@ import { WordPressAuthPage } from '@pageObjects/WordPressAuthPage';
  * TestTag_HTML_Processor::process_html() stashes those script blocks before
  * passing the page to DOMDocument and restores them afterwards.
  *
- * @see includes/class-testtag-html-processor.php
+ * @see src/includes/class-testtag-html-processor.php
  */
 test.describe('Regression: no blank white popup on admin pages', () => {
   test('No blank white popup on Settings > General when plugin is active', async ({ page }) => {

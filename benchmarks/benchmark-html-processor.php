@@ -58,8 +58,8 @@ if ( ! function_exists( 'add_management_page' ) )    { function add_management_p
 if ( ! function_exists( 'register_setting' ) )       { function register_setting():void{} }
 
 // ─── Load plugin classes ──────────────────────────────────────────────────────
-require_once __DIR__ . '/../includes/class-testtag-settings.php';
-require_once __DIR__ . '/../includes/class-testtag-html-processor.php';
+require_once __DIR__ . '/../src/includes/class-testtag-settings.php';
+require_once __DIR__ . '/../src/includes/class-testtag-html-processor.php';
 
 // ─── HTML page generator ──────────────────────────────────────────────────────
 

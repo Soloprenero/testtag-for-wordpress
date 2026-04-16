@@ -393,8 +393,8 @@ class TestTag_Settings {
 
     public static function enqueue_admin_assets( string $hook ): void {
         if ( $hook !== 'tools_page_testtag' ) return;
-        wp_enqueue_style(  'testtag-admin', TESTTAG_PLUGIN_URL . 'admin/admin.css', [], TESTTAG_VERSION );
-        wp_enqueue_script( 'testtag-admin', TESTTAG_PLUGIN_URL . 'admin/admin.js',  [], TESTTAG_VERSION, true );
+        wp_enqueue_style(  'testtag-admin', TESTTAG_PLUGIN_URL . 'src/admin/admin.css', [], TESTTAG_VERSION );
+        wp_enqueue_script( 'testtag-admin', TESTTAG_PLUGIN_URL . 'src/admin/admin.js',  [], TESTTAG_VERSION, true );
         wp_localize_script( 'testtag-admin', 'TESTTAG_ADMIN', [
             'defaults'  => self::get_default_selector_map(),
             'rowCount'  => count( self::get_selector_map() ),
@@ -804,7 +804,7 @@ class TestTag_Settings {
                 'date'    => '2026-03-21',
                 'changes' => [
                     'New: Export / Import Settings — download current settings as a dated JSON file and restore on any site.',
-                    'New: Dynamic injector (<code>js/dynamic-injector.js</code>) — MutationObserver applies selector map and auto-generation to AJAX-loaded content client-side.',
+                    'New: Dynamic injector (<code>src/js/dynamic-injector.js</code>) — MutationObserver applies selector map and auto-generation to AJAX-loaded content client-side.',
                     'Dynamic injector never overwrites server-side tags; server-side always wins.',
                     'Dynamic dedup tracked independently from server-side tags; value collisions are intentional and resolved by scoping locators.',
                 ],

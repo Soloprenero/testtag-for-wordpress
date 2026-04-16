@@ -37,8 +37,18 @@ jobs:
           mkdir -p dist
           node -e "
             const fs = require('fs');
+            const path = require('path');
             const m = JSON.parse(fs.readFileSync('release-manifest.json', 'utf8'));
-            process.stdout.write((m.requiredFiles || []).join('\n'));
+            function walk(dir) {
+              return fs.readdirSync(dir, { withFileTypes: true }).flatMap(e => {
+                const full = path.join(dir, e.name);
+                return e.isDirectory() ? walk(full) : [full];
+              });
+            }
+            const files = (m.requiredFiles || []).flatMap(entry =>
+              entry.endsWith('/') ? walk(entry.replace(/\/$/, '')) : [entry]
+            );
+            process.stdout.write(files.join('\n'));
           " | xargs -d '\n' zip dist/testtag-for-wordpress.zip
 
       - name: Validate packaged zip contents
@@ -54,8 +64,21 @@ jobs:
             | grep -v '/$' \
             | LC_ALL=C sort -u > "$zip_file_list"
 
-          node -e "const fs=require('fs');const m=JSON.parse(fs.readFileSync('release-manifest.json','utf8'));for(const f of (m.requiredFiles||[])) console.log(f);" \
-            | LC_ALL=C sort -u > "$manifest_file_list"
+          node -e "
+            const fs = require('fs');
+            const path = require('path');
+            const m = JSON.parse(fs.readFileSync('release-manifest.json', 'utf8'));
+            function walk(dir) {
+              return fs.readdirSync(dir, { withFileTypes: true }).flatMap(e => {
+                const full = path.join(dir, e.name);
+                return e.isDirectory() ? walk(full) : [full];
+              });
+            }
+            const files = (m.requiredFiles || []).flatMap(entry =>
+              entry.endsWith('/') ? walk(entry.replace(/\/$/, '')) : [entry]
+            );
+            files.forEach(f => console.log(f));
+          " | LC_ALL=C sort -u > "$manifest_file_list"
 
           missing_from_zip=$(comm -23 "$manifest_file_list" "$zip_file_list" || true)
           unexpected_in_zip=$(comm -13 "$manifest_file_list" "$zip_file_list" || true)
