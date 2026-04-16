@@ -80,7 +80,7 @@ By default, injection is limited to admins and local/development/staging. You ca
 = 1.5.1-beta =
 * Security: replaced wp_redirect() with wp_safe_redirect() throughout settings handlers
 * Security: added sanitization callbacks to register_setting() for force-enable and text-fallback options
-* Security: sanitize file upload tmp_name before use in import handler
+* Security: validate tmp_name with is_uploaded_file() before reading in import handler
 * Security: escape loop index with absint() in selector map HTML output
 
 = 1.5.0-beta =
