@@ -8,8 +8,11 @@
  *               and a CSS selector map for explicit overrides. Works on any WordPress site —
  *               Elementor, Gutenberg, or classic themes.
  * Version:      1.5.0-beta
- * Author:       Gary Young III
- * Author URI:   https://garyyoungiii.com
+ * Author:            Soloprenero
+ * Author URI:        https://soloprenero.com
+ *
+ * Authored by:       Gary Young
+ * Copyright:         2026 Soloprenero. All rights reserved.
  * Requires at least: 6.0
  * Requires PHP: 8.0
  * License:      GPL-2.0-or-later
