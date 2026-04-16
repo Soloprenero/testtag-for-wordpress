@@ -1,3 +1,7 @@
+/**
+ * Copyright (c) 2026 Gary Young III (https://garyyoungiii.com)
+ * Soloprenero — https://soloprenero.com
+ */
 import { test, expect } from '@playwright/test';
 import { FrontendPage } from '@pageObjects/FrontendPage';
 import { WordPressAuthPage } from '@pageObjects/WordPressAuthPage';

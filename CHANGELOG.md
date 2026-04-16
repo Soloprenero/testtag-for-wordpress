@@ -6,6 +6,7 @@ All notable changes to TestTag for WordPress are documented in this file.
 
 ### Added
 
+- **Copyright notices** — Added copyright headers to all PHP, JS, TypeScript, and CSS source files. Copyright belongs to Gary Young III (https://garyyoungiii.com) / Soloprenero (https://soloprenero.com).
 - **CSS Selector Validation** — Inline validation as the user types in the Selector Map. Unsupported patterns (`:has()`, `:is()`, `:where()`, `:nth-child()` and relatives, `:not()`, sibling combinators `+`/`~`, and pseudo-elements `::before`/`::after`) are highlighted with a red border and an inline error message.
 - **Pre-save blocking**: The save is blocked if any selector input is invalid, with a dismissible error banner and auto-scroll to the first offending field.
 - **Guidance panel**: A collapsible "Supported & unsupported selector patterns" panel above the selector table.

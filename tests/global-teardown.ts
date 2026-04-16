@@ -1,3 +1,7 @@
+/**
+ * Copyright (c) 2026 Gary Young III (https://garyyoungiii.com)
+ * Soloprenero — https://soloprenero.com
+ */
 import { execSync } from 'child_process';
 
 async function globalTeardown(): Promise<void> {

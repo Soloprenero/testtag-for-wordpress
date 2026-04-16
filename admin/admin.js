@@ -1,3 +1,7 @@
+/**
+ * Copyright (c) 2026 Gary Young III (https://garyyoungiii.com)
+ * Soloprenero — https://soloprenero.com
+ */
 (function () {
     var table    = document.getElementById('testtag-map-table');
     var addBtn   = document.getElementById('testtag-add-row');
