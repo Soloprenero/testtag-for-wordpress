@@ -1,3 +1,7 @@
+/**
+ * Copyright (c) 2026 Gary Young III (https://garyyoungiii.com)
+ * Soloprenero — https://soloprenero.com
+ */
 export const TEST_URLS = {
   LOGIN: '/wp-login.php',
   ADMIN_HOME: '/wp-admin/',

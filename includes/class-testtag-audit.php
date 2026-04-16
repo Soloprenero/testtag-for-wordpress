@@ -2,6 +2,9 @@
 defined( 'ABSPATH' ) || exit;
 
 /**
+ * Copyright (c) 2026 Gary Young III (https://garyyoungiii.com)
+ * Soloprenero — https://soloprenero.com
+ *
  * TestTag_Audit
  *
  * Adds an "🔍 Audit Mode" toggle to the WordPress admin bar that,

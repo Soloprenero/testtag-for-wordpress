@@ -14,6 +14,7 @@
  * Requires PHP: 8.0
  * License:      GPL-2.0-or-later
  * License URI:  https://www.gnu.org/licenses/gpl-2.0.html
+ * Copyright:     Gary Young III / Soloprenero (https://soloprenero.com)
  * Text Domain:  testtag
  */
 

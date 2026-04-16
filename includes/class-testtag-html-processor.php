@@ -2,6 +2,9 @@
 defined( 'ABSPATH' ) || exit;
 
 /**
+ * Copyright (c) 2026 Gary Young III (https://garyyoungiii.com)
+ * Soloprenero — https://soloprenero.com
+ *
  * TestTag_HTML_Processor
  *
  * Buffers the full page HTML output and injects the configured attribute

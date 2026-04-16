@@ -2,6 +2,9 @@
 defined( 'ABSPATH' ) || exit;
 
 /**
+ * Copyright (c) 2026 Gary Young III (https://garyyoungiii.com)
+ * Soloprenero — https://soloprenero.com
+ *
  * TestTag_Presets
  *
  * Selector map presets for common WordPress plugins.

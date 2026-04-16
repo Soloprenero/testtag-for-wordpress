@@ -1,5 +1,8 @@
 <?php
 /**
+ * Copyright (c) 2026 Gary Young III (https://garyyoungiii.com)
+ * Soloprenero — https://soloprenero.com
+ *
  * Standalone benchmark for TestTag_HTML_Processor::process_html().
  *
  * Measures HTML processing time on a large synthetic page that mirrors

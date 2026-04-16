@@ -1,6 +1,11 @@
 <?php
 defined( 'ABSPATH' ) || exit;
 
+/**
+ * Copyright (c) 2026 Gary Young III (https://garyyoungiii.com)
+ * Soloprenero — https://soloprenero.com
+ */
+
 class TestTag_Settings {
 
     const OPTION_SELECTOR_MAP   = 'testtag_selector_map';
