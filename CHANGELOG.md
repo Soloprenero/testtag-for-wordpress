@@ -28,6 +28,12 @@ All notable changes to TestTag for WordPress are documented in this file.
 - Row alignment in selector map table changed to `vertical-align: top`.
 - Semantic color labels (`.testtag-supported-label` / `.testtag-unsupported-label`) replace emoji in guidance panel.
 - Settings page: "About" card heading renamed to "Overview" (plugin summary); "About" tab renamed to "Contribute" (author info, license, changelog).
+- **Project folder restructure**: Plugin core files consolidated under `src/` for clearer separation of concerns:
+  - `includes/` → `src/includes/`
+  - `js/` → `src/js/`
+  - `admin/` → `src/admin/`
+  - `naming-rules.json` → `src/naming-rules.json`
+- `release-manifest.json` updated to reference `src/` directory entry; CI packaging expanded to recursively include all files within directory entries.
 
 ---
 

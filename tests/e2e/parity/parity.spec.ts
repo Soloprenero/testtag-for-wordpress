@@ -24,8 +24,8 @@ import { TEST_URLS } from '@tests/constants';
  * valid when string-format tests run concurrently and alter WordPress options.
  *
  * Priority order under test (aria-label → id → name → href path → text):
- *   see includes/class-testtag-html-processor.php  auto_id()
- *   and js/dynamic-injector.js                     autoId()
+ *   see src/includes/class-testtag-html-processor.php  auto_id()
+ *   and src/js/dynamic-injector.js                     autoId()
  */
 
 const LAYER = 'data-testtag-layer';

@@ -76,7 +76,7 @@ Navigate to **Settings → TestTag** in your `wp-admin` dashboard to configure t
 
 * **Attribute Key:** Set the target attribute (`data-testid` for Playwright, `data-cy` for Cypress, `data-test` for Selenium, etc.).
 * **Force Enable:** Override the environment guard to inject tags for all visitors on all environments—perfect for running automation suites against a live staging or production URL.
-* **CSS Selector Map:** Add, edit, remove, or reset your explicit `selector → tag` mappings. (PHP defaults live safely in `includes/class-testtag-settings.php`).
+* **CSS Selector Map:** Add, edit, remove, or reset your explicit `selector → tag` mappings. (PHP defaults live safely in `src/includes/class-testtag-settings.php`).
 
 ---
 

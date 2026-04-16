@@ -33,7 +33,7 @@ class TestTag_Audit {
 
         wp_enqueue_script(
             'testtag-audit-overlay',
-            TESTTAG_PLUGIN_URL . 'js/audit-overlay.js',
+            TESTTAG_PLUGIN_URL . 'src/js/audit-overlay.js',
             [ 'testtag-layer-marker' ],   // depend on layer marker so it runs after
             TESTTAG_VERSION,
             true
