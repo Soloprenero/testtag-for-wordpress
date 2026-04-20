@@ -1,0 +1,225 @@
+name: WordPress Platform Tests
+
+# Verifies that the plugin passes the WordPress Plugin Checker — a prerequisite
+# for submission to the WordPress.org plugin directory.
+#
+# These tests do not gate functional correctness but ARE required before any
+# WordPress.org release.  The job reports every check result in the workflow
+# summary and as a downloadable artifact, and fails only when ERROR-level issues
+# are found (errors block WP.org submission; warnings are surfaced as a notice).
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  plugin-checker:
+    name: WordPress Plugin Checker
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+
+    env:
+      # Use a distinct port so this job can run alongside the install-test job
+      # on a local machine without a port collision.
+      INSTALL_TEST_PORT: 8082
+      WP_ADMIN_USER: admin
+      WP_ADMIN_PASS: password
+      WP_ADMIN_EMAIL: admin@example.local
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Setup Node
+        uses: actions/setup-node@v5
+        with:
+          node-version: '24'
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci --no-audit --no-fund
+
+      - name: Build plugin assets
+        run: npm run build
+
+      - name: Create plugin zip
+        run: |
+          mkdir -p dist
+          node -e "
+            const fs = require('fs');
+            const m = JSON.parse(fs.readFileSync('release-manifest.json', 'utf8'));
+            process.stdout.write((m.requiredFiles || []).join('\n'));
+          " | xargs -d '\n' zip dist/testtag-for-wp.zip
+
+      - name: Start clean WordPress
+        run: |
+          INSTALL_TEST_PORT=${{ env.INSTALL_TEST_PORT }} \
+            docker compose -f docker-compose.install-test.yml up -d
+
+      - name: Wait for WordPress to be healthy
+        run: |
+          set -euo pipefail
+          deadline=$(( $(date +%s) + 120 ))
+          until curl -sf "http://localhost:${{ env.INSTALL_TEST_PORT }}/wp-login.php" > /dev/null 2>&1; do
+            if [ "$(date +%s)" -ge "$deadline" ]; then
+              echo "WordPress did not become healthy within 120 s."
+              docker compose -f docker-compose.install-test.yml logs wordpress
+              exit 1
+            fi
+            sleep 3
+          done
+          echo "WordPress is ready."
+
+      - name: Install WP-CLI
+        run: |
+          curl -sL https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar \
+            -o /tmp/wp-cli.phar
+          CONTAINER=$(docker compose -f docker-compose.install-test.yml ps -q wordpress)
+          docker cp /tmp/wp-cli.phar "${CONTAINER}":/usr/local/bin/wp
+          docker compose -f docker-compose.install-test.yml exec -T wordpress \
+            chmod +x /usr/local/bin/wp
+          docker compose -f docker-compose.install-test.yml exec -T wordpress \
+            wp --allow-root --info
+
+      - name: Install WordPress
+        run: |
+          docker compose -f docker-compose.install-test.yml exec -T wordpress \
+            wp --allow-root core install \
+              --url="http://localhost:${{ env.INSTALL_TEST_PORT }}" \
+              --title="Platform Test Site" \
+              --admin_user="${{ env.WP_ADMIN_USER }}" \
+              --admin_password="${{ env.WP_ADMIN_PASS }}" \
+              --admin_email="${{ env.WP_ADMIN_EMAIL }}" \
+              --skip-email
+
+      - name: Install TestTag plugin from zip
+        run: |
+          CONTAINER=$(docker compose -f docker-compose.install-test.yml ps -q wordpress)
+          docker cp dist/testtag-for-wp.zip "${CONTAINER}":/tmp/testtag-for-wp.zip
+          docker compose -f docker-compose.install-test.yml exec -T wordpress \
+            wp --allow-root plugin install /tmp/testtag-for-wp.zip --activate
+
+      - name: Install WordPress Plugin Checker
+        run: |
+          docker compose -f docker-compose.install-test.yml exec -T wordpress \
+            wp --allow-root plugin install plugin-check --activate
+
+      - name: Run WordPress Plugin Checker
+        run: |
+          # Capture all output; the JSON array may be preceded by PHP/WP-CLI notices.
+          docker compose -f docker-compose.install-test.yml exec -T wordpress \
+            wp --allow-root plugin check testtag-for-wp --format=json \
+            > plugin-check-results.json 2>&1 || true
+          echo "=== Raw plugin check output ==="
+          cat plugin-check-results.json
+
+      - name: Report plugin check results
+        run: |
+          node << 'EOF'
+          const fs   = require('fs');
+          const raw  = fs.readFileSync('plugin-check-results.json', 'utf8');
+
+          // WP-CLI / PHP may emit notices before the JSON array — find it.
+          const jsonMatch = raw.match(/\[[\s\S]*\]/);
+          if (!jsonMatch) {
+            const msg = [
+              '## WordPress Plugin Check Results',
+              '',
+              '> ⚠️  Plugin check returned no structured JSON output.',
+              '',
+              '```',
+              raw.trim(),
+              '```',
+            ].join('\n');
+            console.log(msg);
+            const summaryFile = process.env.GITHUB_STEP_SUMMARY;
+            if (summaryFile) fs.appendFileSync(summaryFile, msg + '\n');
+            process.exit(0);
+          }
+
+          let results;
+          try {
+            results = JSON.parse(jsonMatch[0]);
+          } catch (e) {
+            console.error('Failed to parse plugin check JSON:', e.message);
+            console.log(raw);
+            process.exit(1);
+          }
+
+          const errors   = results.filter(r => r.type === 'ERROR');
+          const warnings = results.filter(r => r.type === 'WARNING');
+          const infos    = results.filter(r => !['ERROR', 'WARNING'].includes(r.type));
+
+          const fmt = item => {
+            const loc = [item.file, item.line ? `line ${item.line}` : '']
+              .filter(Boolean).join(' ');
+            return `- **\`${item.code}\`**${loc ? ` — \`${loc}\`` : ''}  \n  ${item.message}`;
+          };
+
+          const lines = [
+            '## WordPress Plugin Check Results',
+            '',
+            '| Severity    | Count |',
+            '|-------------|-------|',
+            `| 🔴 Errors   | ${errors.length}   |`,
+            `| 🟡 Warnings | ${warnings.length}   |`,
+            `| 🔵 Info     | ${infos.length}   |`,
+            '',
+          ];
+
+          if (errors.length) {
+            lines.push('### 🔴 Errors', '');
+            errors.forEach(e => lines.push(fmt(e), ''));
+          }
+          if (warnings.length) {
+            lines.push('### 🟡 Warnings', '');
+            warnings.forEach(w => lines.push(fmt(w), ''));
+          }
+          if (infos.length) {
+            lines.push('### 🔵 Info / Notes', '');
+            infos.forEach(i => lines.push(fmt(i), ''));
+          }
+          if (!errors.length && !warnings.length && !infos.length) {
+            lines.push('✅ No issues found — plugin is ready for WordPress.org submission.');
+          }
+
+          const summary = lines.join('\n');
+          console.log(summary);
+
+          const summaryFile = process.env.GITHUB_STEP_SUMMARY;
+          if (summaryFile) fs.appendFileSync(summaryFile, summary + '\n');
+
+          if (errors.length > 0) {
+            console.error(
+              `\n❌ ${errors.length} error(s) found. ` +
+              'These must be resolved before submitting to WordPress.org.'
+            );
+            process.exit(1);
+          }
+
+          if (warnings.length > 0) {
+            console.warn(
+              `\n⚠️  ${warnings.length} warning(s) found. ` +
+              'Review before submitting to WordPress.org.'
+            );
+          } else {
+            console.log('\n✅ Plugin check passed — no errors or warnings.');
+          }
+          EOF
+
+      - name: Upload plugin check results
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: plugin-check-results
+          path: plugin-check-results.json
+          retention-days: 30
+
+      - name: Stop WordPress
+        if: always()
+        run: docker compose -f docker-compose.install-test.yml down -v
