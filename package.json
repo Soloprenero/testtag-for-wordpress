@@ -23,7 +23,10 @@
     "verify:setup:unix": "bash ci/verify-setup.sh",
     "wp:docker:up": "docker compose up -d",
     "wp:docker:down": "docker compose down",
-    "wp:docker:reset": "docker compose down -v && docker compose up -d"
+    "wp:docker:reset": "docker compose down -v && docker compose up -d",
+    "test:install": "cross-env USE_DOCKER=true playwright test --config=playwright.install-test.config.ts",
+    "wp:install-test:up": "docker compose -f docker-compose.install-test.yml up -d",
+    "wp:install-test:down": "docker compose -f docker-compose.install-test.yml down -v"
   },
   "devDependencies": {
     "@playwright/test": "^1.59.1",
