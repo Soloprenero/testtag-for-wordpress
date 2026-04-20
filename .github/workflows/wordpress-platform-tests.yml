@@ -97,7 +97,7 @@ jobs:
               --admin_email="${{ env.WP_ADMIN_EMAIL }}" \
               --skip-email
 
-      - name: Install TestTag plugin from zip
+      - name: Install Test ID Auto Injector plugin from zip
         run: |
           CONTAINER=$(docker compose -f docker-compose.install-test.yml ps -q wordpress)
           docker cp dist/testtag-for-wp.zip "${CONTAINER}":/tmp/testtag-for-wp.zip

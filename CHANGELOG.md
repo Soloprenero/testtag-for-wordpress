@@ -1,6 +1,6 @@
 # Changelog
 
-All notable changes to TestTag for WP are documented in this file.
+All notable changes to Test ID Auto Injector are documented in this file.
 
 ## [1.5.1-beta] - 2026-04-16
 
@@ -25,7 +25,7 @@ All notable changes to TestTag for WP are documented in this file.
 
 - `format_id()` (PHP) and `formatId()` (JS) accept per-token values and custom literal tokens (`lit:text`).
 - Default separator field renamed from "Slug separator" to "Default separator".
-- Card heading renamed from "Attribute Key" to "Test Tag Format".
+- Card heading renamed from "Attribute Key" to "Test ID Format".
 - Row alignment in selector map table changed to `vertical-align: top`.
 - Semantic color labels (`.testtag-supported-label` / `.testtag-unsupported-label`) replace emoji in guidance panel.
 - Settings page: "About" card heading renamed to "Overview" (plugin summary); "About" tab renamed to "Contribute" (author info, license, changelog).

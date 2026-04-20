@@ -2,7 +2,7 @@
  * Copyright (c) 2026 Gary Young III (https://garyyoungiii.com)
  * Soloprenero — https://soloprenero.com
  *
- * TestTag for WordPress — Block Editor Panel Source
+ * Test ID Auto Injector — Block Editor Panel Source
  * Requires @wordpress/scripts to compile.
  * Run `npm run build` to output to block-editor/build/index.js
  */
@@ -53,11 +53,10 @@ function TestTagDocumentPanel() {
         return (
             <PluginDocumentSettingPanel
                 name="testtag-document-panel"
-                title="TestTag"
-                initialOpen={true}
+                title="Test ID Auto Injector"                initialOpen={true}
             >
                 <Notice status="info" isDismissible={false}>
-                    Select a block to set a manual TestTag override.
+                    Select a block to set a manual Test ID Auto Injector override.
                 </Notice>
             </PluginDocumentSettingPanel>
         );
@@ -70,7 +69,7 @@ function TestTagDocumentPanel() {
     return (
         <PluginDocumentSettingPanel
             name="testtag-document-panel"
-            title="TestTag"
+            title="Test ID Auto Injector"
             initialOpen={true}
         >
             <Notice status="info" isDismissible={false}>

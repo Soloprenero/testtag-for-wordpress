@@ -28,7 +28,7 @@ const PRETTY_PERMALINK_STRUCTURE = '/%postname%/';
 const FIXTURE_PAGE_CONTENT = `<!-- wp:html -->
 <section id="testtag-fixture-root" style="max-width:980px;margin:0 auto;padding:24px 16px;line-height:1.5;">
   <header id="fixture-site-header" style="border-bottom:1px solid #ddd;padding-bottom:12px;margin-bottom:20px;">
-    <p style="margin:0 0 6px;font-size:12px;letter-spacing:.04em;text-transform:uppercase;color:#666;">TestTag Fixture</p>
+    <p style="margin:0 0 6px;font-size:12px;letter-spacing:.04em;text-transform:uppercase;color:#666;">Test ID Auto Injector Fixture</p>
     <h1 style="margin:0 0 8px;">Common Site Elements + Layer Samples</h1>
     <nav aria-label="Primary" id="fixture-primary-nav">
       <ul style="display:flex;flex-wrap:wrap;gap:12px;list-style:none;padding:0;margin:0;">
@@ -269,7 +269,7 @@ async function setupViaApi(): Promise<void> {
     console.log('Ensuring WordPress is installed...');
     await api.init(TEST_USERS.ADMIN.username, TEST_USERS.ADMIN.password);
     await api.ensureInstalled({
-      siteTitle: 'TestTag Screenshot Tests',
+      siteTitle: 'Test ID Auto Injector Screenshot Tests',
       username: TEST_USERS.ADMIN.username,
       password: TEST_USERS.ADMIN.password,
       email: TEST_USERS.ADMIN.email,
@@ -282,11 +282,11 @@ async function setupViaApi(): Promise<void> {
     const authPath = await api.saveAuthStorage();
     console.log(`Saved auth storage for ${TEST_USERS.ADMIN.username} at ${authPath}`);
     
-    // Activate TestTag plugin
+    // Activate Test ID Auto Injector plugin
     console.log(`Activating ${TESTTAG_PLUGIN.slug} plugin...`);
     try {
       await api.activatePlugin(TESTTAG_PLUGIN.slug);
-      console.log('TestTag plugin activated.');
+      console.log('Test ID Auto Injector plugin activated.');
     } catch (error) {
       // Some local stacks do not expose the plugins REST endpoint.
       console.log('Plugin activation endpoint unavailable in this environment; continuing with existing plugin state.');
@@ -307,9 +307,9 @@ async function setupViaApi(): Promise<void> {
     await api.ensurePrettyPermalinks(PRETTY_PERMALINK_STRUCTURE);
     console.log(`Permalink structure set to ${PRETTY_PERMALINK_STRUCTURE}`);
     
-    // Configure TestTag settings — each test project's setup file applies
+    // Configure Test ID Auto Injector settings — each test project's setup file applies
     // the appropriate settings profile for that project before tests run.
-    console.log('TestTag settings will be applied per-profile by project setup files.');
+    console.log('Test ID Auto Injector settings will be applied per-profile by project setup files.');
     
     // Ensure test fixture page
     console.log('Ensuring test fixture page...');

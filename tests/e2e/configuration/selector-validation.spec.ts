@@ -17,7 +17,7 @@ const screenshotDir = './tests/screenshots';
  * - Blocks form submission when any selector has an unsupported pattern.
  * - Allows saving when all selectors are valid.
  */
-test.describe('TestTag Plugin - Selector Validation', () => {
+test.describe('Test ID Auto Injector Plugin - Selector Validation', () => {
   test.describe.configure({ mode: 'serial' });
 
   test('Guidance text is visible in the CSS Selector Map section', async ({ page }) => {

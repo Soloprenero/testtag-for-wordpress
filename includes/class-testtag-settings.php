@@ -33,7 +33,7 @@ class TestTag_Settings {
 
     /**
      * The attribute key to inject — e.g. data-testid, data-cy, data-test.
-     * Configurable in Settings → TestTag.
+     * Configurable in Settings → Test ID Auto Injector.
      */
     public static function get_attribute_key(): string {
         $key = get_option( self::OPTION_ATTRIBUTE_KEY, self::DEFAULT_ATTRIBUTE );
@@ -148,7 +148,7 @@ class TestTag_Settings {
     // DEFAULT SELECTOR MAP
     // Universal defaults that apply to any WordPress site.
     // No site-specific hrefs, IDs, or plugin class names.
-    // Override or extend via Settings → TestTag in wp-admin.
+    // Override or extend via Settings → Test ID Auto Injector in wp-admin.
     // ─────────────────────────────────────────────────────────────
     public static function get_default_selector_map(): array {
         return [
@@ -208,9 +208,8 @@ class TestTag_Settings {
     // ─────────────────────────────────────────────────────────────
     public static function add_settings_page(): void {
         add_management_page(
-            'TestTag for WP',
-            'TestTag',
-            'manage_options',
+            'Test ID Auto Injector',
+            'Test ID Auto Injector',
             'testtag',
             [ __CLASS__, 'render_settings_page' ]
         );
@@ -432,7 +431,7 @@ class TestTag_Settings {
         $base_url = admin_url( 'tools.php?page=testtag' );
         ?>
         <div class="wrap testtag-wrap">
-            <h1>🏷️ TestTag for WP</h1>
+            <h1>🏷️ Test ID Auto Injector</h1>
 
             <nav class="nav-tab-wrapper">
                 <a href="<?php echo esc_url( $base_url . '&tab=settings' ); ?>"
@@ -453,7 +452,7 @@ class TestTag_Settings {
             </div>
             <?php elseif ( $import_status === 'invalid' ) : ?>
             <div class="notice notice-error is-dismissible testtag-preset-notice">
-                <p>Import failed: the file does not appear to be a valid TestTag settings export.</p>
+                <p>Import failed: the file does not appear to be a valid Test ID Auto Injector settings export.</p>
             </div>
             <?php elseif ( $import_status === 'no_file' ) : ?>
             <div class="notice notice-error is-dismissible testtag-preset-notice">
@@ -482,7 +481,7 @@ class TestTag_Settings {
                 <?php settings_fields( 'testtag_group' ); ?>
 
                 <div class="testtag-card">
-                    <h2>Test Tag Format</h2>
+                    <h2>Test ID Format</h2>
                     <p class="description">
                         The HTML attribute to inject. Match this to your test framework's selector convention.
                     </p>
@@ -506,7 +505,7 @@ class TestTag_Settings {
                                     <span class="testtag-formula-eq">="</span>
                                     <div class="testtag-format-zone testtag-format-active" id="testtag-format-active"></div>
                                     <span class="testtag-formula-close">"</span>
-                                    <button type="button" id="testtag-format-reset" class="button button-small testtag-format-reset-btn" title="Reset tag format to default" aria-label="Reset tag format to default">↺ Reset</button>
+                                    <button type="button" id="testtag-format-reset" class="button button-small testtag-format-reset-btn" title="Reset test ID format to default" aria-label="Reset test ID format to default">↺ Reset</button>
                                 </div>
                                 <p class="description testtag-formula-help">
                                     Attribute name must start with <code>data-</code>.
@@ -720,7 +719,7 @@ class TestTag_Settings {
                 <div class="testtag-author">
                     <div class="testtag-author-name">Gary Young III</div>
                     <p class="description">
-                        TestTag is offered as <strong>pay what you want</strong>. If it saves you time,
+                        Test ID Auto Injector is offered as <strong>pay what you want</strong>. If it saves you time,
                         you can support the project with a pay-what-you-want contribution.
                     </p>
                     <div class="testtag-author-links">
@@ -738,7 +737,7 @@ class TestTag_Settings {
             <div class="testtag-card">
                 <h2>License</h2>
                 <p>
-                    TestTag for WP is open-source software licensed under the
+                    Test ID Auto Injector is open-source software licensed under the
                     <a href="https://www.gnu.org/licenses/gpl-2.0.html" target="_blank" rel="noopener noreferrer">GNU General Public License v2.0 or later</a>.
                     You are free to use, modify, and distribute it under those terms.
                 </p>
@@ -776,7 +775,7 @@ class TestTag_Settings {
             [ 'label' => 'Website',  'url' => 'https://garyyoungiii.com' ],
             [ 'label' => 'Fiverr',   'url' => '' ],
             [ 'label' => 'Upwork',   'url' => '' ],
-            [ 'label' => 'Support TestTag (Pay What You Want)', 'url' => 'https://soloprenero.com/buy/testtag-for-wordpress/' ],
+            [ 'label' => 'Support Test ID Auto Injector (Pay What You Want)', 'url' => 'https://soloprenero.com/buy/testtag-for-wordpress/' ],
         ];
         return array_values( array_filter( $links, fn( $l ) => ! empty( $l['url'] ) ) );
     }
@@ -787,10 +786,10 @@ class TestTag_Settings {
                 'version' => '1.5.1-beta',
                 'date'    => '2026-04-16',
                 'changes' => [
-                    'New: Drag-and-drop Tag Format builder — compose tag values from tokens (<code>type</code>, <code>role</code>, <code>identifier</code>, <code>aria-label</code>, <code>id</code>, <code>name</code>, and more) with per-gap separators.',
+                    'New: Drag-and-drop Test ID Format builder — compose tag values from tokens (<code>type</code>, <code>role</code>, <code>identifier</code>, <code>aria-label</code>, <code>id</code>, <code>name</code>, and more) with per-gap separators.',
                     'New: CSS selector map validation — inline errors and pre-save blocking for unsupported selector patterns.',
                     'New: Extended auto-tagging for <code>&lt;ul&gt;</code>, <code>&lt;ol&gt;</code>, <code>&lt;li&gt;</code>, <code>&lt;table&gt;</code>, <code>&lt;tr&gt;</code>, <code>&lt;th&gt;</code>, <code>&lt;td&gt;</code>, <code>&lt;nav&gt;</code>, <code>&lt;fieldset&gt;</code>, <code>&lt;details&gt;</code>, <code>&lt;summary&gt;</code>, and <code>&lt;figure&gt;</code>.',
-                    'New: Live HTML preview in the Tag Format card — paste any element and see the generated tag value update in real time.',
+                    'New: Live HTML preview in the Test ID Format card — paste any element and see the generated tag value update in real time.',
                     'String format settings (separator, token order, per-gap separators) are included in Export / Import.',
                 ],
             ],

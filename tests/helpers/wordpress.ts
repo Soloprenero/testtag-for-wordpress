@@ -28,7 +28,7 @@ async function completeFirstRunSetupIfNeeded(page: Page): Promise<void> {
     .isVisible({ timeout: 1000 })
     .catch(() => false);
   if (hasInstallForm) {
-    await installTitle.fill('TestTag Screenshot Tests');
+    await installTitle.fill('Test ID Auto Injector Screenshot Tests');
     await page.fill('input#user_login', TEST_USERS.ADMIN.username);
     await page.fill('input#admin_email', TEST_USERS.ADMIN.email);
 
@@ -111,7 +111,7 @@ export async function goToDashboard(page: Page): Promise<void> {
 }
 
 /**
- * Navigate to TestTag settings page
+ * Navigate to Test ID Auto Injector settings page
  */
 export async function goToTestTagSettings(page: Page): Promise<void> {
   await page.goto(TEST_URLS.TESTTAG_SETTINGS);
