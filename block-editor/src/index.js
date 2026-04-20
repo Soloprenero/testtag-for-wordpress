@@ -53,7 +53,8 @@ function TestTagDocumentPanel() {
         return (
             <PluginDocumentSettingPanel
                 name="testtag-document-panel"
-                title="Test ID Auto Injector"                initialOpen={true}
+                title="Test ID Auto Injector"
+                initialOpen={true}
             >
                 <Notice status="info" isDismissible={false}>
                     Select a block to set a manual Test ID Auto Injector override.
