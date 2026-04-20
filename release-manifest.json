@@ -8,6 +8,13 @@
     "naming-rules.json",
     "includes/class-testtag-presets.php",
     "includes/class-testtag-settings.php",
-    "js/dynamic-injector.js"
+    "includes/class-testtag-html-processor.php",
+    "includes/class-testtag-layer-marker.php",
+    "includes/class-testtag-audit.php",
+    "js/dynamic-injector.js",
+    "js/layer-marker.js",
+    "js/audit-overlay.js",
+    "admin/admin.js",
+    "admin/admin.css"
   ]
 }
