@@ -54,7 +54,7 @@ jobs:
             const fs = require('fs');
             const m = JSON.parse(fs.readFileSync('release-manifest.json', 'utf8'));
             process.stdout.write((m.requiredFiles || []).join('\n'));
-          " | xargs -d '\n' zip dist/testtag-for-wp.zip
+          " | xargs -d '\n' zip dist/test-id-auto-injector.zip
 
       - name: Start clean WordPress
         run: |
@@ -100,9 +100,9 @@ jobs:
       - name: Install Test ID Auto Injector plugin from zip
         run: |
           CONTAINER=$(docker compose -f docker-compose.install-test.yml ps -q wordpress)
-          docker cp dist/testtag-for-wp.zip "${CONTAINER}":/tmp/testtag-for-wp.zip
+          docker cp dist/test-id-auto-injector.zip "${CONTAINER}":/tmp/test-id-auto-injector.zip
           docker compose -f docker-compose.install-test.yml exec -T wordpress \
-            wp --allow-root plugin install /tmp/testtag-for-wp.zip --activate
+            wp --allow-root plugin install /tmp/test-id-auto-injector.zip --activate
 
       - name: Install WordPress Plugin Checker
         run: |
@@ -113,7 +113,7 @@ jobs:
         run: |
           # Capture all output; the JSON array may be preceded by PHP/WP-CLI notices.
           docker compose -f docker-compose.install-test.yml exec -T wordpress \
-            wp --allow-root plugin check testtag-for-wp --format=json \
+            wp --allow-root plugin check test-id-auto-injector --format=json \
             > plugin-check-results.json 2>&1 || true
           echo "=== Raw plugin check output ==="
           cat plugin-check-results.json

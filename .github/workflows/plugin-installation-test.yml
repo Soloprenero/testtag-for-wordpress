@@ -44,7 +44,7 @@ jobs:
             const fs = require('fs');
             const m = JSON.parse(fs.readFileSync('release-manifest.json', 'utf8'));
             process.stdout.write((m.requiredFiles || []).join('\n'));
-          " | xargs -d '\n' zip dist/testtag-for-wp.zip
+          " | xargs -d '\n' zip dist/test-id-auto-injector.zip
 
       - name: Start clean WordPress (no plugin pre-installed)
         run: |

@@ -156,7 +156,7 @@ driver.find_element(By.CSS_SELECTOR, '[data-test="button-send-message"]').click(
 
 ### Manual Installation
 
-1. Copy the testtag-for-wp/ folder into your wp-content/plugins/ directory.
+1. Copy the test-id-auto-injector/ folder into your wp-content/plugins/ directory.
 
 2. Activate it via Plugins → Installed Plugins.
 

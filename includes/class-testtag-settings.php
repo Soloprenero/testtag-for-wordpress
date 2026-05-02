@@ -27,7 +27,7 @@ class TestTag_Settings {
         add_action( 'admin_enqueue_scripts', [ __CLASS__, 'enqueue_admin_assets' ] );
         add_action( 'admin_post_testtag_export', [ __CLASS__, 'handle_export' ] );
         add_action( 'admin_post_testtag_import', [ __CLASS__, 'handle_import' ] );
-        add_filter( 'plugin_action_links_testtag-for-wp/testtag-for-wp.php',
+        add_filter( 'plugin_action_links_test-id-auto-injector/test-id-auto-injector.php',
                     [ __CLASS__, 'add_plugin_action_links' ] );
     }
 
@@ -286,7 +286,7 @@ class TestTag_Settings {
 
         $data = [
             'version'  => '1.0',
-            'plugin'   => 'testtag-for-wp',
+            'plugin'   => 'test-id-auto-injector',
             'settings' => [
                 self::OPTION_ATTRIBUTE_KEY  => self::get_attribute_key(),
                 self::OPTION_FORCE_ENABLE   => get_option( self::OPTION_FORCE_ENABLE, '0' ),
@@ -338,7 +338,7 @@ class TestTag_Settings {
         if (
             ! is_array( $data ) ||
             empty( $data['settings'] ) ||
-            ( $data['plugin'] ?? '' ) !== 'testtag-for-wp'
+            ( $data['plugin'] ?? '' ) !== 'test-id-auto-injector'
         ) {
             wp_safe_redirect( add_query_arg( 'testtag_import', 'invalid', $redirect ) );
             exit;
