@@ -148,7 +148,7 @@ class TestTag_Settings {
     // DEFAULT SELECTOR MAP
     // Universal defaults that apply to any WordPress site.
     // No site-specific hrefs, IDs, or plugin class names.
-    // Override or extend via Settings → Test ID Auto Injector in wp-admin.
+    // Override or extend via Tools → Test ID Auto Injector in wp-admin.
     // ─────────────────────────────────────────────────────────────
     public static function get_default_selector_map(): array {
         return [
