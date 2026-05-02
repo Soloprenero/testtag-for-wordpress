@@ -72,7 +72,7 @@ The legend sits neatly in the bottom-right corner while Audit Mode is active, sh
 
 ## Settings & Configuration
 
-Navigate to **Settings → Test ID Auto Injector** in your `wp-admin` dashboard to configure the plugin:
+Navigate to **Tools → Test ID Auto Injector** in your `wp-admin` dashboard to configure the plugin:
 
 * **Attribute Key:** Set the target attribute (`data-testid` for Playwright, `data-cy` for Cypress, `data-test` for Selenium, etc.).
 * **Force Enable:** Override the environment guard to inject tags for all visitors on all environments—perfect for running automation suites against a live staging or production URL.
