@@ -33,7 +33,7 @@ class TestTag_Settings {
 
     /**
      * The attribute key to inject — e.g. data-testid, data-cy, data-test.
-     * Configurable in Settings → Test ID Auto Injector.
+     * Configurable in Tools → Test ID Auto Injector.
      */
     public static function get_attribute_key(): string {
         $key = get_option( self::OPTION_ATTRIBUTE_KEY, self::DEFAULT_ATTRIBUTE );
