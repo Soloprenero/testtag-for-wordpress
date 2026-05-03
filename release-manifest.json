@@ -1,4 +1,5 @@
 {
+  "zipFolder": "test-id-auto-injector",
   "requiredFiles": [
     "test-id-auto-injector.php",
     "readme.txt",
