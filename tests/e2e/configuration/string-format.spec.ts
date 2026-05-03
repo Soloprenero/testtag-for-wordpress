@@ -77,7 +77,7 @@ async function
 }
 
 /**
- * Reset all TestTag string-format options to factory defaults via REST API.
+ * Reset all Test ID Auto Injector string-format options to factory defaults via REST API.
  * Called in afterAll of every suite that mutates settings so that suites are
  * fully isolated from one another.
  */

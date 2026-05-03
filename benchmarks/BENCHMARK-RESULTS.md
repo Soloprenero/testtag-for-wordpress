@@ -3,7 +3,7 @@
 ## Overview
 
 Performance profiling of `TestTag_HTML_Processor::process_html()` on a large
-synthetic WordPress page (33 KB HTML, 552 injected test tags).
+synthetic WordPress page (33 KB HTML, 552 injected test IDs).
 
 **Environment:** PHP 8.3.6 CLI, Linux (GitHub Actions runner)  
 **Benchmark page:** 33 742 bytes — 30 blog-post cards, 7-field contact form with

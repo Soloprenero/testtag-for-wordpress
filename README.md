@@ -1,16 +1,16 @@
-# TestTag for WP
+# Test ID Auto Injector
 
 **Stop manually tagging your blocks.**
 
 I hate manually adding `data-testid` attributes to every button, input, and container across a dynamic WordPress site. It's a tiring, repetitive chore that slows down your development cycle, litters your markup, and is usually the first thing to break when a layout changes. 
 
-**TestTag for WP**  gets **99% of the job done for you** in a highly configurable way. It automatically tags any element on your WordPress site with test attributes for Playwright, Cypress, Selenium, or any automation framework that queries the DOM. 
+**Test ID Auto Injector**  gets **99% of the job done for you** in a highly configurable way. It automatically tags any element on your WordPress site with test attributes for Playwright, Cypress, Selenium, or any automation framework that queries the DOM. 
 
-Whether you are using Gutenberg, Elementor, classic themes, or writing your own HTML, TestTag intelligently handles the heavy lifting so you can focus on writing tests, not markup.
+Whether you are using Gutenberg, Elementor, classic themes, or writing your own HTML, Test ID Auto Injector intelligently handles the heavy lifting so you can focus on writing tests, not markup.
 
 ## Support the Project
 
-TestTag is an open-source labor of love. If this plugin saves you hours of tedious manual tagging and makes your test suites more resilient, please consider giving back to ensure its ongoing development. 
+Test ID Auto Injector is an open-source labor of love. If this plugin saves you hours of tedious manual tagging and makes your test suites more resilient, please consider giving back to ensure its ongoing development. 
 
 You can help keep this project alive by:
 
@@ -21,7 +21,7 @@ You can help keep this project alive by:
 
 ## How it Works: The Four-Layer System
 
-TestTag applies tags through four layers. **TestTag is completely non-destructive: an existing attribute is never overwritten.** Each layer only applies to untagged elements.
+Test ID Auto Injector applies tags through four layers. **Test ID Auto Injector is completely non-destructive: an existing attribute is never overwritten.** Each layer only applies to untagged elements.
 
 | Layer | What it covers | When applied |
 | :--- | :--- | :--- |
@@ -72,7 +72,7 @@ The legend sits neatly in the bottom-right corner while Audit Mode is active, sh
 
 ## Settings & Configuration
 
-Navigate to **Settings → TestTag** in your `wp-admin` dashboard to configure the plugin:
+Navigate to **Tools → Test ID Auto Injector** in your `wp-admin` dashboard to configure the plugin:
 
 * **Attribute Key:** Set the target attribute (`data-testid` for Playwright, `data-cy` for Cypress, `data-test` for Selenium, etc.).
 * **Force Enable:** Override the environment guard to inject tags for all visitors on all environments—perfect for running automation suites against a live staging or production URL.
@@ -82,7 +82,7 @@ Navigate to **Settings → TestTag** in your `wp-admin` dashboard to configure t
 
 ## Auto-Generated ID Examples
 
-TestTag's auto-generation engine is designed to create human-readable, predictable identifiers:
+Test ID Auto Injector's auto-generation engine is designed to create human-readable, predictable identifiers:
 
 | Element | Generated Value |
 | :--- | :--- |
@@ -100,14 +100,14 @@ TestTag's auto-generation engine is designed to create human-readable, predictab
 
 ## Usage in Testing Frameworks (Page Object Model)
 
-Once TestTag is running, your automation scripts become incredibly clean and resilient. 
+Once Test ID Auto Injector is running, your automation scripts become incredibly clean and resilient. 
 
-Because TestTag generates highly predictable and semantic IDs, it perfectly complements the **Page Object Model (POM)** design pattern. We highly recommend using POM to map out your tagged elements into reusable classes. This keeps your tests DRY, easy to read, and immune to UI layout changes.
+Because Test ID Auto Injector generates highly predictable and semantic IDs, it perfectly complements the **Page Object Model (POM)** design pattern. We highly recommend using POM to map out your tagged elements into reusable classes. This keeps your tests DRY, easy to read, and immune to UI layout changes.
 
 ### Playwright Example (Using POM)
 
 ```typescript
-// 1. Map your page objects using TestTag's predictable IDs
+// 1. Map your page objects using Test ID Auto Injector's predictable IDs
 class ContactPage {
   constructor(page) {
     this.page = page;
@@ -156,7 +156,7 @@ driver.find_element(By.CSS_SELECTOR, '[data-test="button-send-message"]').click(
 
 ### Manual Installation
 
-1. Copy the testtag-for-wp/ folder into your wp-content/plugins/ directory.
+1. Copy the test-id-auto-injector/ folder into your wp-content/plugins/ directory.
 
 2. Activate it via Plugins → Installed Plugins.
 

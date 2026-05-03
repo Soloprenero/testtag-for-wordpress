@@ -1,6 +1,6 @@
 # Docker WordPress Initialization
 
-This directory contains the Docker initialization script and setup utilities for the TestTag screenshot testing environment.
+This directory contains the Docker initialization script and setup utilities for the Test ID Auto Injector screenshot testing environment.
 
 ## Files
 
@@ -18,8 +18,8 @@ When using Docker Compose, the `wordpress-init.sh` script automatically:
 2. ✅ Creates admin user (admin/password)
 3. ✅ Creates test user (testuser/testpass123)
 4. ✅ Configures WordPress site URLs
-5. ✅ Activates TestTag plugin
-6. ✅ Configures TestTag settings
+5. ✅ Activates Test ID Auto Injector plugin
+6. ✅ Configures Test ID Auto Injector settings
 7. ✅ Creates a test page for screenshots
 
 This happens automatically on first start - no manual setup needed!

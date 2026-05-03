@@ -56,7 +56,7 @@ class TestTag_Audit {
             'title' => '🔍 Audit Mode',
             'href'  => '#',
             'meta'  => [
-                'title' => 'Toggle TestTag Audit Mode — shows coloured overlays on all tagged elements (Alt+Shift+T)',
+                'title' => 'Toggle Test ID Auto Injector Audit Mode — shows coloured overlays on all tagged elements (Alt+Shift+T)',
             ],
         ] );
     }

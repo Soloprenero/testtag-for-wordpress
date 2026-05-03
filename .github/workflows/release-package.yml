@@ -42,9 +42,18 @@ jobs:
           mkdir -p dist
           node -e "
             const fs = require('fs');
+            const path = require('path');
             const m = JSON.parse(fs.readFileSync('release-manifest.json', 'utf8'));
-            process.stdout.write((m.requiredFiles || []).join('\n'));
-          " | xargs -d '\n' zip dist/testtag-for-wp.zip
+            const folder = m.zipFolder || 'plugin';
+            const staging = path.join('dist', 'staging');
+            fs.rmSync(staging, { recursive: true, force: true });
+            for (const f of m.requiredFiles || []) {
+              const dst = path.join(staging, folder, f);
+              fs.mkdirSync(path.dirname(dst), { recursive: true });
+              fs.cpSync(f, dst);
+            }
+          "
+          cd dist/staging && zip -r ../test-id-auto-injector.zip test-id-auto-injector/
 
       - name: Validate packaged zip contents
         run: |
@@ -53,7 +62,10 @@ jobs:
           zip_file_list="dist/zip-files.txt"
           manifest_file_list="dist/manifest-files.txt"
 
-          unzip -Z1 dist/testtag-for-wp.zip \
+          FOLDER=$(node -e "const m=JSON.parse(require('fs').readFileSync('release-manifest.json','utf8')); process.stdout.write(m.zipFolder||'')")
+
+          unzip -Z1 dist/test-id-auto-injector.zip \
+            | sed "s|^${FOLDER}/||" \
             | sed 's#^\./##' \
             | sed '/^$/d' \
             | grep -v '/$' \
@@ -82,8 +94,8 @@ jobs:
       - name: Upload package artifact
         uses: actions/upload-artifact@v7
         with:
-          name: testtag-for-wp
-          path: dist/testtag-for-wp.zip
+          name: test-id-auto-injector
+          path: dist/test-id-auto-injector.zip
 
       - name: Resolve release tag
         if: startsWith(github.ref, 'refs/tags/v') || (github.event_name == 'workflow_dispatch' && inputs.tag != '')
@@ -100,4 +112,4 @@ jobs:
         with:
           tag_name: ${{ env.RELEASE_TAG }}
           prerelease: ${{ contains(env.RELEASE_TAG, 'beta') || contains(env.RELEASE_TAG, 'alpha') || contains(env.RELEASE_TAG, 'rc') }}
-          files: dist/testtag-for-wp.zip
+          files: dist/test-id-auto-injector.zip

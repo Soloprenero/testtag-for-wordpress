@@ -9,7 +9,7 @@ import { PluginsAdminPage } from '@pageObjects/PluginsAdminPage';
 
 const screenshotDir = './tests/screenshots';
 
-test.describe('TestTag Plugin - Admin Interface', () => {
+test.describe('Test ID Auto Injector Plugin - Admin Interface', () => {
   test('Settings page', async ({ page }) => {
     const auth = new WordPressAuthPage(page);
     const settingsPage = new TestTagSettingsPage(page);

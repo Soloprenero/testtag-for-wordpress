@@ -37,7 +37,7 @@ async function waitForWordPressReady(timeoutMs: number = 120000): Promise<void> 
 /**
  * Minimal global setup for the plugin installation test.
  *
- * This setup intentionally does NOT activate or mount the TestTag plugin so
+ * This setup intentionally does NOT activate or mount the Test ID Auto Injector plugin so
  * that the test can exercise the full zip-upload installation flow on a blank
  * WordPress site.
  */

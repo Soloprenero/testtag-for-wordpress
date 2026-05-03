@@ -2,7 +2,7 @@
  * Copyright (c) 2026 Gary Young III (https://garyyoungiii.com)
  * Soloprenero — https://soloprenero.com
  *
- * TestTag for WP — Audit Mode
+ * Test ID Auto Injector — Audit Mode
  *
  * When active, hovering any tagged element shows a fixed tooltip with:
  *   - Tag value
@@ -168,7 +168,7 @@
             'z-index:2147483646',
         ].join(';');
         legendEl.innerHTML = [
-            '<div style="font:700 11px/1 ui-sans-serif,sans-serif;letter-spacing:.05em;text-transform:uppercase;color:#6c7086;margin-bottom:8px">TestTag Audit Mode</div>',
+            '<div style="font:700 11px/1 ui-sans-serif,sans-serif;letter-spacing:.05em;text-transform:uppercase;color:#6c7086;margin-bottom:8px">Test ID Auto Injector Audit Mode</div>',
             swatch(COLORS.inline, 'Inline'),
             swatch(COLORS.selectorMap, 'Selector map'),
             swatch(COLORS.auto, 'Auto layer'),

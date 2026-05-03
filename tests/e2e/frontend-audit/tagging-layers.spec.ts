@@ -11,7 +11,7 @@ const screenshotDir = './tests/screenshots';
 /**
  * Tagging Layers
  *
- * Verifies that each TestTag tagging layer operates correctly on the
+ * Verifies that each Test ID Auto Injector tagging layer operates correctly on the
  * seeded fixture page:
  *
  * - selector-map  Elements matched by the configured CSS Selector Map
@@ -22,7 +22,7 @@ const screenshotDir = './tests/screenshots';
  * - inline        Attributes hand-authored directly on HTML elements
  *                 (e.g. data-testid on the fixture subtitle)
  */
-test.describe('TestTag Plugin - Tagging Layers', () => {
+test.describe('Test ID Auto Injector Plugin - Tagging Layers', () => {
   test.describe('Fixture page structure', () => {
     test('Fixture page shows an always-visible legend and labeled layer sections', async ({ page }) => {
       const frontendPage = new FrontendPage(page);

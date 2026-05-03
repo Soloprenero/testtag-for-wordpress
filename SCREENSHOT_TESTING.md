@@ -1,10 +1,10 @@
-# TestTag for WordPress - Screenshot Testing Guide
+# Test ID Auto Injector - Screenshot Testing Guide
 
 This plugin includes automated screenshot testing using TypeScript with Playwright and CI/CD integration with GitHub Actions.
 
 ## 📸 Vision & Goals
 
-The screenshot testing system captures visual documentation of the TestTag plugin's functionality:
+The screenshot testing system captures visual documentation of the Test ID Auto Injector plugin's functionality:
 
 - **Admin Interface**: Settings pages, configuration panels
 - **Plugin Features**: CSS selector map, audit mode overlay, element tagging in real-time
@@ -58,7 +58,7 @@ docker-compose down -v
 If you prefer running WordPress locally without Docker:
 
 1. **Set up WordPress locally** (using Local, Vagrant, or manual installation)
-2. **Activate TestTag plugin** in WordPress admin
+2. **Activate Test ID Auto Injector plugin** in WordPress admin
 3. **Configure environment variable:**
    ```bash
    export TEST_URL=http://your-wordpress-url
@@ -116,7 +116,7 @@ The `.github/workflows/screenshots.yml` workflow:
 2. ✅ Runs on all pull requests
 3. ✅ Runs daily schedule (2 AM UTC) for regression detection
 4. ✅ Spins up WordPress + MySQL in Docker
-5. ✅ Installs and activates the TestTag plugin
+5. ✅ Installs and activates the Test ID Auto Injector plugin
 6. ✅ Executes all Playwright screenshot tests
 7. ✅ Uploads screenshots as artifacts
 8. ✅ Uploads HTML report for detailed results

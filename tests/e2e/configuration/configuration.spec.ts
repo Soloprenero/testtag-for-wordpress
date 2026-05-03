@@ -8,7 +8,7 @@ import { TestTagSettingsPage } from '@pageObjects/TestTagSettingsPage';
 
 const screenshotDir = './tests/screenshots';
 
-test.describe('TestTag Plugin - Configuration', () => {
+test.describe('Test ID Auto Injector Plugin - Configuration', () => {
   test('Alternative attribute key (data-cy)', async ({ page }) => {
     const auth = new WordPressAuthPage(page);
     const settingsPage = new TestTagSettingsPage(page);

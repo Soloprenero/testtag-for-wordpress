@@ -312,7 +312,7 @@ export class WordPressRestClient extends WordPressApiBase {
   }
 
   /**
-   * Write one or more TestTag string-format options via the REST settings endpoint.
+   * Write one or more Test ID Auto Injector string-format options via the REST settings endpoint.
    * The PHP options must be registered with show_in_rest: true for this to work.
    */
   async setTestTagFormatSettings(options: {
@@ -343,11 +343,11 @@ export class WordPressRestClient extends WordPressApiBase {
     }
 
     throw new Error(
-      `Failed to update TestTag format settings. Tried roots: ${candidateRoots.join(', ')}. Errors: ${errors.join('; ')}`
+      `Failed to update Test ID Auto Injector format settings. Tried roots: ${candidateRoots.join(', ')}. Errors: ${errors.join('; ')}`
     );
   }
 
-  /** Restore all TestTag string-format options to their out-of-the-box defaults. */
+  /** Restore all Test ID Auto Injector string-format options to their out-of-the-box defaults. */
   async resetTestTagFormatSettings(): Promise<void> {
     await this.setTestTagFormatSettings({ separator: '-', tokenOrder: '', formatSeps: '-' });
   }
