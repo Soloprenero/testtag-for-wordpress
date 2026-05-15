@@ -53,7 +53,8 @@ jobs:
               fs.cpSync(f, dst);
             }
           "
-          cd dist/staging && zip -r ../test-id-auto-injector.zip test-id-auto-injector/
+          FOLDER=$(node -e "const m=JSON.parse(require('fs').readFileSync('release-manifest.json','utf8')); process.stdout.write(m.zipFolder||'plugin')")
+          cd dist/staging && zip -r ../test-id-auto-injector.zip "${FOLDER}/"
 
       - name: Validate packaged zip contents
         run: |
