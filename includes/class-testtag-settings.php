@@ -286,7 +286,7 @@ class TestTag_Settings {
         }
 
         $data = [
-            'version'  => '1.0',
+            'version'  => '1.1',
             'plugin'   => 'test-id-auto-injector',
             'settings' => [
                 self::OPTION_ATTRIBUTE_KEY  => self::get_attribute_key(),
@@ -336,10 +336,12 @@ class TestTag_Settings {
         }
         $data = json_decode( $content, true );
 
+        $import_plugin = $data['plugin'] ?? '';
+
         if (
             ! is_array( $data ) ||
             empty( $data['settings'] ) ||
-            ( $data['plugin'] ?? '' ) !== 'test-id-auto-injector'
+            ! in_array( $import_plugin, [ 'test-id-auto-injector', 'testtag-for-wp' ], true )
         ) {
             wp_safe_redirect( add_query_arg( 'testtag_import', 'invalid', $redirect ) );
             exit;
