@@ -210,6 +210,7 @@ class TestTag_Settings {
         add_management_page(
             'Test ID Auto Injector',
             'Test ID Auto Injector',
+            'manage_options',
             'testtag',
             [ __CLASS__, 'render_settings_page' ]
         );

@@ -1051,7 +1051,7 @@ class TestTag_HTML_Processor {
         if ( str_starts_with( $href, 'mailto:' ) ) return null;
         if ( str_starts_with( $href, 'tel:' ) ) return null;
 
-        $path = parse_url( $href, PHP_URL_PATH ) ?: '';
+        $path = wp_parse_url( $href, PHP_URL_PATH ) ?: '';
         $path = trim( $path, '/' );
         if ( ! $path ) return null;
 
