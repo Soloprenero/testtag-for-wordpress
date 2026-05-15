@@ -10,11 +10,11 @@ import { TESTTAG_PLUGIN, TEST_URLS } from '@tests/constants';
 /**
  * Plugin Management
  *
- * Verifies that the TestTag plugin row is correctly rendered in the WordPress
+ * Verifies that the Test ID Auto Injector plugin row is correctly rendered in the WordPress
  * Plugins admin screen, that its action links (Settings, Deactivate) are
  * present, and that the plugin actively tags admin-page elements while active.
  */
-test.describe('TestTag Plugin - Plugin Management', () => {
+test.describe('Test ID Auto Injector Plugin - Plugin Management', () => {
   test('Plugin row is visible in the plugins list', async ({ page }) => {
     const auth = new WordPressAuthPage(page);
     const pluginsPage = new PluginsAdminPage(page);
@@ -27,7 +27,7 @@ test.describe('TestTag Plugin - Plugin Management', () => {
       await pluginsPage.open();
     });
 
-    await test.step('Assert the TestTag plugin row is visible', async () => {
+    await test.step('Assert the Test ID Auto Injector plugin row is visible', async () => {
       const pluginRow = page.locator(TESTTAG_PLUGIN.rowSelector);
       await expect(pluginRow).toBeVisible();
     });
@@ -73,7 +73,7 @@ test.describe('TestTag Plugin - Plugin Management', () => {
     });
   });
 
-  test('Settings action link navigates to TestTag settings page', async ({ page }) => {
+  test('Settings action link navigates to Test ID Auto Injector settings page', async ({ page }) => {
     const auth = new WordPressAuthPage(page);
     const pluginsPage = new PluginsAdminPage(page);
 
@@ -93,7 +93,7 @@ test.describe('TestTag Plugin - Plugin Management', () => {
       await page.waitForLoadState('networkidle');
     });
 
-    await test.step('Assert the URL points to the TestTag settings page', async () => {
+    await test.step('Assert the URL points to the Test ID Auto Injector settings page', async () => {
       await expect(page).toHaveURL(/page=testtag/);
     });
   });
@@ -136,7 +136,7 @@ test.describe('TestTag Plugin - Plugin Management', () => {
       await expect(page.locator('#wpadminbar')).toBeVisible();
     });
 
-    await test.step('Assert the TestTag Audit Mode button is in the admin bar', async () => {
+    await test.step('Assert the Test ID Auto Injector Audit Mode button is in the admin bar', async () => {
       const auditBtn = page.locator('#wp-admin-bar-testtag-audit');
       await expect(auditBtn).toBeVisible();
     });
@@ -149,7 +149,7 @@ test.describe('TestTag Plugin - Plugin Management', () => {
       await auth.ensureTestTagPluginIsActive();
     });
 
-    await test.step('Navigate directly to the TestTag settings URL', async () => {
+    await test.step('Navigate directly to the Test ID Auto Injector settings URL', async () => {
       await page.goto(TEST_URLS.TESTTAG_SETTINGS, { waitUntil: 'domcontentloaded' });
       await page.waitForLoadState('networkidle');
     });

@@ -1,6 +1,7 @@
 {
+  "zipFolder": "test-id-auto-injector",
   "requiredFiles": [
-    "testtag-for-wp.php",
+    "test-id-auto-injector.php",
     "readme.txt",
     "README.md",
     "CHANGELOG.md",

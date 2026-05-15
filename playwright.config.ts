@@ -8,7 +8,7 @@ import type { TestTagSettings } from '@tests/fixtures';
 import path from 'path';
 
 /**
- * Playwright configuration for TestTag WordPress plugin screenshots
+ * Playwright configuration for Test ID Auto Injector WordPress plugin screenshots
  * 
  * This configuration:
  * - Takes screenshots of admin pages and settings

@@ -31,7 +31,7 @@ export class TestTagSettingsPage extends AppPage {
 
   constructor(page: Page) {
     super(page);
-    this.heading = page.locator('h1, h2').filter({ hasText: /testtag|test tag/i }).first();
+    this.heading = page.locator('h1, h2').filter({ hasText: /test id auto injector/i }).first();
     this.attributeKeyField = page.locator('select[name*="attribute_key"], input[name*="attribute_key"]').first();
     this.cssSelectorMapHeading = page.locator('text=CSS Selector Map').first();
     this.saveButton = page.locator('button[type="submit"], input[type="submit"]').first();
@@ -45,7 +45,7 @@ export class TestTagSettingsPage extends AppPage {
   }
 
   async scrollToAttributeConfiguration(): Promise<void> {
-    const attributeKeyLabel = this.page.locator('text=Test Tag Format').first();
+    const attributeKeyLabel = this.page.locator('text=Test ID Format').first();
     await attributeKeyLabel.scrollIntoViewIfNeeded();
     await attributeKeyLabel.waitFor({ state: 'visible', timeout: 3000 });
   }

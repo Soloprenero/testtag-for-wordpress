@@ -42,9 +42,18 @@ jobs:
           mkdir -p dist
           node -e "
             const fs = require('fs');
+            const path = require('path');
             const m = JSON.parse(fs.readFileSync('release-manifest.json', 'utf8'));
-            process.stdout.write((m.requiredFiles || []).join('\n'));
-          " | xargs -d '\n' zip dist/testtag-for-wp.zip
+            const folder = m.zipFolder || 'plugin';
+            const staging = path.join('dist', 'staging');
+            fs.rmSync(staging, { recursive: true, force: true });
+            for (const f of m.requiredFiles || []) {
+              const dst = path.join(staging, folder, f);
+              fs.mkdirSync(path.dirname(dst), { recursive: true });
+              fs.cpSync(f, dst);
+            }
+          "
+          cd dist/staging && zip -r ../test-id-auto-injector.zip test-id-auto-injector/
 
       - name: Start clean WordPress (no plugin pre-installed)
         run: |

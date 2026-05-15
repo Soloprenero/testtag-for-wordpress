@@ -1,6 +1,6 @@
 # Screenshot Testing Setup
 
-This directory contains the automated screenshot testing infrastructure for the TestTag for WordPress plugin using Playwright with TypeScript.
+This directory contains the automated screenshot testing infrastructure for the Test ID Auto Injector plugin using Playwright with TypeScript.
 
 ## 📁 Directory Structure
 

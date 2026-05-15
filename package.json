@@ -1,5 +1,5 @@
 {
-  "name": "testtag-for-wp",
+  "name": "test-id-auto-injector",
   "version": "1.5.1-beta",
   "description": "Automatically tag any element on your WordPress site with test attributes for Playwright, Cypress, Selenium, or any automation framework.",
   "license": "GPL-2.0-or-later",

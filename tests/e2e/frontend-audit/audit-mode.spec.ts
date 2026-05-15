@@ -12,7 +12,7 @@ const screenshotDir = './tests/screenshots';
 /**
  * Audit Mode
  *
- * Covers all aspects of the TestTag Audit Mode overlay feature:
+ * Covers all aspects of the Test ID Auto Injector Audit Mode overlay feature:
  * - Keyboard shortcut toggle (Alt+Shift+T)
  * - Admin bar button text and color reflect active state
  * - Legend panel is rendered with correct layer swatches
@@ -20,7 +20,7 @@ const screenshotDir = './tests/screenshots';
  * - Session storage persists audit mode across reloads
  * - Tooltip appears when hovering a tagged element
  */
-test.describe('TestTag Plugin - Audit Mode', () => {
+test.describe('Test ID Auto Injector Plugin - Audit Mode', () => {
   test.describe('Toggle behaviour', () => {
     test('Alt+Shift+T enables Audit Mode and shows the legend', async ({ page }) => {
       const frontendPage = new FrontendPage(page);
@@ -110,7 +110,7 @@ test.describe('TestTag Plugin - Audit Mode', () => {
       });
     });
 
-    test('Legend contains the "TestTag Audit Mode" title', async ({ page }) => {
+    test('Legend contains the "Test ID Auto Injector Audit Mode" title', async ({ page }) => {
       const frontendPage = new FrontendPage(page);
 
       await test.step('Navigate to fixture page', async () => {
@@ -122,7 +122,7 @@ test.describe('TestTag Plugin - Audit Mode', () => {
       });
 
       await test.step('Assert the legend title text is present', async () => {
-        await expect(page.locator('#testtag-audit-legend')).toContainText('TestTag Audit Mode');
+        await expect(page.locator('#testtag-audit-legend')).toContainText('Test ID Auto Injector Audit Mode');
       });
     });
   });

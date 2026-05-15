@@ -1,4 +1,4 @@
-=== TestTag for WP ===
+=== Test ID Auto Injector ===
 Contributors: garyyoungiii
 Donate link: https://soloprenero.com/buy/testtag-for-wordpress/
 Tags: testing, playwright, cypress, selenium, qa
@@ -13,7 +13,7 @@ Automatically add stable test attributes like data-testid to WordPress pages for
 
 == Description ==
 
-TestTag for WordPress helps you create reliable selectors for automated UI testing by tagging elements with configurable data attributes.
+Test ID Auto Injector helps you create reliable selectors for automated UI testing by tagging elements with configurable data attributes.
 
 It uses four injection layers in priority order:
 
@@ -46,8 +46,8 @@ An existing attribute is never overwritten.
 == Installation ==
 
 1. Upload the plugin folder to /wp-content/plugins/ or install via Plugins > Add New.
-2. Activate TestTag for WordPress.
-3. Go to Tools > TestTag.
+2. Activate Test ID Auto Injector.
+3. Go to Tools > Test ID Auto Injector.
 4. Set your attribute key and selector map as needed.
 
 == Frequently Asked Questions ==
@@ -62,7 +62,7 @@ No. Existing attributes are preserved.
 
 = Can I use data-cy instead of data-testid? =
 
-Yes. Set the attribute key in Tools > TestTag.
+Yes. Set the attribute key in Tools > Test ID Auto Injector.
 
 = Is it safe for production sites? =
 

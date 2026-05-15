@@ -2,7 +2,7 @@
  * Copyright (c) 2026 Gary Young III (https://garyyoungiii.com)
  * Soloprenero — https://soloprenero.com
  *
- * TestTag for WP — Dynamic Injector
+ * Test ID Auto Injector — Dynamic Injector
  *
  * Watches for DOM mutations and applies the same two-layer tagging
  * logic (selector map → auto-generate) to dynamically inserted elements:

@@ -18,7 +18,7 @@ const screenshotDir = './tests/screenshots';
  * - Updates results live when the HTML textarea changes
  * - Shows matched element HTML snippets for selectors that match
  */
-test.describe('TestTag Plugin - Selector Preview', () => {
+test.describe('Test ID Auto Injector Plugin - Selector Preview', () => {
   test.describe.configure({ mode: 'serial' });
 
   test('Selector preview textarea and results container are visible', async ({ page }) => {

@@ -1,6 +1,6 @@
 <?php
 /**
- * Plugin Name:  TestTag for WP
+ * Plugin Name:  Test ID Auto Injector
  * Plugin URI:   https://github.com/garyyoungiii/testtag-for-wordpress
  * Description:  Automatically tag any element on your WordPress site with test
  *               attributes for Playwright, Cypress, Selenium, or any automation
@@ -15,7 +15,7 @@
  * License:      GPL-2.0-or-later
  * License URI:  https://www.gnu.org/licenses/gpl-2.0.html
  * Copyright:    (c) 2026 Gary Young III (https://garyyoungiii.com) / Soloprenero (https://soloprenero.com)
- * Text Domain:  testtag
+ * Text Domain:  test-id-auto-injector
  */
 
 defined( 'ABSPATH' ) || exit;

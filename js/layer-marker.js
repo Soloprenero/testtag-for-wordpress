@@ -2,7 +2,7 @@
  * Copyright (c) 2026 Gary Young III (https://garyyoungiii.com)
  * Soloprenero — https://soloprenero.com
  *
- * TestTag for WP — layer marker
+ * Test ID Auto Injector — layer marker
  *
  * Marks the layer source on server-tagged elements so Audit Mode
  * can display which layer set each tag.
@@ -15,7 +15,7 @@
 
     function log() {
         if (config.debug) {
-            console.log.apply(console, ['[TestTag]'].concat(Array.prototype.slice.call(arguments)));
+            console.log.apply(console, ['[Test ID Auto Injector]'].concat(Array.prototype.slice.call(arguments)));
         }
     }
 

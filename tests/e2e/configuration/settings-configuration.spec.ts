@@ -13,14 +13,14 @@ const screenshotDir = './tests/screenshots';
 /**
  * Settings Configuration
  *
- * Covers all user-configurable settings on the TestTag settings page:
+ * Covers all user-configurable settings on the Test ID Auto Injector settings page:
  * - Attribute key selection (data-testid / data-cy / data-test)
  * - Persistence: chosen key survives a page reload
  * - Effect on frontend: tagged elements carry the selected attribute
  * - CSS Selector Map section is rendered and scrollable
  * - Save button produces visible feedback (success notice)
  */
-test.describe('TestTag Plugin - Settings Configuration', () => {
+test.describe('Test ID Auto Injector Plugin - Settings Configuration', () => {
   test.describe.configure({ mode: 'serial' });
   test.describe('Attribute key options', () => {
     test('data-testid attribute key can be selected and saved', async ({ page }) => {

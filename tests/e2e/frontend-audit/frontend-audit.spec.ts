@@ -8,7 +8,7 @@ import { TEST_URLS } from '@tests/constants';
 
 const screenshotDir = './tests/screenshots';
 
-test.describe('TestTag Plugin - Frontend + Audit', () => {
+test.describe('Test ID Auto Injector Plugin - Frontend + Audit', () => {
   test('Fixture permalink resolves', async ({ page }) => {
     const frontendPage = new FrontendPage(page);
 
@@ -28,12 +28,12 @@ test.describe('TestTag Plugin - Frontend + Audit', () => {
       await frontendPage.open(TEST_URLS.LAYER_FIXTURE_PAGE);
     });
 
-    await test.step('Assert seeded elements carry TestTag attributes', async () => {
+    await test.step('Assert seeded elements carry Test ID Auto Injector attributes', async () => {
       await frontendPage.expectFixtureTaggedElementsPresent();
     });
   });
 
-  test('Frontend page with TestTag attributes', async ({ page }) => {
+  test('Frontend page with Test ID Auto Injector attributes', async ({ page }) => {
     const frontendPage = new FrontendPage(page);
 
     await test.step('Navigate to fixture page', async () => {

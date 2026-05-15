@@ -31,7 +31,7 @@ export class WordPressAuthPage {
       return;
     }
 
-    await title.fill('TestTag For WordPress');
+    await title.fill('Test ID Auto Injector');
     await this.page.fill('input#user_login', TEST_USERS.ADMIN.username);
 
     // Directly set both the hidden submit field (#pass1) and the visible display

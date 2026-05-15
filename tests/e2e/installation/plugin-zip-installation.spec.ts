@@ -7,7 +7,7 @@ import path from 'path';
 import { WordPressAuthPage } from '@pageObjects/WordPressAuthPage';
 import { TESTTAG_PLUGIN, TEST_URLS, TEST_USERS } from '@tests/constants';
 
-const ZIP_PATH = path.resolve(process.cwd(), 'dist', 'testtag-for-wp.zip');
+const ZIP_PATH = path.resolve(process.cwd(), 'dist', 'test-id-auto-injector.zip');
 
 /**
  * Plugin Zip Installation

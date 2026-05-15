@@ -1,8 +1,8 @@
-# 📸 TestTag for WordPress - CI/CD Screenshot Testing
+# 📸 Test ID Auto Injector - CI/CD Screenshot Testing
 
 ## ✅ Setup Summary
 
-I've set up a complete automated screenshot testing system for your TestTag WordPress plugin. This captures visual documentation of your plugin's functionality in CI/CD using TypeScript with Playwright, with visual regression detection.
+I've set up a complete automated screenshot testing system for your Test ID Auto Injector WordPress plugin. This captures visual documentation of your plugin's functionality in CI/CD using TypeScript with Playwright, with visual regression detection.
 
 ## 📦 What's Been Created
 
@@ -107,7 +107,7 @@ The `.github/workflows/screenshots.yml` workflow:
 
 2. **Does:**
    - Spins up WordPress + MySQL in Docker
-   - Installs and activates TestTag plugin
+   - Installs and activates Test ID Auto Injector plugin
    - Runs all Playwright screenshot tests
    - Generates HTML report with test details
    - Uploads artifacts (screenshots, reports)
